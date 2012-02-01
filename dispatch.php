@@ -350,6 +350,4 @@ function dispatch() {
   // and route the URI through
   route(method(), "/{$uri}");
 }
-
-// set some defaults
 ?>

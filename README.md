@@ -1,7 +1,9 @@
 ## Dispatch PHP Micro Framework
 At the very least, `dispatch()` is a front controller for your web application. It lets you define routes in your application, organize your code into controllers and views, along with some other functions useful in creating web apps.
 
-## Basic Usage
+## Usage Guide
+
+### Quick and Basic
 ```php
 <?php
 // include the library
@@ -25,7 +27,7 @@ dispatch();
 ?>
 ```
 
-## Route Symbol Preloader
+### Route Symbol Preloader
 This is a port of ExpressJS' route preconditions. Preloaders let you map functions against route symbols you choose. These functions then get executed when those symbols are encountered.
 
 ```php
@@ -46,7 +48,7 @@ get('/blogs/:blog_id', function ($blog_id) {
 ?>
 ```
 
-## Preconditions
+### Preconditions
 This is taken from BreezePHP. Preconditions let you setup functions that determine if execution continues or not.
 
 ```php
@@ -67,7 +69,7 @@ get('/admin/:token', function ($token) {
 ?>
 ```
 
-## Route Pass Through
+### Route Pass Through
 By default, dispatch will only execute the first route handler that matches the request URI. To let the route matching continue, call `pass()`.
 
 ```php
@@ -85,6 +87,45 @@ get('/blog/:slug', function ($slug) {
 get('/blog/admin', function () {
 	render('admin');
 });
+?>
+```
+
+### Utility Functions
+```php
+<?php
+// store a config and get it
+config('views', './views');
+config('views'); // returns './views'
+
+// stash a var and get it (useful for moving stuff between scopes)
+stash('user', $user);
+stash('user'); // returns stored $user var
+
+// redirect with a status code
+redirect('/index', 302);
+
+// redirect if a condition is met
+redirect_if(!$authenticated, '/users', 302);
+
+// send a http error code and print out a message
+error('Forbidden', 403);
+
+// get the current HTTP method or check the current method
+method(); // GET, POST, PUT, DELETE
+method('POST'); // true if POST request, false otherwise
+
+// client's IP
+client_ip();
+
+// get something or a hash from a hash
+$name = from($_POST, 'name');
+$user = from($_POST, array('username', 'email', 'password'));
+
+// escape a string
+html('Marley & Me');
+
+// load a partial using some file and locals
+$html = partial('users/profile', array('user' => $user));
 ?>
 ```
 
