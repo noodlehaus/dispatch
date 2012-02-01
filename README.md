@@ -68,7 +68,7 @@ get('/admin/:token', function ($token) {
 ```
 
 ## Route Pass Through
-By default, dispatch will only execute the first route handler that matches the request URI. To let the route matching continue, call *pass()*.
+By default, dispatch will only execute the first route handler that matches the request URI. To let the route matching continue, call `pass()`.
 
 ```php
 <?php
