@@ -3,6 +3,7 @@ At the very least, `dispatch()` is a front controller for your web application. 
 
 ## Basic Usage
 ```php
+<?php
 // include the library
 include 'dispatch.php';
 
@@ -21,12 +22,14 @@ post('/greet', function () {
 
 // serve your site
 dispatch();
+?>
 ```
 
 ## Route Symbol Preloader
 This is a port of ExpressJS' route preconditions. Preloaders let you map functions against route symbols you choose. These functions then get executed when those symbols are encountered.
 
 ```php
+<?php
 // preload blog entry whenever a matching route has :blog_id in it
 preload('blog_id', function ($blog_id) {
 	$blog = Blog::findOne($blog_id);
@@ -40,12 +43,14 @@ get('/blogs/:blog_id', function ($blog_id) {
 	$blog = stash('blog');
 	render('blogs/show', array('blog' => $blog);
 });
+?>
 ```
 
 ## Preconditions
 This is taken from BreezePHP. Preconditions let you setup functions that determine if execution continues or not.
 
 ```php
+<?php
 // if our token is invalid, print out an error
 precondition('token_valid', function ($token) {
 	if ($token !== md5('s3cr3t-s4uc3'.client_ip())) {
@@ -59,12 +64,14 @@ get('/admin/:token', function ($token) {
 	// if the precondition goes through, we render
 	render('admin');
 });
+?>
 ```
 
 ## Route Pass Through
 By default, dispatch will only execute the first route handler that matches the request URI. To let the route matching continue, call *pass()*.
 
 ```php
+<?php
 get('/blog/:slug', function ($slug) {
 	// if the blog admin is what's being requested, let it through
 	if ($slug == 'admin') {
@@ -78,6 +85,7 @@ get('/blog/:slug', function ($slug) {
 get('/blog/admin', function () {
 	render('admin');
 });
+?>
 ```
 
 ## LICENSE
