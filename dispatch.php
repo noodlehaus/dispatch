@@ -339,10 +339,10 @@ function pass() {
 	throw new PassException('Jumping to next handler');
 }
 
-function dispatch() {
+function dispatch($fake_uri = null) {
 
   // extract the request params from the URI (/controller/etc/etc...)
-  $parts = preg_split('/\?/', $_SERVER['REQUEST_URI'], -1, PREG_SPLIT_NO_EMPTY);
+  $parts = preg_split('/\?/', ($fake_ur == null ? $_SERVER['REQUEST_URI'] : $fake_uri), -1, PREG_SPLIT_NO_EMPTY);
 
   $uri = trim($parts[0], '/');
   $uri = strlen($uri) ? $uri : 'index';
