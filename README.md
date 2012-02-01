@@ -1,72 +1,72 @@
 ## Dispatch PHP Micro Framework
-At the very least, *dispatch* is a front controller for your web application. It lets you define routes in your application, organize your code into controllers and views, along with some other functions useful in creating web apps.
+At the very least, `dispatch()` is a front controller for your web application. It lets you define routes in your application, organize your code into controllers and views, along with some other functions useful in creating web apps.
 
-## Basic Example
-``` php
-include './lib/dispatch.php';
+## Basic Usage
+```php
+// include the library
+include 'dispatch.php';
 
-config('views', './views');
-config('layout', 'layout');
-
+// define your routes
 get('/greet', function () {
+	// render a view
 	render('greet-form');
 });
 
+// post handler
 post('/greet', function () {
 	$name = from($_POST, 'name');
+	// render a view while passing some locals
 	render('greet-show', array('name' => $name));
 });
 
+// serve your site
 dispatch();
 ```
 
 ## Route Symbol Preloader
-This is a port of ExpressJS' route preconditions.
+This is a port of ExpressJS' route preconditions. Preloaders let you map functions against route symbols you choose. These functions then get executed when those symbols are encountered.
 
-``` php
-include './lib/dispatch.php';
-
+```php
+// preload blog entry whenever a matching route has :blog_id in it
 preload('blog_id', function ($blog_id) {
 	$blog = Blog::findOne($blog_id);
+	// stash() lets you store stuff for later use (NOT a cache)
 	stash('blog', $blog);
 });
 
+// here, we have :blog_id in the route, so our preloader gets run
 get('/blogs/:blog_id', function ($blog_id) {
 	// pick up what we got from the stash
 	$blog = stash('blog');
 	render('blogs/show', array('blog' => $blog);
 });
-
-dispatch();
 ```
 
-## Execution Preconditions
-This is taken from BreezePHP.
+## Preconditions
+This is taken from BreezePHP. Preconditions let you setup functions that determine if execution continues or not.
 
-``` php
-include './lib/dispatch.php';
-
+```php
+// if our token is invalid, print out an error
 precondition('token_valid', function ($token) {
 	if ($token !== md5('s3cr3t-s4uc3'.client_ip())) {
 		error('Unauthorized!', 403);
 	}
 });
 
-get('/admin', function () {
-	precondition('token_valid');
+// require a valid token when accessing a page
+get('/admin/:token', function ($token) {
+	precondition('token_valid', $token);
+	// if the precondition goes through, we render
 	render('admin');
 });
-
-dispatch();
 ```
 
 ## Route Pass Through
 By default, dispatch will only execute the first route handler that matches the request URI. To let the route matching continue, call *pass()*.
 
-``` php
-include './lib/dispatch.php';
-
+```php
 get('/blog/:slug', function ($slug) {
+	// if the blog admin is what's being requested, let it through
 	if ($slug == 'admin') {
 		pass();
 	}
@@ -74,11 +74,10 @@ get('/blog/:slug', function ($slug) {
 	render('blogs/show', array('blog' => $blog));
 });
 
+// this is our actual route handler
 get('/blog/admin', function () {
 	render('admin');
 });
-
-dispatch();
 ```
 
 ## LICENSE

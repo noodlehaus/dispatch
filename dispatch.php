@@ -11,7 +11,7 @@ function config($key, $value = null) {
 	static $_config = null;
 
 	if (!defined('CONFIG_PATH')) {
-		define('CONFIG_PATH', __DIR__.'/../config.ini');
+		define('CONFIG_PATH', __DIR__.'/config.ini');
 	}
 
 	// try to load a config.ini file
@@ -167,7 +167,7 @@ function partial($view, $locals = null) {
   }
 
 	$view_root = config('views');
-	$view_root = ($view_root == null) ? '../views' : $view_root;
+	$view_root = ($view_root == null) ? '/views' : $view_root;
 
   $path = basename($view);
   $view = preg_replace('/'.$path.'$/', "_{$path}", $view);
@@ -193,7 +193,7 @@ function render($view, $locals = null, $layout = null) {
   }
 
 	$view_root = config('views');
-	$view_root = ($view_root == null) ? '../views' : $view_root;
+	$view_root = ($view_root == null) ? '/views' : $view_root;
 
   ob_start();
   include "{$view_root}/{$view}.html.php";
@@ -230,9 +230,7 @@ function precondition() {
 	if (count($args) && is_callable($args[0])) {
 		$cb_map[$name] = $args[0];
 	} else {
-		isset($cb_map[$name]) &&
-			is_callable($cb_map[$name]) &&
-			call_user_func_array($cb_map[$name], $args);
+		isset($cb_map[$name]) && is_callable($cb_map[$name]) && call_user_func_array($cb_map[$name], $args);
 	}
 }
 
