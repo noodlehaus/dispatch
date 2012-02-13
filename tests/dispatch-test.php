@@ -37,5 +37,19 @@ Suite::add('precondition()', function () {
 	assert(stash('stash') == true);
 });
 
+Suite::add('partial()', function () {
+	config('views', './tests');
+	$str = partial('partial', array('name' => 'Foo'));
+	assert(trim($str) === '<h1>Foo</h1>');
+});
+
+Suite::add('render()', function () {
+	config('views', './tests');
+	ob_start();
+	render('view', array('name' => 'Foo'));
+	$str = ob_get_clean();
+	assert(trim($str) === '<div><h1>Foo</h1></div>');
+});
+
 Suite::run();
 ?>

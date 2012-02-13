@@ -1,6 +1,6 @@
 <?php
 if (!defined('PHP_VERSION_ID') || PHP_VERSION_ID < 50300) {
-  error('dispatch requires at least PHP 5.3 to run.');
+  error(500, 'dispatch requires at least PHP 5.3 to run.');
 }
 
 // throw this when pass() is called
@@ -50,7 +50,7 @@ if (extension_loaded('mcrypt')) {
 
 	function encrypt($decoded) {
 		if (($secret = config('secret')) == null) {
-			error('encrypt() requires that you define [secret] through config() or in your config.ini');
+			error(500, 'encrypt() requires that you define [secret] through config() or in your config.ini');
 		}
 		$iv_size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB);
 		$iv_code = mcrypt_create_iv($iv_size, MCRYPT_RAND);
@@ -59,7 +59,7 @@ if (extension_loaded('mcrypt')) {
 
 	function decrypt($encoded) {
 		if (($secret = config('secret')) == null) {
-			error('decrypt() requires that you define [secret] through config() or in your config.ini');
+			error(500, 'decrypt() requires that you define [secret] through config() or in your config.ini');
 		}
 		$enc_str = from_b64($encoded);
 		$iv_size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB);
@@ -70,7 +70,7 @@ if (extension_loaded('mcrypt')) {
 
 	function set_cookie($name, $value, $span = 604800) {
 		if (($secret = config('secret')) == null) {
-			error('set_cookie() requires that you define [secret] through config() or in your config.ini');
+			error(500, 'set_cookie() requires that you define [secret] through config() or in your config.ini');
 		}
 		$stamp  = time() + $span;
 		$cksum  = md5("{$value}{$stamp}");
@@ -80,7 +80,7 @@ if (extension_loaded('mcrypt')) {
 
 	function get_cookie($name) {
 		if (($secret = config('secret')) == null) {
-			error('get_cookie() requires that you define [secret] through config() or in your config.ini');
+			error(500, 'get_cookie() requires that you define [secret] through config() or in your config.ini');
 		}
 		if (!isset($_COOKIE[$name])) {
 			return null;
@@ -118,7 +118,7 @@ function from($source, $name) {
 }
 
 function error($code = 500, $message = "Internal server error") {
-	header("HTTP/1.0 {$code} {$message}", true, $code);
+	@header("HTTP/1.0 {$code} {$message}", true, $code);
 	die($message);
 }
 
@@ -177,7 +177,9 @@ function partial($view, $locals = null) {
     ob_start();
     require $view;
     return ob_get_clean();
-  }
+  } else {
+		error(500, "Partial [{$view}] not found");
+	}
 
   return '';
 }
@@ -197,7 +199,7 @@ function render($view, $locals = null, $layout = null) {
 
   ob_start();
   include "{$view_root}/{$view}.html.php";
-  content(ob_get_clean());
+  content(trim(ob_get_clean()));
 
   if ($layout !== false) {
 
@@ -210,7 +212,7 @@ function render($view, $locals = null, $layout = null) {
 
     ob_start();
     require $layout;
-    echo ob_get_clean();
+    echo trim(ob_get_clean());
 
   } else {
     echo content();
@@ -223,7 +225,7 @@ function precondition() {
 
 	$args = func_get_args();
 	if (count($args) < 1) {
-		error('Call to precondition() requires at least 1 argument');
+		error(500, 'Call to precondition() requires at least 1 argument');
 	}
 
 	$name = array_shift($args);
@@ -246,7 +248,7 @@ function preload($sym, $cb = null) {
 	}
 
 	if (!is_string($sym) || !is_callable($cb)) {
-		error('Call to preload() requires either a symbol + callback or a list of symbols to preload');
+		error(500, 'Call to preload() requires either a symbol + callback or a list of symbols to preload');
 	}
 
 	$cb_map[$sym] = $cb;
