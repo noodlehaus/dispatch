@@ -30,11 +30,24 @@ Suite::add('config()', function () {
 });
 
 Suite::add('precondition()', function () {
-	precondition('setup_stash', function () {
-		stash('stash', true);
+	precondition('authorize', function () {
+		return true;
 	});
-	precondition('setup_stash');
-	assert(stash('stash') == true);
+	precondition('stop', function () {
+		return false;
+	});
+	try {
+		precondition('authorize');
+		assert(true);
+	} catch (PreconditionException $e) {
+		assert(false);
+	}
+	try {
+		precondition('stop');
+		assert(false);
+	} catch (PreconditionException $e) {
+		assert(true);
+	}
 });
 
 Suite::add('partial()', function () {
