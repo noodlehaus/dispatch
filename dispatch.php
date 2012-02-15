@@ -357,6 +357,7 @@ function dispatch($fake_uri = null) {
   $parts = preg_split('/\?/', ($fake_uri == null ? $_SERVER['REQUEST_URI'] : $fake_uri), -1, PREG_SPLIT_NO_EMPTY);
 
   $uri = trim($parts[0], '/');
+	$uri = (!config('rewrite') ? preg_replace('/^index\.php\/?/', '', $uri) : $uri);
   $uri = strlen($uri) ? $uri : 'index';
 
   // and route the URI through
