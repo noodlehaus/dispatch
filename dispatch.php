@@ -243,22 +243,26 @@ function precondition() {
 	}
 }
 
-function preload($sym, $cb = null) {
+function preload($sym, $cb_or_val = null) {
 
 	static $cb_map = array();
 
+	if (is_callable($cb_or_val)) {
+		$cb_map[$sym] = $cb_or_val;
+		return;
+	}
+
 	if (is_array($sym) && count($sym) > 0) {
-		foreach ($cb_map as $sym => $cb) {
-			call_user_func($cb, $sym);
+		foreach ($sym as $s) {
+			$s = substr($s, 1);
+			if (isset($cb_map[$s]) && isset($cb_or_val[$s])) {
+				call_user_func($cb_map[$s], $cb_or_val[$s]);
+			}
 		}
 		return;
 	}
 
-	if (!is_string($sym) || !is_callable($cb)) {
-		error(500, 'Call to preload() requires either a symbol + callback or a list of symbols to preload');
-	}
-
-	$cb_map[$sym] = $cb;
+	error(500, 'Call to preload() requires either a symbol + callback or a list of symbols to preload');
 }
 
 function route_to_regex($route) {
@@ -315,7 +319,7 @@ function route($method, $pattern, $callback = null) {
 
 					// call preloaders if we have symbols
 					if (count($keys)) {
-						preload(array_values($keys));
+						preload(array_values($keys), $vals);
 					}
 
 					// if no call to pass was made, exit after first route
