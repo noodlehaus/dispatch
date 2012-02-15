@@ -49,15 +49,13 @@ get('/blogs/:blog_id', function ($blog_id) {
 ```
 
 ### Preconditions
-This is taken from BreezePHP. Preconditions let you setup functions that determine if execution continues or not.
+This is taken from BreezePHP. Preconditions let you setup functions that determine if execution continues or not. Precondition function must return true or false to determine if execution continues or not.
 
 ```php
 <?php
 // if our token is invalid, print out an error
 precondition('token_valid', function ($token) {
-	if ($token !== md5('s3cr3t-s4uc3'.client_ip())) {
-		error('Unauthorized!', 403);
-	}
+	return ($token == md5('s3cr3t-s4uc3'.client_ip()));
 });
 
 // require a valid token when accessing a page
