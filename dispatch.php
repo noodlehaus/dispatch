@@ -6,6 +6,9 @@ if (!defined('PHP_VERSION_ID') || PHP_VERSION_ID < 50300) {
 // throw this when pass() is called
 class PassException extends Exception {}
 
+// for failed preconditions
+class PreconditionException extends Exception {}
+
 function config($key, $value = null) {
 
 	static $_config = null;
@@ -232,7 +235,11 @@ function precondition() {
 	if (count($args) && is_callable($args[0])) {
 		$cb_map[$name] = $args[0];
 	} else {
-		isset($cb_map[$name]) && is_callable($cb_map[$name]) && call_user_func_array($cb_map[$name], $args);
+		if (isset($cb_map[$name]) && is_callable($cb_map[$name])) {
+			if (!call_user_func_array($cb_map[$name], $args)) {
+				throw new PreconditionException('Precondition not met');
+			}
+		}
 	}
 }
 
@@ -316,6 +323,9 @@ function route($method, $pattern, $callback = null) {
 						if (is_callable($obj['callback'])) {
 							call_user_func_array($obj['callback'], $params);
 						}
+						break;
+					} catch (PreconditionException $e) {
+						error(403, 'Precondition not met');
 						break;
 					} catch (PassException $e) {
 						continue;
