@@ -49,15 +49,23 @@ get('/blogs/:blog_id', function ($blog_id) {
 ```
 
 ### Before and After Routines
-Queue callbacks that can be executed `before()` or `after()` a request.
+Queue callbacks that can be executed `before()` or `after()` a request. Callbacks are called in the order that they are queued.
 
 ```php
 <?php
+// before a request is dispatched to a handler (if any), this gets called
 before(function () {
 	$db = create_connection();
 	stash('db', $db);
 });
 
+// assume that the db connection was stash()ed
+get('/list', function () {
+	$db = stash('db');
+	// do stuff with the DB
+});
+
+// after the lifetime of the request, this gets called
 after(function () {
 	$db = stash('db');
 	close_connection($db);
