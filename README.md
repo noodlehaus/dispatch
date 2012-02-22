@@ -48,6 +48,23 @@ get('/blogs/:blog_id', function ($blog_id) {
 ?>
 ```
 
+### Before and After Routines
+Queue callbacks that can be executed `before()` or `after()` a request.
+
+```php
+<?php
+before(function () {
+	$db = create_connection();
+	stash('db', $db);
+});
+
+after(function () {
+	$db = stash('db');
+	close_connection($db);
+});
+?>
+```
+
 ### Preconditions
 This is taken from BreezePHP. Preconditions let you setup functions that determine if execution continues or not. Precondition function must return true or false to determine if execution continues or not.
 
