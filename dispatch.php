@@ -243,7 +243,35 @@ function precondition() {
 	}
 }
 
-function preload($sym, $cb_or_val = null) {
+function before($cb = null) {
+
+	static $cb_map = array();
+
+	if ($cb == null) {
+		foreach ($cb_map as $cb) {
+			call_user_func($cb);
+		}
+		return;
+	}
+
+	array_push($cb_map, $cb);
+}
+
+function after($cb = null) {
+
+	static $cb_map = array();
+
+	if ($cb == null) {
+		foreach ($cb_map as $cb) {
+			call_user_func($cb);
+		}
+		return;
+	}
+
+	array_push($cb_map, $cb);
+}
+
+function filter($sym, $cb_or_val = null) {
 
 	static $cb_map = array();
 
@@ -262,7 +290,7 @@ function preload($sym, $cb_or_val = null) {
 		return;
 	}
 
-	error(500, 'Call to preload() requires either a symbol + callback or a list of symbols to preload');
+	error(500, 'Call to filter() requires either a symbol + callback or a list of symbols to filter');
 }
 
 function route_to_regex($route) {
@@ -298,6 +326,8 @@ function route($method, $pattern, $callback = null) {
 
     } else {
 
+			before();
+
       // callback is null, so this is a route invokation. look up the callback.
       foreach ($route_map[$method] as $pat => $obj) {
 
@@ -317,9 +347,9 @@ function route($method, $pattern, $callback = null) {
             }
           }
 
-					// call preloaders if we have symbols
+					// call filters if we have symbols
 					if (count($keys)) {
-						preload(array_values($keys), $vals);
+						filter(array_values($keys), $vals);
 					}
 
 					// if no call to pass was made, exit after first route
@@ -337,8 +367,11 @@ function route($method, $pattern, $callback = null) {
 
         }
       }
+
+			after();
     }
-  } else {
+
+	} else {
     error("Request method [{$method}] is not supported.");
   }
 }
