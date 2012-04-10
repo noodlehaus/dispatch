@@ -1,4 +1,4 @@
-## Dispatch PHP Library
+## Dispatch PHP 5.4 Utility Library
 At the very least, `dispatch()` is a front controller for your web application. It lets you define routes in your application, organize your code into controllers and views, along with some other functions useful in creating web apps.
 
 ## Usage Guide
