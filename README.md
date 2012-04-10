@@ -1,4 +1,4 @@
-## Dispatch PHP Micro Framework
+## Dispatch PHP Library
 At the very least, `dispatch()` is a front controller for your web application. It lets you define routes in your application, organize your code into controllers and views, along with some other functions useful in creating web apps.
 
 ## Usage Guide
@@ -27,13 +27,13 @@ dispatch();
 ?>
 ```
 
-### Route Symbol Preloader
-This is a port of ExpressJS' route preconditions. Preloaders let you map functions against route symbols you choose. These functions then get executed when those symbols are encountered.
+### Route Symbol Filters
+This is a port of the Express route preconditions. Preloaders let you map functions against route symbols you choose. These functions then get executed when those symbols are encountered.
 
 ```php
 <?php
 // preload blog entry whenever a matching route has :blog_id in it
-preload('blog_id', function ($blog_id) {
+filter('blog_id', function ($blog_id) {
 	$blog = Blog::findOne($blog_id);
 	// stash() lets you store stuff for later use (NOT a cache)
 	stash('blog', $blog);
@@ -48,13 +48,13 @@ get('/blogs/:blog_id', function ($blog_id) {
 ?>
 ```
 
-### Before and After Routines
-Queue callbacks that can be executed `before()` or `after()` a request. Callbacks are called in the order that they are queued.
+### Middleware
+You can define routes that will be called before matching route handlers are executed via `middleware()`.
 
 ```php
 <?php
-// before a request is dispatched to a handler (if any), this gets called
-before(function () {
+// create a db connection and stash it
+middleware(function () {
 	$db = create_connection();
 	stash('db', $db);
 });
@@ -64,28 +64,22 @@ get('/list', function () {
 	$db = stash('db');
 	// do stuff with the DB
 });
-
-// after the lifetime of the request, this gets called
-after(function () {
-	$db = stash('db');
-	close_connection($db);
-});
 ?>
 ```
 
-### Preconditions
+### Conditions
 This is taken from BreezePHP. Preconditions let you setup functions that determine if execution continues or not. Precondition function must return true or false to determine if execution continues or not.
 
 ```php
 <?php
 // if our token is invalid, print out an error
-precondition('token_valid', function ($token) {
+condition('token_valid', function ($token) {
 	return ($token == md5('s3cr3t-s4uc3'.client_ip()));
 });
 
 // require a valid token when accessing a page
 get('/admin/:token', function ($token) {
-	precondition('token_valid', $token);
+	condition('token_valid', $token);
 	// if the precondition goes through, we render
 	render('admin');
 });
