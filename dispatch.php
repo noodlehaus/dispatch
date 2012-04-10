@@ -1,20 +1,26 @@
 <?php
-if (!defined('PHP_VERSION_ID') || PHP_VERSION_ID < 50300) {
+if (!defined('PHP_VERSION_ID') || PHP_VERSION_ID < 50400) {
   error(500, 'dispatch requires at least PHP 5.3 to run.');
+}
+
+// require that an APP_ROOT is defined
+if (!defined('APP_ROOT')) {
+	error(500, 'APP_ROOT is not defined.');
 }
 
 // throw this when pass() is called
 class PassException extends Exception {}
 
-// for failed preconditions
-class PreconditionException extends Exception {}
+// for failed conditions
+class ConditionException extends Exception {}
 
 function config($key, $value = null) {
 
 	static $_config = null;
 
+	// assume that config is in the approot
 	if (!defined('CONFIG_PATH')) {
-		define('CONFIG_PATH', __DIR__.'/config.ini');
+		define('CONFIG_PATH', APP_ROOT.'/config.ini');
 	}
 
 	// try to load a config.ini file
@@ -52,8 +58,8 @@ function from_b64($str) {
 if (extension_loaded('mcrypt')) {
 
 	function encrypt($decoded) {
-		if (($secret = config('secret')) == null) {
-			error(500, 'encrypt() requires that you define [secret] through config() or in your config.ini');
+		if (($secret = config('application.secret')) == null) {
+			error(500, 'encrypt() requires that you define [application.secret] through config() or in your config.ini');
 		}
 		$iv_size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB);
 		$iv_code = mcrypt_create_iv($iv_size, MCRYPT_RAND);
@@ -61,8 +67,8 @@ if (extension_loaded('mcrypt')) {
 	}
 
 	function decrypt($encoded) {
-		if (($secret = config('secret')) == null) {
-			error(500, 'decrypt() requires that you define [secret] through config() or in your config.ini');
+		if (($secret = config('application.secret')) == null) {
+			error(500, 'decrypt() requires that you define [application.secret] through config() or in your config.ini');
 		}
 		$enc_str = from_b64($encoded);
 		$iv_size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB);
@@ -72,8 +78,8 @@ if (extension_loaded('mcrypt')) {
 	}
 
 	function set_cookie($name, $value, $span = 604800) {
-		if (($secret = config('secret')) == null) {
-			error(500, 'set_cookie() requires that you define [secret] through config() or in your config.ini');
+		if (($secret = config('application.secret')) == null) {
+			error(500, 'set_cookie() requires that you define [application.secret] through config() or in your config.ini');
 		}
 		$stamp  = time() + $span;
 		$cksum  = md5("{$value}{$stamp}");
@@ -82,8 +88,8 @@ if (extension_loaded('mcrypt')) {
 	}
 
 	function get_cookie($name) {
-		if (($secret = config('secret')) == null) {
-			error(500, 'get_cookie() requires that you define [secret] through config() or in your config.ini');
+		if (($secret = config('application.secret')) == null) {
+			error(500, 'get_cookie() requires that you define [application.secret] through config() or in your config.ini');
 		}
 		if (!isset($_COOKIE[$name])) {
 			return null;
@@ -169,8 +175,8 @@ function partial($view, $locals = null) {
     extract($locals, EXTR_SKIP);
   }
 
-	$view_root = config('views');
-	$view_root = ($view_root == null) ? __DIR__.'/views' : $view_root;
+	$view_root = config('application.views');
+	$view_root = ($view_root == null) ? APP_ROOT.'/views' : $view_root;
 
   $path = basename($view);
   $view = preg_replace('/'.$path.'$/', "_{$path}", $view);
@@ -197,8 +203,8 @@ function render($view, $locals = null, $layout = null) {
     extract($locals, EXTR_SKIP);
   }
 
-	$view_root = config('views');
-	$view_root = ($view_root == null) ? __DIR__.'/views' : $view_root;
+	$view_root = config('application.views');
+	$view_root = ($view_root == null) ? APP_ROOT.'/views' : $view_root;
 
   ob_start();
   include "{$view_root}/{$view}.html.php";
@@ -207,7 +213,7 @@ function render($view, $locals = null, $layout = null) {
   if ($layout !== false) {
 
 		if ($layout == null) {
-			$layout = config('layout');
+			$layout = config('application.layout');
 			$layout = ($layout == null) ? 'layout' : $layout;
 		}
 
@@ -222,13 +228,13 @@ function render($view, $locals = null, $layout = null) {
   }
 }
 
-function precondition() {
+function condition() {
 
 	static $cb_map = array();
 
 	$args = func_get_args();
 	if (count($args) < 1) {
-		error(500, 'Call to precondition() requires at least 1 argument');
+		error(500, 'Call to condition() requires at least 1 argument');
 	}
 
 	$name = array_shift($args);
@@ -237,38 +243,23 @@ function precondition() {
 	} else {
 		if (isset($cb_map[$name]) && is_callable($cb_map[$name])) {
 			if (!call_user_func_array($cb_map[$name], $args)) {
-				throw new PreconditionException('Precondition not met');
+				throw new ConditionException('Condition not met');
 			}
 		}
 	}
 }
 
-function before($cb = null) {
+function middleware($callback = null) {
 
 	static $cb_map = array();
 
-	if ($cb == null) {
+	if ($callback == null || is_string($callback)) {
 		foreach ($cb_map as $cb) {
-			call_user_func($cb);
+			call_user_func($cb, $callback);
 		}
-		return;
+	} else {
+		array_push($cb_map, $callback);
 	}
-
-	array_push($cb_map, $cb);
-}
-
-function after($cb = null) {
-
-	static $cb_map = array();
-
-	if ($cb == null) {
-		foreach ($cb_map as $cb) {
-			call_user_func($cb);
-		}
-		return;
-	}
-
-	array_push($cb_map, $cb);
 }
 
 function filter($sym, $cb_or_val = null) {
@@ -304,35 +295,36 @@ function route_to_regex($route) {
 function route($method, $pattern, $callback = null) {
 
   // callback map by request type
-  static $route_map = array(
+  static $route_map = [
     'GET' => array(),
     'POST' => array(),
     'PUT' => array(),
     'DELETE' => array()
-  );
+  ];
 
   $method = strtoupper($method);
 
-  if (in_array($method, array('GET', 'POST', 'PUT', 'DELETE'))) {
+  if (in_array($method, ['GET', 'POST', 'PUT', 'DELETE'])) {
 
     // a callback was passed, so we create a route defiition
     if ($callback !== null) {
 
       // create a route entry for this pattern
-      $route_map[$method][$pattern] = array(
+      $route_map[$method][$pattern] = [
         'expression' => route_to_regex($pattern),
         'callback' => $callback
-      );
+      ];
 
     } else {
-
-			before();
 
       // callback is null, so this is a route invokation. look up the callback.
       foreach ($route_map[$method] as $pat => $obj) {
 
         // if the requested uri ($pat) has a matching route, let's invoke the cb
         if (preg_match($obj['expression'], $pattern, $vals)) {
+
+					// call middleware
+					middleware($pattern);
 
           // construct the params for the callback
           array_shift($vals);
@@ -358,8 +350,8 @@ function route($method, $pattern, $callback = null) {
 							call_user_func_array($obj['callback'], $params);
 						}
 						break;
-					} catch (PreconditionException $e) {
-						error(403, 'Precondition not met');
+					} catch (ConditionException $e) {
+						redirect('/index');
 						break;
 					} catch (PassException $e) {
 						continue;
@@ -367,12 +359,10 @@ function route($method, $pattern, $callback = null) {
 
         }
       }
-
-			after();
     }
 
 	} else {
-    error("Request method [{$method}] is not supported.");
+    error(500, "Request method [{$method}] is not supported.");
   }
 }
 
@@ -390,14 +380,35 @@ function pass() {
 
 function dispatch($fake_uri = null) {
 
+	// start session availability
+	session_start();
+
   // extract the request params from the URI (/controller/etc/etc...)
   $parts = preg_split('/\?/', ($fake_uri == null ? $_SERVER['REQUEST_URI'] : $fake_uri), -1, PREG_SPLIT_NO_EMPTY);
 
   $uri = trim($parts[0], '/');
-	$uri = (!config('rewrite') ? preg_replace('/^index\.php\/?/', '', $uri) : $uri);
+	$uri = (!config('application.rewrite') ? preg_replace('/^index\.php\/?/', '', $uri) : $uri);
   $uri = strlen($uri) ? $uri : 'index';
 
   // and route the URI through
   route(method(), "/{$uri}");
+}
+
+function flash($key, $val = null) {
+
+	static $copy = array();
+
+	if ($val == null) {
+
+		if (isset($_SESSION[$key])) {
+			$copy[$key] = $_SESSION[$key];
+			unset($_SESSION[$key]);
+		}
+
+		return (isset($copy[$key]) ? $copy[$key] : null);
+
+	} else {
+		$_SESSION[$key] = $val;
+	}
 }
 ?>
