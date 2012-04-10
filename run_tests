@@ -1,7 +1,0 @@
-#!/usr/local/bin/php
-<?php
-include './dispatch.php';
-
-include './tests/runner.php';
-include './tests/dispatch-test.php';
-?>
