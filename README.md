@@ -3,6 +3,11 @@ At the very least, `dispatch()` is a front controller for your web application. 
 
 ## Usage Guide
 
+### Requirements
+* PHP 5.3
+* you have to define `APP_ROOT` so it can get default locations for your `config.ini` file and `views/` folder
+* `config.ini` is required by some functions (`config()`, `encrypt()`, etc)
+
 ### Quick and Basic
 ```php
 <?php
@@ -108,6 +113,8 @@ get('/blog/admin', function () {
 ```
 
 ### Utility Functions
+Some functions rely on `config.ini` for their default settings. Using them without one will tell you what config you're missing.
+
 ```php
 <?php
 // store a config and get it
