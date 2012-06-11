@@ -58,70 +58,65 @@ function from_b64($str) {
   return $str;
 }
 
-// having mcrypt will let you use encrypt(), decrypt() and cookie stuff
-if (extension_loaded('mcrypt')) {
+function encrypt($decoded) {
+	if (($secret = config('application.secret')) == null) {
+		error(500, 'encrypt() requires that you define the [application.secret] setting.');
+	}
+	$iv_size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB);
+	$iv_code = mcrypt_create_iv($iv_size, MCRYPT_RAND);
+	return to_b64(mcrypt_encrypt(MCRYPT_RIJNDAEL_256, $secret, $decoded, MCRYPT_MODE_ECB, $iv_code));
+}
 
-	function encrypt($decoded) {
-		if (($secret = config('application.secret')) == null) {
-			error(500, 'encrypt() requires that you define the [application.secret] setting.');
-		}
-		$iv_size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB);
-		$iv_code = mcrypt_create_iv($iv_size, MCRYPT_RAND);
-		return to_b64(mcrypt_encrypt(MCRYPT_RIJNDAEL_256, $secret, $decoded, MCRYPT_MODE_ECB, $iv_code));
+function decrypt($encoded) {
+
+	if (($secret = config('application.secret')) == null) {
+		error(500, 'decrypt() requires that you define the [application.secret] setting.');
 	}
 
-	function decrypt($encoded) {
+	$enc_str = from_b64($encoded);
+	$iv_size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB);
+	$iv_code = mcrypt_create_iv($iv_size, MCRYPT_RAND);
+	$enc_str = mcrypt_decrypt(MCRYPT_RIJNDAEL_256, $secret, $enc_str, MCRYPT_MODE_ECB, $iv_code);
 
-		if (($secret = config('application.secret')) == null) {
-			error(500, 'decrypt() requires that you define the [application.secret] setting.');
-		}
+	return rtrim($enc_str, "\0");
+}
 
-		$enc_str = from_b64($encoded);
-		$iv_size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB);
-		$iv_code = mcrypt_create_iv($iv_size, MCRYPT_RAND);
-		$enc_str = mcrypt_decrypt(MCRYPT_RIJNDAEL_256, $secret, $enc_str, MCRYPT_MODE_ECB, $iv_code);
+function set_cookie($name, $value) {
 
-		return rtrim($enc_str, "\0");
+	if (($span = config('session.lifespan')) == null) {
+		error(500, 'set_cookie() requires [session.lifespan] to be defined.');
 	}
 
-	function set_cookie($name, $value) {
-
-		if (($span = config('session.lifespan')) == null) {
-			error(500, 'set_cookie() requires [session.lifespan] to be defined.');
-		}
-
-		if (($secret = config('application.secret')) == null) {
-			error(500, 'set_cookie() requires that you define the [application.secret] setting.');
-		}
-
-		$stamp  = time() + $span;
-		$cksum  = md5("{$value}{$stamp}");
-		$token  = encrypt("{$value}-{$stamp}-{$cksum}");
-		setcookie($name, $token, time() + 314496000, '/'); // 10 years
+	if (($secret = config('application.secret')) == null) {
+		error(500, 'set_cookie() requires that you define the [application.secret] setting.');
 	}
 
-	function get_cookie($name) {
-		if (($secret = config('application.secret')) == null) {
-			error(500, 'get_cookie() requires that you define the [application.secret] setting.');
-		}
-		if (!isset($_COOKIE[$name])) {
-			return null;
-		}
-		$token = decrypt($_COOKIE[$name]);
-		list($value, $stamp, $cksum) = explode('-', $token);
-		if (md5("{$value}{$stamp}") === $cksum && time() < $stamp) {
-			return $value;
-		}
+	$stamp  = time() + $span;
+	$cksum  = md5("{$value}{$stamp}");
+	$token  = encrypt("{$value}-{$stamp}-{$cksum}");
+	setcookie($name, $token, time() + 314496000, '/'); // 10 years
+}
+
+function get_cookie($name) {
+	if (($secret = config('application.secret')) == null) {
+		error(500, 'get_cookie() requires that you define the [application.secret] setting.');
+	}
+	if (!isset($_COOKIE[$name])) {
 		return null;
 	}
-
-	function delete_cookie() {
-		$cookies = func_get_args();
-		foreach ($cookies as $ck) {
-			setcookie($ck, '', -10, '/');
-		}
+	$token = decrypt($_COOKIE[$name]);
+	list($value, $stamp, $cksum) = explode('-', $token);
+	if (md5("{$value}{$stamp}") === $cksum && time() < $stamp) {
+		return $value;
 	}
+	return null;
+}
 
+function delete_cookie() {
+	$cookies = func_get_args();
+	foreach ($cookies as $ck) {
+		setcookie($ck, '', -10, '/');
+	}
 }
 
 function url($str) {
