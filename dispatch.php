@@ -1,11 +1,15 @@
 <?php
-if (!defined('PHP_VERSION_ID') || PHP_VERSION_ID < 50400) {
+if (!defined('PHP_VERSION_ID') || PHP_VERSION_ID < 50300) {
   error(500, 'dispatch requires at least PHP 5.3 to run.');
 }
 
 // require that an APP_ROOT is defined
 if (!defined('APP_ROOT')) {
 	error(500, 'APP_ROOT is not defined.');
+}
+
+if (!extension_loaded('mcrypt')) {
+  error(500, 'PHP Extension mcrypt is required by dispatch.lib.php');
 }
 
 // throw this when pass() is called
@@ -59,7 +63,7 @@ if (extension_loaded('mcrypt')) {
 
 	function encrypt($decoded) {
 		if (($secret = config('application.secret')) == null) {
-			error(500, 'encrypt() requires that you define [application.secret] through config() or in your config.ini');
+			error(500, 'encrypt() requires that you define the [application.secret] setting.');
 		}
 		$iv_size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB);
 		$iv_code = mcrypt_create_iv($iv_size, MCRYPT_RAND);
@@ -67,20 +71,29 @@ if (extension_loaded('mcrypt')) {
 	}
 
 	function decrypt($encoded) {
+
 		if (($secret = config('application.secret')) == null) {
-			error(500, 'decrypt() requires that you define [application.secret] through config() or in your config.ini');
+			error(500, 'decrypt() requires that you define the [application.secret] setting.');
 		}
+
 		$enc_str = from_b64($encoded);
 		$iv_size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB);
 		$iv_code = mcrypt_create_iv($iv_size, MCRYPT_RAND);
 		$enc_str = mcrypt_decrypt(MCRYPT_RIJNDAEL_256, $secret, $enc_str, MCRYPT_MODE_ECB, $iv_code);
+
 		return rtrim($enc_str, "\0");
 	}
 
-	function set_cookie($name, $value, $span = 604800) {
-		if (($secret = config('application.secret')) == null) {
-			error(500, 'set_cookie() requires that you define [application.secret] through config() or in your config.ini');
+	function set_cookie($name, $value) {
+
+		if (($span = config('session.lifespan')) == null) {
+			error(500, 'set_cookie() requires [session.lifespan] to be defined.');
 		}
+
+		if (($secret = config('application.secret')) == null) {
+			error(500, 'set_cookie() requires that you define the [application.secret] setting.');
+		}
+
 		$stamp  = time() + $span;
 		$cksum  = md5("{$value}{$stamp}");
 		$token  = encrypt("{$value}-{$stamp}-{$cksum}");
@@ -89,7 +102,7 @@ if (extension_loaded('mcrypt')) {
 
 	function get_cookie($name) {
 		if (($secret = config('application.secret')) == null) {
-			error(500, 'get_cookie() requires that you define [application.secret] through config() or in your config.ini');
+			error(500, 'get_cookie() requires that you define the [application.secret] setting.');
 		}
 		if (!isset($_COOKIE[$name])) {
 			return null;
@@ -111,8 +124,16 @@ if (extension_loaded('mcrypt')) {
 
 }
 
+function url($str) {
+	return urlencode($str);
+}
+
 function html($str, $enc = 'UTF-8', $flags = ENT_QUOTES) {
   return htmlentities($str, $flags, $enc);
+}
+
+function ifo($expr, $tval, $fval = '') {
+	return ($expr ? $tval : $fval);
 }
 
 function from($source, $name) {
@@ -193,6 +214,12 @@ function partial($view, $locals = null) {
   return '';
 }
 
+function json_dump($obj) {
+	header('Content-type: application/json');
+	echo json_encode($obj);
+	exit;
+}
+
 function content($value = null) {
   return stash('__content__', $value);
 }
@@ -218,6 +245,8 @@ function render($view, $locals = null, $layout = null) {
 		}
 
 		$layout = "{$view_root}/{$layout}.html.php";
+
+		header('Content-type: text/html; charset=utf-8');
 
     ob_start();
     require $layout;
@@ -295,25 +324,25 @@ function route_to_regex($route) {
 function route($method, $pattern, $callback = null) {
 
   // callback map by request type
-  static $route_map = [
+  static $route_map = array(
     'GET' => array(),
     'POST' => array(),
     'PUT' => array(),
     'DELETE' => array()
-  ];
+  );
 
   $method = strtoupper($method);
 
-  if (in_array($method, ['GET', 'POST', 'PUT', 'DELETE'])) {
+  if (in_array($method, array('GET', 'POST', 'PUT', 'DELETE'))) {
 
     // a callback was passed, so we create a route defiition
     if ($callback !== null) {
 
       // create a route entry for this pattern
-      $route_map[$method][$pattern] = [
+      $route_map[$method][$pattern] = array(
         'expression' => route_to_regex($pattern),
         'callback' => $callback
-      ];
+      );
 
     } else {
 
@@ -410,5 +439,21 @@ function flash($key, $val = null) {
 	} else {
 		$_SESSION[$key] = $val;
 	}
+}
+
+function b58_to_dec($val) {
+	return gmp_strval(gmp_init((string) $val, 58), 10);
+}
+
+function b58_to_hex($val) {
+	return gmp_strval(gmp_init((string) $val, 58), 16);
+}
+
+function dec_to_b58($val) {
+	return gmp_strval(gmp_init((string) $val, 10), 58);
+}
+
+function hex_to_b58($val) {
+	return gmp_strval(gmp_init((string) $val, 16), 58);
 }
 ?>
