@@ -3,13 +3,12 @@ if (!defined('PHP_VERSION_ID') || PHP_VERSION_ID < 50300) {
   error(500, 'dispatch requires at least PHP 5.3 to run.');
 }
 
-// require that an APP_ROOT is defined
-if (!defined('APP_ROOT')) {
-	error(500, 'APP_ROOT is not defined.');
-}
-
 if (!extension_loaded('mcrypt')) {
   error(500, 'PHP Extension mcrypt is required by dispatch.lib.php');
+}
+
+if (!defined('APP_ROOT')) {
+  error(500, 'APP_ROOT is not defined.');
 }
 
 // throw this when pass() is called
@@ -20,26 +19,42 @@ class ConditionException extends Exception {}
 
 function config($key, $value = null) {
 
-	static $_config = null;
+  static $_config = null;
 
-	// assume that config is in the approot
-	if (!defined('CONFIG_PATH')) {
-		define('CONFIG_PATH', APP_ROOT.'/config.ini');
-	}
+  // assume that config is in the approot
+  if (!defined('CONFIG_PATH')) {
+    define('CONFIG_PATH', APP_ROOT.'/config.ini');
+  }
 
-	// try to load a config.ini file
-	if ($_config == null) {
-		$_config = array();
-		if (file_exists(CONFIG_PATH)) {
-			$_config = parse_ini_file(CONFIG_PATH, true);
-		}
-	}
+  // try to load a config.ini file
+  if ($_config == null) {
+    $_config = array();
+    if (file_exists(CONFIG_PATH)) {
+      $_config = parse_ini_file(CONFIG_PATH, true);
+    }
+  }
 
-	if ($value == null) {
-		return (isset($_config[$key]) ? $_config[$key] : null);
-	}
+  if ($value == null) {
+    return (isset($_config[$key]) ? $_config[$key] : null);
+  }
 
-	$_config[$key] = $value;
+  $_config[$key] = $value;
+}
+
+function b58_to_dec($val) {
+  return gmp_strval(gmp_init((string) $val, 58), 10);
+}
+
+function b58_to_hex($val) {
+  return gmp_strval(gmp_init((string) $val, 58), 16);
+}
+
+function dec_to_b58($val) {
+  return gmp_strval(gmp_init((string) $val, 10), 58);
+}
+
+function hex_to_b58($val) {
+  return gmp_strval(gmp_init((string) $val, 16), 58);
 }
 
 function to_b64($str) {
@@ -59,68 +74,68 @@ function from_b64($str) {
 }
 
 function encrypt($decoded) {
-	if (($secret = config('application.secret')) == null) {
-		error(500, 'encrypt() requires that you define the [application.secret] setting.');
-	}
-	$iv_size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB);
-	$iv_code = mcrypt_create_iv($iv_size, MCRYPT_RAND);
-	return to_b64(mcrypt_encrypt(MCRYPT_RIJNDAEL_256, $secret, $decoded, MCRYPT_MODE_ECB, $iv_code));
+  if (($secret = config('application.secret')) == null) {
+    error(500, 'encrypt() requires that you define the [application.secret] setting.');
+  }
+  $iv_size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB);
+  $iv_code = mcrypt_create_iv($iv_size, MCRYPT_RAND);
+  return to_b64(mcrypt_encrypt(MCRYPT_RIJNDAEL_256, $secret, $decoded, MCRYPT_MODE_ECB, $iv_code));
 }
 
 function decrypt($encoded) {
 
-	if (($secret = config('application.secret')) == null) {
-		error(500, 'decrypt() requires that you define the [application.secret] setting.');
-	}
+  if (($secret = config('application.secret')) == null) {
+    error(500, 'decrypt() requires that you define the [application.secret] setting.');
+  }
 
-	$enc_str = from_b64($encoded);
-	$iv_size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB);
-	$iv_code = mcrypt_create_iv($iv_size, MCRYPT_RAND);
-	$enc_str = mcrypt_decrypt(MCRYPT_RIJNDAEL_256, $secret, $enc_str, MCRYPT_MODE_ECB, $iv_code);
+  $enc_str = from_b64($encoded);
+  $iv_size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB);
+  $iv_code = mcrypt_create_iv($iv_size, MCRYPT_RAND);
+  $enc_str = mcrypt_decrypt(MCRYPT_RIJNDAEL_256, $secret, $enc_str, MCRYPT_MODE_ECB, $iv_code);
 
-	return rtrim($enc_str, "\0");
+  return rtrim($enc_str, "\0");
 }
 
 function set_cookie($name, $value) {
 
-	if (($span = config('session.lifespan')) == null) {
-		error(500, 'set_cookie() requires [session.lifespan] to be defined.');
-	}
+  if (($span = config('session.lifespan')) == null) {
+    error(500, 'set_cookie() requires [session.lifespan] to be defined.');
+  }
 
-	if (($secret = config('application.secret')) == null) {
-		error(500, 'set_cookie() requires that you define the [application.secret] setting.');
-	}
+  if (($secret = config('application.secret')) == null) {
+    error(500, 'set_cookie() requires that you define the [application.secret] setting.');
+  }
 
-	$stamp  = time() + $span;
-	$cksum  = md5("{$value}{$stamp}");
-	$token  = encrypt("{$value}-{$stamp}-{$cksum}");
-	setcookie($name, $token, time() + 314496000, '/'); // 10 years
+  $stamp  = time() + $span;
+  $cksum  = md5("{$value}{$stamp}");
+  $token  = encrypt("{$value}-{$stamp}-{$cksum}");
+  setcookie($name, $token, time() + 314496000, '/'); // 10 years
 }
 
 function get_cookie($name) {
-	if (($secret = config('application.secret')) == null) {
-		error(500, 'get_cookie() requires that you define the [application.secret] setting.');
-	}
-	if (!isset($_COOKIE[$name])) {
-		return null;
-	}
-	$token = decrypt($_COOKIE[$name]);
-	list($value, $stamp, $cksum) = explode('-', $token);
-	if (md5("{$value}{$stamp}") === $cksum && time() < $stamp) {
-		return $value;
-	}
-	return null;
+  if (($secret = config('application.secret')) == null) {
+    error(500, 'get_cookie() requires that you define the [application.secret] setting.');
+  }
+  if (!isset($_COOKIE[$name])) {
+    return null;
+  }
+  $token = decrypt($_COOKIE[$name]);
+  list($value, $stamp, $cksum) = explode('-', $token);
+  if (md5("{$value}{$stamp}") === $cksum && time() < $stamp) {
+    return $value;
+  }
+  return null;
 }
 
 function delete_cookie() {
-	$cookies = func_get_args();
-	foreach ($cookies as $ck) {
-		setcookie($ck, '', -10, '/');
-	}
+  $cookies = func_get_args();
+  foreach ($cookies as $ck) {
+    setcookie($ck, '', -10, '/');
+  }
 }
 
 function url($str) {
-	return urlencode($str);
+  return urlencode($str);
 }
 
 function html($str, $enc = 'UTF-8', $flags = ENT_QUOTES) {
@@ -128,7 +143,7 @@ function html($str, $enc = 'UTF-8', $flags = ENT_QUOTES) {
 }
 
 function ifo($expr, $tval, $fval = '') {
-	return ($expr ? $tval : $fval);
+  return ($expr ? $tval : $fval);
 }
 
 function from($source, $name) {
@@ -143,28 +158,28 @@ function from($source, $name) {
 }
 
 function error($code = 500, $message = "Internal server error") {
-	@header("HTTP/1.0 {$code} {$message}", true, $code);
-	die($message);
+  @header("HTTP/1.0 {$code} {$message}", true, $code);
+  die($message);
 }
 
 function stash($name, $value = null) {
 
-	static $_stash = array();
+  static $_stash = array();
 
-	if ($value === null) {
+  if ($value === null) {
     return isset($_stash[$name]) ? $_stash[$name] : null;
   }
 
-	$_stash[$name] = $value;
+  $_stash[$name] = $value;
 
-	return $value;
+  return $value;
 }
 
 function method($verb = null) {
   if ($verb == null || (strtoupper($verb) == strtoupper($_SERVER['REQUEST_METHOD']))) {
     return strtoupper($_SERVER['REQUEST_METHOD']);
   }
-	error(400, 'Bad request');
+  error(400, 'Bad request');
 }
 
 function client_ip() {
@@ -182,7 +197,7 @@ function redirect($uri, $code = 302) {
 }
 
 function redirect_if($expr, $uri, $code = 302) {
-	!!$expr && redirect($uri, $code);
+  !!$expr && redirect($uri, $code);
 }
 
 function partial($view, $locals = null) {
@@ -191,8 +206,8 @@ function partial($view, $locals = null) {
     extract($locals, EXTR_SKIP);
   }
 
-	$view_root = config('application.views');
-	$view_root = ($view_root == null) ? APP_ROOT.'/views' : $view_root;
+  $view_root = config('application.views');
+  $view_root = ($view_root == null) ? APP_ROOT.'/views' : $view_root;
 
   $path = basename($view);
   $view = preg_replace('/'.$path.'$/', "_{$path}", $view);
@@ -203,16 +218,10 @@ function partial($view, $locals = null) {
     require $view;
     return ob_get_clean();
   } else {
-		error(500, "Partial [{$view}] not found");
-	}
+    error(500, "Partial [{$view}] not found");
+  }
 
   return '';
-}
-
-function json_dump($obj) {
-	header('Content-type: application/json');
-	echo json_encode($obj);
-	exit;
 }
 
 function content($value = null) {
@@ -225,8 +234,8 @@ function render($view, $locals = null, $layout = null) {
     extract($locals, EXTR_SKIP);
   }
 
-	$view_root = config('application.views');
-	$view_root = ($view_root == null) ? APP_ROOT.'/views' : $view_root;
+  $view_root = config('application.views');
+  $view_root = ($view_root == null) ? APP_ROOT.'/views' : $view_root;
 
   ob_start();
   include "{$view_root}/{$view}.html.php";
@@ -234,14 +243,14 @@ function render($view, $locals = null, $layout = null) {
 
   if ($layout !== false) {
 
-		if ($layout == null) {
-			$layout = config('application.layout');
-			$layout = ($layout == null) ? 'layout' : $layout;
-		}
+    if ($layout == null) {
+      $layout = config('application.layout');
+      $layout = ($layout == null) ? 'layout' : $layout;
+    }
 
-		$layout = "{$view_root}/{$layout}.html.php";
+    $layout = "{$view_root}/{$layout}.html.php";
 
-		header('Content-type: text/html; charset=utf-8');
+    header('Content-type: text/html; charset=utf-8');
 
     ob_start();
     require $layout;
@@ -254,58 +263,58 @@ function render($view, $locals = null, $layout = null) {
 
 function condition() {
 
-	static $cb_map = array();
+  static $cb_map = array();
 
-	$args = func_get_args();
-	if (count($args) < 1) {
-		error(500, 'Call to condition() requires at least 1 argument');
-	}
+  $args = func_get_args();
+  if (count($args) < 1) {
+    error(500, 'Call to condition() requires at least 1 argument');
+  }
 
-	$name = array_shift($args);
-	if (count($args) && is_callable($args[0])) {
-		$cb_map[$name] = $args[0];
-	} else {
-		if (isset($cb_map[$name]) && is_callable($cb_map[$name])) {
-			if (!call_user_func_array($cb_map[$name], $args)) {
-				throw new ConditionException('Condition not met');
-			}
-		}
-	}
+  $name = array_shift($args);
+  if (count($args) && is_callable($args[0])) {
+    $cb_map[$name] = $args[0];
+  } else {
+    if (isset($cb_map[$name]) && is_callable($cb_map[$name])) {
+      if (!call_user_func_array($cb_map[$name], $args)) {
+        throw new ConditionException('Condition not met');
+      }
+    }
+  }
 }
 
 function middleware($callback = null) {
 
-	static $cb_map = array();
+  static $cb_map = array();
 
-	if ($callback == null || is_string($callback)) {
-		foreach ($cb_map as $cb) {
-			call_user_func($cb, $callback);
-		}
-	} else {
-		array_push($cb_map, $callback);
-	}
+  if ($callback == null || is_string($callback)) {
+    foreach ($cb_map as $cb) {
+      call_user_func($cb, $callback);
+    }
+  } else {
+    array_push($cb_map, $callback);
+  }
 }
 
 function filter($sym, $cb_or_val = null) {
 
-	static $cb_map = array();
+  static $cb_map = array();
 
-	if (is_callable($cb_or_val)) {
-		$cb_map[$sym] = $cb_or_val;
-		return;
-	}
+  if (is_callable($cb_or_val)) {
+    $cb_map[$sym] = $cb_or_val;
+    return;
+  }
 
-	if (is_array($sym) && count($sym) > 0) {
-		foreach ($sym as $s) {
-			$s = substr($s, 1);
-			if (isset($cb_map[$s]) && isset($cb_or_val[$s])) {
-				call_user_func($cb_map[$s], $cb_or_val[$s]);
-			}
-		}
-		return;
-	}
+  if (is_array($sym) && count($sym) > 0) {
+    foreach ($sym as $s) {
+      $s = substr($s, 1);
+      if (isset($cb_map[$s]) && isset($cb_or_val[$s])) {
+        call_user_func($cb_map[$s], $cb_or_val[$s]);
+      }
+    }
+    return;
+  }
 
-	error(500, 'Call to filter() requires either a symbol + callback or a list of symbols to filter');
+  error(500, 'Call to filter() requires either a symbol + callback or a list of symbols to filter');
 }
 
 function route_to_regex($route) {
@@ -347,8 +356,8 @@ function route($method, $pattern, $callback = null) {
         // if the requested uri ($pat) has a matching route, let's invoke the cb
         if (preg_match($obj['expression'], $pattern, $vals)) {
 
-					// call middleware
-					middleware($pattern);
+          // call middleware
+          middleware($pattern);
 
           // construct the params for the callback
           array_shift($vals);
@@ -363,55 +372,55 @@ function route($method, $pattern, $callback = null) {
             }
           }
 
-					// call filters if we have symbols
-					if (count($keys)) {
-						filter(array_values($keys), $vals);
-					}
+          // call filters if we have symbols
+          if (count($keys)) {
+            filter(array_values($keys), $vals);
+          }
 
-					// if no call to pass was made, exit after first route
-					try {
-						if (is_callable($obj['callback'])) {
-							call_user_func_array($obj['callback'], $params);
-						}
-						break;
-					} catch (ConditionException $e) {
-						redirect('/index');
-						break;
-					} catch (PassException $e) {
-						continue;
-					}
+          // if no call to pass was made, exit after first route
+          try {
+            if (is_callable($obj['callback'])) {
+              call_user_func_array($obj['callback'], $params);
+            }
+            break;
+          } catch (ConditionException $e) {
+            redirect('/index');
+            break;
+          } catch (PassException $e) {
+            continue;
+          }
 
         }
       }
     }
 
-	} else {
+  } else {
     error(500, "Request method [{$method}] is not supported.");
   }
 }
 
 function get($path, $cb) {
-	route('GET', $path, $cb);
+  route('GET', $path, $cb);
 }
 
 function post($path, $cb) {
-	route('POST', $path, $cb);
+  route('POST', $path, $cb);
 }
 
 function pass() {
-	throw new PassException('Jumping to next handler');
+  throw new PassException('Jumping to next handler');
 }
 
 function dispatch($fake_uri = null) {
 
-	// start session availability
-	session_start();
+  // start session availability
+  session_start();
 
   // extract the request params from the URI (/controller/etc/etc...)
   $parts = preg_split('/\?/', ($fake_uri == null ? $_SERVER['REQUEST_URI'] : $fake_uri), -1, PREG_SPLIT_NO_EMPTY);
 
   $uri = trim($parts[0], '/');
-	$uri = (!config('application.rewrite') ? preg_replace('/^index\.php\/?/', '', $uri) : $uri);
+  $uri = (!config('application.rewrite') ? preg_replace('/^index\.php\/?/', '', $uri) : $uri);
   $uri = strlen($uri) ? $uri : 'index';
 
   // and route the URI through
@@ -420,35 +429,19 @@ function dispatch($fake_uri = null) {
 
 function flash($key, $val = null) {
 
-	static $copy = array();
+  static $copy = array();
 
-	if ($val == null) {
+  if ($val == null) {
 
-		if (isset($_SESSION[$key])) {
-			$copy[$key] = $_SESSION[$key];
-			unset($_SESSION[$key]);
-		}
+    if (isset($_SESSION[$key])) {
+      $copy[$key] = $_SESSION[$key];
+      unset($_SESSION[$key]);
+    }
 
-		return (isset($copy[$key]) ? $copy[$key] : null);
+    return (isset($copy[$key]) ? $copy[$key] : null);
 
-	} else {
-		$_SESSION[$key] = $val;
-	}
-}
-
-function b58_to_dec($val) {
-	return gmp_strval(gmp_init((string) $val, 58), 10);
-}
-
-function b58_to_hex($val) {
-	return gmp_strval(gmp_init((string) $val, 58), 16);
-}
-
-function dec_to_b58($val) {
-	return gmp_strval(gmp_init((string) $val, 10), 58);
-}
-
-function hex_to_b58($val) {
-	return gmp_strval(gmp_init((string) $val, 16), 58);
+  } else {
+    $_SESSION[$key] = $val;
+  }
 }
 ?>
