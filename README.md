@@ -54,7 +54,7 @@ get('/blogs/:blog_id', function ($blog_id) {
 ```
 
 ### Middleware
-You can define routes that will be called before matching route handlers are executed via `middleware()`.
+You can define routines that will be called before matching route handlers are executed via `middleware()`.
 
 ```php
 <?php
@@ -73,7 +73,7 @@ get('/list', function () {
 ```
 
 ### Conditions
-This is taken from BreezePHP. Preconditions let you setup functions that determine if execution continues or not. Precondition function must return true or false to determine if execution continues or not.
+This is taken from BreezePHP. Conditions let you setup functions that determine if execution continues or not. Condition functions must return true or false to determine if execution continues or not.
 
 ```php
 <?php
