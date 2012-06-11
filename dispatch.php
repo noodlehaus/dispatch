@@ -83,11 +83,9 @@ function encrypt($decoded) {
 }
 
 function decrypt($encoded) {
-
   if (($secret = config('application.secret')) == null) {
     error(500, 'decrypt() requires that you define the [application.secret] setting.');
   }
-
   $enc_str = from_b64($encoded);
   $iv_size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB);
   $iv_code = mcrypt_create_iv($iv_size, MCRYPT_RAND);
@@ -96,34 +94,31 @@ function decrypt($encoded) {
   return rtrim($enc_str, "\0");
 }
 
-function set_cookie($name, $value) {
+function set_cookie($name, $value, $lifespan = 31536000) {
 
-  if (($span = config('session.lifespan')) == null) {
-    error(500, 'set_cookie() requires [session.lifespan] to be defined.');
-  }
-
-  if (($secret = config('application.secret')) == null) {
-    error(500, 'set_cookie() requires that you define the [application.secret] setting.');
-  }
+  $span = config('session.lifespan');
+  $span = ($span == null ? $lifespan : $span);
 
   $stamp  = time() + $span;
   $cksum  = md5("{$value}{$stamp}");
   $token  = encrypt("{$value}-{$stamp}-{$cksum}");
+
   setcookie($name, $token, time() + 314496000, '/'); // 10 years
 }
 
 function get_cookie($name) {
-  if (($secret = config('application.secret')) == null) {
-    error(500, 'get_cookie() requires that you define the [application.secret] setting.');
-  }
+
   if (!isset($_COOKIE[$name])) {
     return null;
   }
+
   $token = decrypt($_COOKIE[$name]);
   list($value, $stamp, $cksum) = explode('-', $token);
+
   if (md5("{$value}{$stamp}") === $cksum && time() < $stamp) {
     return $value;
   }
+
   return null;
 }
 
@@ -134,16 +129,12 @@ function delete_cookie() {
   }
 }
 
-function url($str) {
+function u($str) {
   return urlencode($str);
 }
 
-function html($str, $enc = 'UTF-8', $flags = ENT_QUOTES) {
+function h($str, $enc = 'UTF-8', $flags = ENT_QUOTES) {
   return htmlentities($str, $flags, $enc);
-}
-
-function ifo($expr, $tval, $fval = '') {
-  return ($expr ? $tval : $fval);
 }
 
 function from($source, $name) {
@@ -266,17 +257,16 @@ function condition() {
   static $cb_map = array();
 
   $args = func_get_args();
-  if (count($args) < 1) {
-    error(500, 'Call to condition() requires at least 1 argument');
-  }
 
-  $name = array_shift($args);
-  if (count($args) && is_callable($args[0])) {
-    $cb_map[$name] = $args[0];
-  } else {
-    if (isset($cb_map[$name]) && is_callable($cb_map[$name])) {
-      if (!call_user_func_array($cb_map[$name], $args)) {
-        throw new ConditionException('Condition not met');
+  if (count($args) >= 1) {
+    $name = array_shift($args);
+    if (count($args) && is_callable($args[0])) {
+      $cb_map[$name] = $args[0];
+    } else {
+      if (isset($cb_map[$name]) && is_callable($cb_map[$name])) {
+        if (!call_user_func_array($cb_map[$name], $args)) {
+          throw new ConditionException('Condition not met');
+        }
       }
     }
   }
@@ -411,22 +401,7 @@ function pass() {
   throw new PassException('Jumping to next handler');
 }
 
-function dispatch($fake_uri = null) {
-
-  // start session availability
-  session_start();
-
-  // extract the request params from the URI (/controller/etc/etc...)
-  $parts = preg_split('/\?/', ($fake_uri == null ? $_SERVER['REQUEST_URI'] : $fake_uri), -1, PREG_SPLIT_NO_EMPTY);
-
-  $uri = trim($parts[0], '/');
-  $uri = (!config('application.rewrite') ? preg_replace('/^index\.php\/?/', '', $uri) : $uri);
-  $uri = strlen($uri) ? $uri : 'index';
-
-  // and route the URI through
-  route(method(), "/{$uri}");
-}
-
+// TODO: change this to use cookies
 function flash($key, $val = null) {
 
   static $copy = array();
@@ -443,5 +418,21 @@ function flash($key, $val = null) {
   } else {
     $_SESSION[$key] = $val;
   }
+}
+
+function dispatch($fake_uri = null) {
+
+  // start session availability
+  session_start();
+
+  // extract the request params from the URI (/controller/etc/etc...)
+  $parts = preg_split('/\?/', ($fake_uri == null ? $_SERVER['REQUEST_URI'] : $fake_uri), -1, PREG_SPLIT_NO_EMPTY);
+
+  $uri = trim($parts[0], '/');
+  $uri = (!config('application.rewrite') ? preg_replace('/^index\.php\/?/', '', $uri) : $uri);
+  $uri = strlen($uri) ? $uri : 'index';
+
+  // and route the URI through
+  route(method(), "/{$uri}");
 }
 ?>
