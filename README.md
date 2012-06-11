@@ -1,12 +1,10 @@
 ## Dispatch PHP 5.3 Utility Library
-At the very least, `dispatch()` is a front controller for your web application. It lets you define routes in your application, organize your code into controllers and views, along with some other functions useful in creating web apps.
-
-## Usage Guide
+At the very least, `dispatch()` is a front controller for your web app. It doesn't give you the full MVC setup, but it lets you define url routes and segregate your app logic from your views.
 
 ### Requirements
-* PHP 5.3
-* you have to define `APP_ROOT` so it can get default locations for your `config.ini` file and `views/` folder
-* `config.ini` is required by some functions (`config()`, `encrypt()`, etc)
+* PHP 5.3 with `mcrypt`
+* you have to define `APP_ROOT` so it can get default locations for your `config.ini` file and `views` folder
+* `config.ini` is required by some functions (like `config()` and `encrypt()`)
 
 ### Quick and Basic
 ```php
@@ -33,7 +31,7 @@ dispatch();
 ```
 
 ### Route Symbol Filters
-This is a port of the Express route preconditions. Preloaders let you map functions against route symbols you choose. These functions then get executed when those symbols are encountered.
+This is taken from ExpressJS. Route filters let you map functions against symbols in your routes. These functions then get executed when those symbols are matched.
 
 ```php
 <?php
@@ -54,7 +52,7 @@ get('/blogs/:blog_id', function ($blog_id) {
 ```
 
 ### Middleware
-You can define routines that will be called before matching route handlers are executed via `middleware()`.
+If you have wind up routines that need to be done before handling the request, you can queue them up using the `middleware()` function.
 
 ```php
 <?php
@@ -92,7 +90,7 @@ get('/admin/:token', function ($token) {
 ```
 
 ### Route Pass Through
-By default, dispatch will only execute the first route handler that matches the request URI. To let the route matching continue, call `pass()`.
+This is also taken from BreezePHP. By default, dispatch will only execute the first route handler that matches the request URI. To let the route matching continue, call `pass()`.
 
 ```php
 <?php
@@ -112,8 +110,21 @@ get('/blog/admin', function () {
 ?>
 ```
 
+### Configurations
+Dispatch makes use of some configuration settings via the `config.ini` file, which should be located in your defined app root. Functions like `encrypt()` and `decrypt()` makes use of the `application.secret` setting. These configuration settings can be fetched via calls to `config()`. They can also be set during runtime but the changes are not written to the file.
+
+```php
+<?php
+// set a different folder for the views
+config('views', APP_ROOT.'/myviews');
+
+// get the encryption secret
+$secret = config('application.secret');
+?>
+```
+
 ### Utility Functions
-Some functions rely on `config.ini` for their default settings. Using them without one will tell you what config you're missing.
+There are a lot of other useful routines in the library. Documentation is still lacking but they're very small and easy to figure out. Read the source for now.
 
 ```php
 <?php
