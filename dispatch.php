@@ -129,11 +129,11 @@ function delete_cookie() {
   }
 }
 
-function u($str) {
+function url($str) {
   return urlencode($str);
 }
 
-function h($str, $enc = 'UTF-8', $flags = ENT_QUOTES) {
+function html($str, $enc = 'UTF-8', $flags = ENT_QUOTES) {
   return htmlentities($str, $flags, $enc);
 }
 
