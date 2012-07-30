@@ -1,14 +1,22 @@
 <?php
+function error($code, $message) {
+  if (PHP_SAPI === 'cli')
+    die("Error {$code}: {$message}\n")
+  else
+    http_error($code, $message);
+}
+
+function http_error($code = 500, $message = "Internal server error") {
+  @header("HTTP/1.0 {$code} {$message}", true, $code);
+  die($message);
+}
+
 if (!defined('PHP_VERSION_ID') || PHP_VERSION_ID < 50300) {
   error(500, 'dispatch requires at least PHP 5.3 to run.');
 }
 
 if (!extension_loaded('mcrypt')) {
   error(500, 'PHP Extension mcrypt is required by dispatch.lib.php');
-}
-
-if (!defined('APP_ROOT')) {
-  error(500, 'APP_ROOT is not defined.');
 }
 
 // throw this when pass() is called
@@ -19,19 +27,11 @@ class ConditionException extends Exception {}
 
 function config($key, $value = null) {
 
-  static $_config = null;
+  static $_config = array();
 
-  // assume that config is in the approot
-  if (!defined('CONFIG_PATH')) {
-    define('CONFIG_PATH', APP_ROOT.'/config.ini');
-  }
-
-  // try to load a config.ini file
-  if ($_config == null) {
-    $_config = array();
-    if (file_exists(CONFIG_PATH)) {
-      $_config = parse_ini_file(CONFIG_PATH, true);
-    }
+  if ($key === 'source' && file_exists($value)) {
+    $_config = parse_ini_file($value, true);
+    return;
   }
 
   if ($value == null) {
@@ -74,8 +74,8 @@ function from_b64($str) {
 }
 
 function encrypt($decoded) {
-  if (($secret = config('application.secret')) == null) {
-    error(500, 'encrypt() requires that you define the [application.secret] setting.');
+  if (($secret = config('secret')) == null) {
+    error(500, 'encrypt() requires that you define the [secret] setting.');
   }
   $iv_size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB);
   $iv_code = mcrypt_create_iv($iv_size, MCRYPT_RAND);
@@ -83,7 +83,7 @@ function encrypt($decoded) {
 }
 
 function decrypt($encoded) {
-  if (($secret = config('application.secret')) == null) {
+  if (($secret = config('secret')) == null) {
     error(500, 'decrypt() requires that you define the [application.secret] setting.');
   }
   $enc_str = from_b64($encoded);
@@ -94,10 +94,10 @@ function decrypt($encoded) {
   return rtrim($enc_str, "\0");
 }
 
-function set_cookie($name, $value, $lifespan = 31536000) {
+function set_cookie($name, $value, $expire = 31536000) {
 
-  $span = config('session.lifespan');
-  $span = ($span == null ? $lifespan : $span);
+  $span = config('expire');
+  $span = ($span == null ? $expire : $span);
 
   $stamp  = time() + $span;
   $cksum  = md5("{$value}{$stamp}");
@@ -148,11 +148,6 @@ function from($source, $name) {
   return isset($source[$name]) ? $source[$name] : null ;
 }
 
-function error($code = 500, $message = "Internal server error") {
-  @header("HTTP/1.0 {$code} {$message}", true, $code);
-  die($message);
-}
-
 function stash($name, $value = null) {
 
   static $_stash = array();
@@ -197,8 +192,8 @@ function partial($view, $locals = null) {
     extract($locals, EXTR_SKIP);
   }
 
-  $view_root = config('application.views');
-  $view_root = ($view_root == null) ? APP_ROOT.'/views' : $view_root;
+  $view_root = config('views');
+  $view_root = ($view_root == null) ? './views' : $view_root;
 
   $path = basename($view);
   $view = preg_replace('/'.$path.'$/', "_{$path}", $view);
@@ -225,8 +220,8 @@ function render($view, $locals = null, $layout = null) {
     extract($locals, EXTR_SKIP);
   }
 
-  $view_root = config('application.views');
-  $view_root = ($view_root == null) ? APP_ROOT.'/views' : $view_root;
+  $view_root = config('views');
+  $view_root = ($view_root == null) ? './views' : $view_root;
 
   ob_start();
   include "{$view_root}/{$view}.html.php";
@@ -235,7 +230,7 @@ function render($view, $locals = null, $layout = null) {
   if ($layout !== false) {
 
     if ($layout == null) {
-      $layout = config('application.layout');
+      $layout = config('layout');
       $layout = ($layout == null) ? 'layout' : $layout;
     }
 
@@ -401,38 +396,43 @@ function pass() {
   throw new PassException('Jumping to next handler');
 }
 
-// TODO: change this to use cookies
-function flash($key, $val = null) {
+function flash($key, $msg = null, $now = false) {
 
-  static $copy = array();
+  static $x = array();
 
-  if ($val == null) {
+  if ($c = get_cookie('_F'))
+    $c = json_decode($c, true);
+  else
+    $c = array();
 
-    if (isset($_SESSION[$key])) {
-      $copy[$key] = $_SESSION[$key];
-      unset($_SESSION[$key]);
+  if ($msg == null) {
+
+    if (isset($c[$key])) {
+      $x[$key] = $c[$key];
+      unset($c[$key]);
+      set_cookie('_F', json_encode($c));
     }
 
-    return (isset($copy[$key]) ? $copy[$key] : null);
-
-  } else {
-    $_SESSION[$key] = $val;
+    return (isset($x[$key]) ? $x[$key] : null);
   }
+
+  if (!$now) {
+    $c[$key] = $msg;
+    set_cookie('_F', json_encode($c));
+    return;
+  }
+
+  $x[$key] = $msg;
 }
 
 function dispatch($fake_uri = null) {
 
-  // start session availability
-  session_start();
-
-  // extract the request params from the URI (/controller/etc/etc...)
   $parts = preg_split('/\?/', ($fake_uri == null ? $_SERVER['REQUEST_URI'] : $fake_uri), -1, PREG_SPLIT_NO_EMPTY);
 
   $uri = trim($parts[0], '/');
-  $uri = (!config('application.rewrite') ? preg_replace('/^index\.php\/?/', '', $uri) : $uri);
+  $uri = (!config('rewrite') ? preg_replace('/^index\.php\/?/', '', $uri) : $uri);
   $uri = strlen($uri) ? $uri : 'index';
 
-  // and route the URI through
   route(method(), "/{$uri}");
 }
 ?>
