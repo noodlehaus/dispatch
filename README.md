@@ -154,7 +154,7 @@ redirect('/index', 302);
 redirect_if(!$authenticated, '/users', 302);
 
 // send a http error code and print out a message
-error('Forbidden', 403);
+error(403, 'Forbidden');
 
 // get the current HTTP method or check the current method
 method(); // GET, POST, PUT, DELETE
