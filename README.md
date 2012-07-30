@@ -2,9 +2,16 @@
 At the very least, `dispatch()` is a front controller for your web app. It doesn't give you the full MVC setup, but it lets you define url routes and segregate your app logic from your views.
 
 ### Requirements
-* PHP 5.3 with `mcrypt`
-* you have to define `APP_ROOT` so it can get default locations for your `config.ini` file and `views` folder
-* `config.ini` is required by some functions (like `config()` and `encrypt()`)
+* PHP 5.3 with `mcrypt` extension for signed cookies
+
+### Configurable Variables and Defaults
+The following functions rely on variables set via `config()`:
+* `render()` and `partial()` rely on `config('views')`, defaults to `./views`
+* `render()` also relies on `config('layout')` to figure out which file to use for the page layout
+* `encrypt()` relies on `config('secret')`, defaults to an empty string
+* since `set_cookie()` and `get_cookie()` use `encrypt()`, they too rely on `config('secret')`
+* `dispatch()` relies on `config('rewrite')` to determine if it should compensate for the lack of `mod_rewrite`
+* `config()` loads the ini file pointed to by `config('ini')`
 
 ### Quick and Basic
 ```php
@@ -111,15 +118,19 @@ get('/blog/admin', function () {
 ```
 
 ### Configurations
-Dispatch makes use of some configuration settings via the `config.ini` file, which should be located in your defined app root. Functions like `encrypt()` and `decrypt()` makes use of the `application.secret` setting. These configuration settings can be fetched via calls to `config()`. They can also be set during runtime but the changes are not written to the file.
+You can make use of ini files for configuration by doing something like `config('ini', 'myconfig.ini')`.
+This lets you put configuration settings in ini files instead of making `config()` calls in your code.
 
 ```php
 <?php
+// load a config.ini file
+config('ini', 'my-settings.ini');
+
 // set a different folder for the views
-config('views', APP_ROOT.'/myviews');
+config('views', __DIR__.'/myviews');
 
 // get the encryption secret
-$secret = config('application.secret');
+$secret = config('secret');
 ?>
 ```
 
