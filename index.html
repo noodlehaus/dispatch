@@ -57,7 +57,7 @@
 <code>config('rewrite')</code> is used by <code>dispatch()</code> to compensate for the lack of <code>mod_rewrite</code>, defaults to <code>true</code>
 </li>
 <li>
-<code>config('ini')</code> makes the specified ini contents accessible via <code>config()</code> calls</li>
+<code>config('source')</code> makes the specified ini contents accessible via <code>config()</code> calls</li>
 </ul><h3>Quick and Basic</h3>
 
 <p>A typical PHP app using <code>dispatch()</code> will look like this.</p>
@@ -166,7 +166,7 @@
 
 <h3>Configurations</h3>
 
-<p>You can make use of ini files for configuration by doing something like <code>config('ini', 'myconfig.ini')</code>.
+<p>You can make use of ini files for configuration by doing something like <code>config('source', 'myconfig.ini')</code>.
 This lets you put configuration settings in ini files instead of making <code>config()</code> calls in your code.</p>
 
 <div class="highlight"><pre><span class="cp">&lt;?php</span>
