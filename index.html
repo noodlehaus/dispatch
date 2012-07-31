@@ -52,6 +52,8 @@
 <li>
 <code>config('secret')</code> is used by <code>encrypt()</code>, <code>set_cookie()</code> and <code>get_cookie()</code>, defaults to an empty string</li>
 <li>
+<code>config('expire')</code> is used by <code>set_cookie()</code> and <code>get_cookie()</code>, defaults to `31536000`</li>
+<li>
 <code>config('rewrite')</code> is used by <code>dispatch()</code> to compensate for the lack of <code>mod_rewrite</code>, defaults to <code>true</code>
 </li>
 <li>
@@ -237,6 +239,6 @@ This lets you put configuration settings in ini files instead of making <code>co
       </footer>
     </div>
     <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
-		
+
   </body>
 </html>
