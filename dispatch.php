@@ -1,7 +1,7 @@
 <?php
 function error($code, $message) {
   if (PHP_SAPI === 'cli')
-    die("Error {$code}: {$message}\n")
+    die("Error {$code}: {$message}\n");
   else
     http_error($code, $message);
 }
@@ -29,32 +29,12 @@ function config($key, $value = null) {
 
   static $_config = array();
 
-  if ($key === 'source' && file_exists($value)) {
+  if ($key === 'source' && file_exists($value))
     $_config = parse_ini_file($value, true);
-    return;
-  }
-
-  if ($value == null) {
+  else if ($value == null)
     return (isset($_config[$key]) ? $_config[$key] : null);
-  }
 
   $_config[$key] = $value;
-}
-
-function b58_to_dec($val) {
-  return gmp_strval(gmp_init((string) $val, 58), 10);
-}
-
-function b58_to_hex($val) {
-  return gmp_strval(gmp_init((string) $val, 58), 16);
-}
-
-function dec_to_b58($val) {
-  return gmp_strval(gmp_init((string) $val, 10), 58);
-}
-
-function hex_to_b58($val) {
-  return gmp_strval(gmp_init((string) $val, 16), 58);
 }
 
 function to_b64($str) {
@@ -292,9 +272,8 @@ function filter($sym, $cb_or_val = null) {
   if (is_array($sym) && count($sym) > 0) {
     foreach ($sym as $s) {
       $s = substr($s, 1);
-      if (isset($cb_map[$s]) && isset($cb_or_val[$s])) {
+      if (isset($cb_map[$s]) && isset($cb_or_val[$s]))
         call_user_func($cb_map[$s], $cb_or_val[$s]);
-      }
     }
     return;
   }
