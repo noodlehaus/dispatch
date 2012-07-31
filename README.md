@@ -9,7 +9,7 @@ The following functions rely on variables set via `config()`:
 * `config('views')` is used by `render()` and `partial()`, defaults to `./views`
 * `config('layout')` is used by `render()`, defaults to `layout`
 * `config('secret')` is used by `encrypt()`, `set_cookie()` and `get_cookie()`, defaults to an empty string
-* `config('expire')` is used by `set_cookie()` and `get_cookie()`, defaults to 31536000
+* `config('expire')` is used by `set_cookie()` and `get_cookie()`, defaults to `31536000`
 * `config('rewrite')` is used by `dispatch()` to compensate for the lack of `mod_rewrite`, defaults to `true`
 * `config('ini')` makes the specified ini contents accessible via `config()` calls
 
