@@ -14,6 +14,8 @@ The following functions rely on variables set via `config()`:
 * `config('ini')` makes the specified ini contents accessible via `config()` calls
 
 ### Quick and Basic
+A typical PHP app using dispatch() will look like this.
+
 ```php
 <?php
 // include the library
