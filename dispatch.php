@@ -54,18 +54,21 @@ function from_b64($str) {
 }
 
 function encrypt($decoded) {
-  if (($secret = config('secret')) == null) {
+
+  if (($secret = config('secret')) == null)
     error(500, 'encrypt() requires that you define the [secret] setting.');
-  }
+
   $iv_size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB);
   $iv_code = mcrypt_create_iv($iv_size, MCRYPT_RAND);
+
   return to_b64(mcrypt_encrypt(MCRYPT_RIJNDAEL_256, $secret, $decoded, MCRYPT_MODE_ECB, $iv_code));
 }
 
 function decrypt($encoded) {
-  if (($secret = config('secret')) == null) {
+
+  if (($secret = config('secret')) == null)
     error(500, 'decrypt() requires that you define the [application.secret] setting.');
-  }
+
   $enc_str = from_b64($encoded);
   $iv_size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB);
   $iv_code = mcrypt_create_iv($iv_size, MCRYPT_RAND);
@@ -88,25 +91,22 @@ function set_cookie($name, $value, $expire = 31536000) {
 
 function get_cookie($name) {
 
-  if (!isset($_COOKIE[$name])) {
+  if (!isset($_COOKIE[$name]))
     return null;
-  }
 
   $token = decrypt($_COOKIE[$name]);
   list($value, $stamp, $cksum) = explode('-', $token);
 
-  if (md5("{$value}{$stamp}") === $cksum && time() < $stamp) {
+  if (md5("{$value}{$stamp}") === $cksum && time() < $stamp)
     return $value;
-  }
 
   return null;
 }
 
 function delete_cookie() {
   $cookies = func_get_args();
-  foreach ($cookies as $ck) {
+  foreach ($cookies as $ck)
     setcookie($ck, '', -10, '/');
-  }
 }
 
 function url($str) {
@@ -118,13 +118,17 @@ function html($str, $enc = 'UTF-8', $flags = ENT_QUOTES) {
 }
 
 function from($source, $name) {
+
   if (is_array($name)) {
+
     $data = array();
-    foreach ($name as $k) {
+
+    foreach ($name as $k)
       $data[$k] = isset($source[$k]) ? $source[$k] : null ;
-    }
+
     return $data;
   }
+
   return isset($source[$name]) ? $source[$name] : null ;
 }
 
@@ -132,9 +136,8 @@ function stash($name, $value = null) {
 
   static $_stash = array();
 
-  if ($value === null) {
+  if ($value === null)
     return isset($_stash[$name]) ? $_stash[$name] : null;
-  }
 
   $_stash[$name] = $value;
 
@@ -142,18 +145,20 @@ function stash($name, $value = null) {
 }
 
 function method($verb = null) {
-  if ($verb == null || (strtoupper($verb) == strtoupper($_SERVER['REQUEST_METHOD']))) {
+
+  if ($verb == null || (strtoupper($verb) == strtoupper($_SERVER['REQUEST_METHOD'])))
     return strtoupper($_SERVER['REQUEST_METHOD']);
-  }
+
   error(400, 'Bad request');
 }
 
 function client_ip() {
-  if (isset($_SERVER['HTTP_CLIENT_IP'])) {
+
+  if (isset($_SERVER['HTTP_CLIENT_IP']))
     return $_SERVER['HTTP_CLIENT_IP'];
-  } else if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+  else if (isset($_SERVER['HTTP_X_FORWARDED_FOR']))
     return $_SERVER['HTTP_X_FORWARDED_FOR'];
-  }
+
   return $_SERVER['REMOTE_ADDR'];
 }
 
@@ -404,7 +409,7 @@ function flash($key, $msg = null, $now = false) {
   $x[$key] = $msg;
 }
 
-function dispatch($fake_uri = null) {
+function dispatch($fake_uri = null, $fake_method = null) {
 
   $parts = preg_split('/\?/', ($fake_uri == null ? $_SERVER['REQUEST_URI'] : $fake_uri), -1, PREG_SPLIT_NO_EMPTY);
 
@@ -412,6 +417,9 @@ function dispatch($fake_uri = null) {
   $uri = (!config('rewrite') ? preg_replace('/^index\.php\/?/', '', $uri) : $uri);
   $uri = strlen($uri) ? $uri : 'index';
 
-  route(method(), "/{$uri}");
+  if ($fake_method !== null)
+    route($fake_method, "/{$uri}");
+  else
+    route(method(), "/{$uri}");
 }
 ?>
