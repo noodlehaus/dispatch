@@ -4,14 +4,13 @@ At the very least, `dispatch()` is a front controller for your web app. It doesn
 ### Requirements
 * PHP 5.3 with `mcrypt` extension for signed cookies
 
-### Configurable Variables and Defaults
+### Configuration Variables
 The following functions rely on variables set via `config()`:
-* `render()` and `partial()` rely on `config('views')`, defaults to `./views`
-* `render()` also relies on `config('layout')` to figure out which file to use for the page layout
-* `encrypt()` relies on `config('secret')`, defaults to an empty string
-* `set_cookie()` and `get_cookie()` use `encrypt()`, so they too rely on `config('secret')`
-* `dispatch()` relies on `config('rewrite')` to determine if it should compensate for the lack of `mod_rewrite`
-* `config()` loads the ini file pointed to by `config('ini')`
+* `config('views')` is used by `render()` and `partial()`, defaults to `./views`
+* `config('layout')` is used by `render()`, defaults to `layout`
+* `config('secret')` is used by `encrypt()`, `set_cookie()` and `get_cookie()`, defaults to an empty string
+* `config('rewrite')` is used by `dispatch()` to compensate for the lack of `mod_rewrite`, defaults to `true`
+* `config('ini')` makes the specified ini contents accessible via `config()` calls
 
 ### Quick and Basic
 ```php
