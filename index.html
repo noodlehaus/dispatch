@@ -1,0 +1,240 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>dispatch by noodlehaus</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1 class="header">dispatch</h1>
+        <p class="header">php 5.3 utility library</p>
+
+        <ul>
+          <li class="download"><a class="buttons" href="https://github.com/noodlehaus/dispatch/zipball/master">Download ZIP</a></li>
+          <li class="download"><a class="buttons" href="https://github.com/noodlehaus/dispatch/tarball/master">Download TAR</a></li>
+          <li><a class="buttons github" href="https://github.com/noodlehaus/dispatch">View On GitHub</a></li>
+        </ul>
+
+        <p class="header">This project is maintained by <a class="header name" href="https://github.com/noodlehaus">noodlehaus</a></p>
+
+
+      </header>
+      <section>
+        <h2>Dispatch PHP 5.3 Utility Library</h2>
+
+<p>At the very least, <code>dispatch()</code> is a front controller for your web app. It doesn't give you the full MVC setup, but it lets you define url routes and segregate your app logic from your views.</p>
+
+<h3>Requirements</h3>
+
+<ul>
+<li>PHP 5.3 with <code>mcrypt</code> extension for signed cookies</li>
+</ul><h3>Configuration Variables</h3>
+
+<p>The following functions rely on variables set via <code>config()</code>:</p>
+
+<ul>
+<li>
+<code>config('views')</code> is used by <code>render()</code> and <code>partial()</code>, defaults to <code>./views</code>
+</li>
+<li>
+<code>config('layout')</code> is used by <code>render()</code>, defaults to <code>layout</code>
+</li>
+<li>
+<code>config('secret')</code> is used by <code>encrypt()</code>, <code>set_cookie()</code> and <code>get_cookie()</code>, defaults to an empty string</li>
+<li>
+<code>config('rewrite')</code> is used by <code>dispatch()</code> to compensate for the lack of <code>mod_rewrite</code>, defaults to <code>true</code>
+</li>
+<li>
+<code>config('ini')</code> makes the specified ini contents accessible via <code>config()</code> calls</li>
+</ul><h3>Quick and Basic</h3>
+
+<div class="highlight"><pre><span class="cp">&lt;?php</span>
+<span class="c1">// include the library</span>
+<span class="k">include</span> <span class="s1">'dispatch.php'</span><span class="p">;</span>
+
+<span class="c1">// define your routes</span>
+<span class="nx">get</span><span class="p">(</span><span class="s1">'/greet'</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="c1">// render a view</span>
+    <span class="nx">render</span><span class="p">(</span><span class="s1">'greet-form'</span><span class="p">);</span>
+<span class="p">});</span>
+
+<span class="c1">// post handler</span>
+<span class="nx">post</span><span class="p">(</span><span class="s1">'/greet'</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="nv">$name</span> <span class="o">=</span> <span class="nx">from</span><span class="p">(</span><span class="nv">$_POST</span><span class="p">,</span> <span class="s1">'name'</span><span class="p">);</span>
+    <span class="c1">// render a view while passing some locals</span>
+    <span class="nx">render</span><span class="p">(</span><span class="s1">'greet-show'</span><span class="p">,</span> <span class="k">array</span><span class="p">(</span><span class="s1">'name'</span> <span class="o">=&gt;</span> <span class="nv">$name</span><span class="p">));</span>
+<span class="p">});</span>
+
+<span class="c1">// serve your site</span>
+<span class="nx">dispatch</span><span class="p">();</span>
+<span class="cp">?&gt;</span><span class="x"></span>
+</pre></div>
+
+<h3>Route Symbol Filters</h3>
+
+<p>This is taken from ExpressJS. Route filters let you map functions against symbols in your routes. These functions then get executed when those symbols are matched.</p>
+
+<div class="highlight"><pre><span class="cp">&lt;?php</span>
+<span class="c1">// preload blog entry whenever a matching route has :blog_id in it</span>
+<span class="nx">filter</span><span class="p">(</span><span class="s1">'blog_id'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nv">$blog_id</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nv">$blog</span> <span class="o">=</span> <span class="nx">Blog</span><span class="o">::</span><span class="na">findOne</span><span class="p">(</span><span class="nv">$blog_id</span><span class="p">);</span>
+    <span class="c1">// stash() lets you store stuff for later use (NOT a cache)</span>
+    <span class="nx">stash</span><span class="p">(</span><span class="s1">'blog'</span><span class="p">,</span> <span class="nv">$blog</span><span class="p">);</span>
+<span class="p">});</span>
+
+<span class="c1">// here, we have :blog_id in the route, so our preloader gets run</span>
+<span class="nx">get</span><span class="p">(</span><span class="s1">'/blogs/:blog_id'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nv">$blog_id</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// pick up what we got from the stash</span>
+    <span class="nv">$blog</span> <span class="o">=</span> <span class="nx">stash</span><span class="p">(</span><span class="s1">'blog'</span><span class="p">);</span>
+    <span class="nx">render</span><span class="p">(</span><span class="s1">'blogs/show'</span><span class="p">,</span> <span class="k">array</span><span class="p">(</span><span class="s1">'blog'</span> <span class="o">=&gt;</span> <span class="nv">$blog</span><span class="p">);</span>
+<span class="p">});</span>
+<span class="cp">?&gt;</span><span class="x"></span>
+</pre></div>
+
+<h3>Middleware</h3>
+
+<p>If you have wind up routines that need to be done before handling the request, you can queue them up using the <code>middleware()</code> function.</p>
+
+<div class="highlight"><pre><span class="cp">&lt;?php</span>
+<span class="c1">// create a db connection and stash it</span>
+<span class="nx">middleware</span><span class="p">(</span><span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="nv">$db</span> <span class="o">=</span> <span class="nx">create_connection</span><span class="p">();</span>
+    <span class="nx">stash</span><span class="p">(</span><span class="s1">'db'</span><span class="p">,</span> <span class="nv">$db</span><span class="p">);</span>
+<span class="p">});</span>
+
+<span class="c1">// assume that the db connection was stash()ed</span>
+<span class="nx">get</span><span class="p">(</span><span class="s1">'/list'</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="nv">$db</span> <span class="o">=</span> <span class="nx">stash</span><span class="p">(</span><span class="s1">'db'</span><span class="p">);</span>
+    <span class="c1">// do stuff with the DB</span>
+<span class="p">});</span>
+<span class="cp">?&gt;</span><span class="x"></span>
+</pre></div>
+
+<h3>Conditions</h3>
+
+<p>This is taken from BreezePHP. Conditions let you setup functions that determine if execution continues or not. Condition functions must return true or false to determine if execution continues or not.</p>
+
+<div class="highlight"><pre><span class="cp">&lt;?php</span>
+<span class="c1">// if our token is invalid, print out an error</span>
+<span class="nx">condition</span><span class="p">(</span><span class="s1">'token_valid'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nv">$token</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="p">(</span><span class="nv">$token</span> <span class="o">==</span> <span class="nb">md5</span><span class="p">(</span><span class="s1">'s3cr3t-s4uc3'</span><span class="o">.</span><span class="nx">client_ip</span><span class="p">()));</span>
+<span class="p">});</span>
+
+<span class="c1">// require a valid token when accessing a page</span>
+<span class="nx">get</span><span class="p">(</span><span class="s1">'/admin/:token'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nv">$token</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">condition</span><span class="p">(</span><span class="s1">'token_valid'</span><span class="p">,</span> <span class="nv">$token</span><span class="p">);</span>
+    <span class="c1">// if the precondition goes through, we render</span>
+    <span class="nx">render</span><span class="p">(</span><span class="s1">'admin'</span><span class="p">);</span>
+<span class="p">});</span>
+<span class="cp">?&gt;</span><span class="x"></span>
+</pre></div>
+
+<h3>Route Pass Through</h3>
+
+<p>This is also taken from BreezePHP. By default, dispatch will only execute the first route handler that matches the request URI. To let the route matching continue, call <code>pass()</code>.</p>
+
+<div class="highlight"><pre><span class="cp">&lt;?php</span>
+<span class="nx">get</span><span class="p">(</span><span class="s1">'/blog/:slug'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nv">$slug</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// if the blog admin is what's being requested, let it through</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nv">$slug</span> <span class="o">==</span> <span class="s1">'admin'</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">pass</span><span class="p">();</span>
+    <span class="p">}</span>
+    <span class="nv">$blog</span> <span class="o">=</span> <span class="nx">Blog</span><span class="o">::</span><span class="na">findBySlug</span><span class="p">(</span><span class="nv">$slug</span><span class="p">);</span>
+    <span class="nx">render</span><span class="p">(</span><span class="s1">'blogs/show'</span><span class="p">,</span> <span class="k">array</span><span class="p">(</span><span class="s1">'blog'</span> <span class="o">=&gt;</span> <span class="nv">$blog</span><span class="p">));</span>
+<span class="p">});</span>
+
+<span class="c1">// this is our actual route handler</span>
+<span class="nx">get</span><span class="p">(</span><span class="s1">'/blog/admin'</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="nx">render</span><span class="p">(</span><span class="s1">'admin'</span><span class="p">);</span>
+<span class="p">});</span>
+<span class="cp">?&gt;</span><span class="x"></span>
+</pre></div>
+
+<h3>Configurations</h3>
+
+<p>You can make use of ini files for configuration by doing something like <code>config('ini', 'myconfig.ini')</code>.
+This lets you put configuration settings in ini files instead of making <code>config()</code> calls in your code.</p>
+
+<div class="highlight"><pre><span class="cp">&lt;?php</span>
+<span class="c1">// load a config.ini file</span>
+<span class="nx">config</span><span class="p">(</span><span class="s1">'ini'</span><span class="p">,</span> <span class="s1">'my-settings.ini'</span><span class="p">);</span>
+
+<span class="c1">// set a different folder for the views</span>
+<span class="nx">config</span><span class="p">(</span><span class="s1">'views'</span><span class="p">,</span> <span class="nx">__DIR__</span><span class="o">.</span><span class="s1">'/myviews'</span><span class="p">);</span>
+
+<span class="c1">// get the encryption secret</span>
+<span class="nv">$secret</span> <span class="o">=</span> <span class="nx">config</span><span class="p">(</span><span class="s1">'secret'</span><span class="p">);</span>
+<span class="cp">?&gt;</span><span class="x"></span>
+</pre></div>
+
+<h3>Utility Functions</h3>
+
+<p>There are a lot of other useful routines in the library. Documentation is still lacking but they're very small and easy to figure out. Read the source for now.</p>
+
+<div class="highlight"><pre><span class="cp">&lt;?php</span>
+<span class="c1">// store a config and get it</span>
+<span class="nx">config</span><span class="p">(</span><span class="s1">'views'</span><span class="p">,</span> <span class="s1">'./views'</span><span class="p">);</span>
+<span class="nx">config</span><span class="p">(</span><span class="s1">'views'</span><span class="p">);</span> <span class="c1">// returns './views'</span>
+
+<span class="c1">// stash a var and get it (useful for moving stuff between scopes)</span>
+<span class="nx">stash</span><span class="p">(</span><span class="s1">'user'</span><span class="p">,</span> <span class="nv">$user</span><span class="p">);</span>
+<span class="nx">stash</span><span class="p">(</span><span class="s1">'user'</span><span class="p">);</span> <span class="c1">// returns stored $user var</span>
+
+<span class="c1">// redirect with a status code</span>
+<span class="nx">redirect</span><span class="p">(</span><span class="s1">'/index'</span><span class="p">,</span> <span class="mi">302</span><span class="p">);</span>
+
+<span class="c1">// redirect if a condition is met</span>
+<span class="nx">redirect_if</span><span class="p">(</span><span class="o">!</span><span class="nv">$authenticated</span><span class="p">,</span> <span class="s1">'/users'</span><span class="p">,</span> <span class="mi">302</span><span class="p">);</span>
+
+<span class="c1">// send a http error code and print out a message</span>
+<span class="nx">error</span><span class="p">(</span><span class="mi">403</span><span class="p">,</span> <span class="s1">'Forbidden'</span><span class="p">);</span>
+
+<span class="c1">// get the current HTTP method or check the current method</span>
+<span class="nx">method</span><span class="p">();</span> <span class="c1">// GET, POST, PUT, DELETE</span>
+<span class="nx">method</span><span class="p">(</span><span class="s1">'POST'</span><span class="p">);</span> <span class="c1">// true if POST request, false otherwise</span>
+
+<span class="c1">// client's IP</span>
+<span class="nx">client_ip</span><span class="p">();</span>
+
+<span class="c1">// get something or a hash from a hash</span>
+<span class="nv">$name</span> <span class="o">=</span> <span class="nx">from</span><span class="p">(</span><span class="nv">$_POST</span><span class="p">,</span> <span class="s1">'name'</span><span class="p">);</span>
+<span class="nv">$user</span> <span class="o">=</span> <span class="nx">from</span><span class="p">(</span><span class="nv">$_POST</span><span class="p">,</span> <span class="k">array</span><span class="p">(</span><span class="s1">'username'</span><span class="p">,</span> <span class="s1">'email'</span><span class="p">,</span> <span class="s1">'password'</span><span class="p">));</span>
+
+<span class="c1">// escape a string</span>
+<span class="nx">html</span><span class="p">(</span><span class="s1">'Marley &amp; Me'</span><span class="p">);</span>
+
+<span class="c1">// load a partial using some file and locals</span>
+<span class="nv">$html</span> <span class="o">=</span> <span class="nx">partial</span><span class="p">(</span><span class="s1">'users/profile'</span><span class="p">,</span> <span class="k">array</span><span class="p">(</span><span class="s1">'user'</span> <span class="o">=&gt;</span> <span class="nv">$user</span><span class="p">));</span>
+<span class="cp">?&gt;</span><span class="x"></span>
+</pre></div>
+
+<h2>LICENSE</h2>
+
+<p>(The MIT License)</p>
+
+<p>Copyright (c) 2011 Jesus A. Domingo <a href="mailto:jesus.domingo@gmail.com">jesus.domingo@gmail.com</a></p>
+
+<p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the 'Software'), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p>
+
+<p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p>
+
+<p>THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
+      </section>
+      <footer>
+        <p><small>Hosted on <a href="https://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+		
+  </body>
+</html>
