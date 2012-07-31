@@ -11,7 +11,7 @@ The following functions rely on variables set via `config()`:
 * `config('secret')` is used by `encrypt()`, `set_cookie()` and `get_cookie()`, defaults to an empty string
 * `config('expire')` is used by `set_cookie()` and `get_cookie()`, defaults to `31536000`
 * `config('rewrite')` is used by `dispatch()` to compensate for the lack of `mod_rewrite`, defaults to `true`
-* `config('ini')` makes the specified ini contents accessible via `config()` calls
+* `config('source')` makes the specified ini contents accessible via `config()` calls
 
 ### Quick and Basic
 A typical PHP app using dispatch() will look like this.
@@ -120,13 +120,13 @@ get('/blog/admin', function () {
 ```
 
 ### Configurations
-You can make use of ini files for configuration by doing something like `config('ini', 'myconfig.ini')`.
+You can make use of ini files for configuration by doing something like `config('source', 'myconfig.ini')`.
 This lets you put configuration settings in ini files instead of making `config()` calls in your code.
 
 ```php
 <?php
 // load a config.ini file
-config('ini', 'my-settings.ini');
+config('source', 'my-settings.ini');
 
 // set a different folder for the views
 config('views', __DIR__.'/myviews');
