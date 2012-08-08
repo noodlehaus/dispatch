@@ -95,7 +95,12 @@ function get_cookie($name) {
     return null;
 
   $token = decrypt($_COOKIE[$name]);
-  list($value, $stamp, $cksum) = explode('-', $token);
+	$parts = explode('-', $token);
+
+	if (count($parts) != 3)
+		return null;
+
+  list($value, $stamp, $cksum) = $parts;
 
   if (md5("{$value}{$stamp}") === $cksum && time() < $stamp)
     return $value;
@@ -111,6 +116,19 @@ function delete_cookie() {
 
 function url($str) {
   return urlencode($str);
+}
+
+function warn($name = null, $message = null) {
+
+	static $warnings = array();
+
+	if (!$name)
+		return count(array_keys($warnings));
+
+	if (!$message)
+		return isset($warnings[$name]) ? $warnings[$name] : '';
+
+	$warnings[$name] = $message;
 }
 
 function html($str, $enc = 'UTF-8', $flags = ENT_QUOTES) {
@@ -403,7 +421,6 @@ function flash($key, $msg = null, $now = false) {
   if (!$now) {
     $c[$key] = $msg;
     set_cookie('_F', json_encode($c));
-    return;
   }
 
   $x[$key] = $msg;
