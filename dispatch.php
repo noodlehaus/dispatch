@@ -111,7 +111,7 @@ function _u($str) {
   return urlencode($str);
 }
 
-function _h($str, 'UTF-8', $flags = ENT_QUOTES) {
+function _h($str, $enc = 'UTF-8', $flags = ENT_QUOTES) {
   return htmlentities($str, $flags, $enc);
 }
 
@@ -345,12 +345,30 @@ function route($method, $pattern, $callback = null) {
   }
 }
 
+function any($only, $path, $cb) {
+  if (is_string($only) && is_callable($path)) {
+    route($only, $path);
+  } else if (is_array($only) && is_string($path) && is_callable($cb)) {
+    foreach ($only as $method) {
+      route($method, $cb);
+    }
+  }
+}
+
 function get($path, $cb) {
   route('GET', $path, $cb);
 }
 
 function post($path, $cb) {
   route('POST', $path, $cb);
+}
+
+function put($path, $cb) {
+  route('PUT', $path, $cb);
+}
+
+function del($path, $cb) {
+  route('DELETE', $path, $cb);
 }
 
 function pass() {
