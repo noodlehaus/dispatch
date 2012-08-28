@@ -79,25 +79,6 @@ get('/list', function () {
 ?>
 ```
 
-### Conditions
-This is taken from BreezePHP. Conditions let you setup functions that determine if execution continues or not. Condition functions must return true or false to determine if execution continues or not.
-
-```php
-<?php
-// if our token is invalid, print out an error
-condition('token_valid', function ($token) {
-	return ($token == md5('s3cr3t-s4uc3'.client_ip()));
-});
-
-// require a valid token when accessing a page
-get('/admin/:token', function ($token) {
-	condition('token_valid', $token);
-	// if the precondition goes through, we render
-	render('admin');
-});
-?>
-```
-
 ### Route Pass Through
 This is also taken from BreezePHP. By default, dispatch will only execute the first route handler that matches the request URI. To let the route matching continue, call `pass()`.
 
