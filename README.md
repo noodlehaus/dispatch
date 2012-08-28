@@ -3,7 +3,7 @@ At the very least, `dispatch()` is a front controller for your web app. It doesn
 
 ### Requirements
 * PHP 5.3
-* `mcrypt` extension if you want to use encrypted keys and wish to use `encrypt()` and `decrypt()` functions
+* `mcrypt` extension if you want to use encrypted cookies and wish to use `encrypt()` and `decrypt()` functions
 
 ### Configuration Variables
 The following functions rely on variables set via `config()`:
