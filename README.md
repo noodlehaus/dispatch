@@ -62,24 +62,23 @@ get('/blogs/:blog_id', function ($blog_id) {
 ```
 
 ### Conditions
-This is taken from BreezePHP. Conditions let you setup functions that determine if execution continues or not. Condition functions must return true or false to determine if execution continues or not.
+Conditions are basically helper functions. I adopted the name 'conditions' so as to encourage you to use it at the start of your handlers.
 
 ```php
 <?php
-// if our token is invalid, print out an error
-condition('token_valid', function ($token) {
-  return ($token == md5('s3cr3t-s4uc3'.client_ip()));
+// require that users are signed in
+condition('signed_in', function () {
+  redirect(403, '/403-forbidden', !stash('user'));
 });
 
 // require a valid token when accessing a page
-get('/admin/:token', function ($token) {
-  condition('token_valid', $token);
-  // if the precondition goes through, we render
+get('/admin', function () {
+  condition('signed_in');
   render('admin');
 });
 ?>
 ```
-*NOTE:* Because of the way conditions are defined, condition functions can't have anonymous functions as their first parameter.
+*NOTE:* Because of the way conditions are defined, conditions can't have anonymous functions as their first parameter.
 
 ### Middleware
 If you have wind up routines that need to be done before handling the request, you can queue them up using the `middleware()` function.
