@@ -164,17 +164,40 @@ if (PHP_SAPI !== 'cli') {
     return $_SERVER['REMOTE_ADDR'];
   }
 
-  function redirect($uri, $code = 302) {
+  function redirect(/* $code_or_path, $path_or_cond, $cond */) {
 
-    $uri = (strtolower($uri) == 'back' ? $_SERVER['HTTP_REFERER'] : $uri);
-    $uri = (!$uri || !strlen(trim($uri)) ? '/' : $uri);
+    $argv = func_get_args();
+    $argc = count($argv);
 
-    header('Location: '.$uri, true, $code);
+    $code = $path = null;
+    $cond = true;
+
+    switch ($argc) {
+      case 3:
+        list($code, $path, $cond) = $argv;
+        break;
+      case 2:
+        if (is_string($argv[0]) ? $argv[0] : $argv[1]) {
+          $code = 200;
+          $path = $argv[0];
+          $cond = $argv[1];
+        } else {
+          $code = $argv[0];
+          $path = $argv[1];
+        }
+        break;
+      default:
+        error(500, 'Incorrect call to redirect()');
+    }
+
+    if ($argc == 3)
+      $cond = (is_callable($cond) ? !!call_user_func($cond) : !!$cond);
+
+    if (!$cond)
+      return;
+
+    header('Location: '.$path, true, $code);
     exit;
-  }
-
-  function redirect_if($expr, $uri, $code = 302) {
-    !!$expr && redirect($uri, $code);
   }
 
 }
@@ -240,16 +263,16 @@ function render($view, $locals = null, $layout = null) {
   }
 }
 
-function middleware($callback = null) {
+function middleware($cb_or_path = null) {
 
   static $cb_map = array();
 
-  if ($callback == null || is_string($callback)) {
+  if ($cb_or_path == null || is_string($cb_or_path)) {
     foreach ($cb_map as $cb) {
-      call_user_func($cb, $callback);
+      call_user_func($cb, $cb_or_path);
     }
   } else {
-    array_push($cb_map, $callback);
+    array_push($cb_map, $cb_or_path);
   }
 }
 
@@ -340,9 +363,6 @@ function route($method, $pattern, $callback = null) {
               call_user_func_array($obj['callback'], $params);
             }
             break;
-          } catch (ConditionException $e) {
-            redirect('/index');
-            break;
           } catch (PassException $e) {
             continue;
           }
@@ -383,7 +403,7 @@ function del($path, $cb) {
 }
 
 function pass() {
-  throw new PassException('Jumping to next handler');
+  throw new PassException('Jumping to pass handler');
 }
 
 function flash($key, $msg = null, $now = false) {
