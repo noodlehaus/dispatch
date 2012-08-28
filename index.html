@@ -37,7 +37,9 @@
 <h3>Requirements</h3>
 
 <ul>
-<li>PHP 5.3 with <code>mcrypt</code> extension for signed cookies</li>
+<li>PHP 5.3</li>
+<li>
+<code>mcrypt</code> extension if you want to use encrypted cookies and wish to use <code>encrypt()</code> and <code>decrypt()</code> functions</li>
 </ul><h3>Configuration Variables</h3>
 
 <p>The following functions rely on variables set via <code>config()</code>:</p>
@@ -50,13 +52,18 @@
 <code>config('layout')</code> is used by <code>render()</code>, defaults to <code>layout</code>
 </li>
 <li>
-<code>config('secret')</code> is used by <code>encrypt()</code>, <code>set_cookie()</code> and <code>get_cookie()</code>, defaults to an empty string</li>
+<code>config('secret')</code> is used by <code>encrypt()</code>, <code>decrypt()</code>, <code>set_cookie()</code> and <code>get_cookie()</code>, defaults to an empty string</li>
+<li>
+<code>config('expire')</code> is used by <code>set_cookie()</code> and <code>get_cookie()</code>, defaults to <code>31536000</code>
+</li>
 <li>
 <code>config('rewrite')</code> is used by <code>dispatch()</code> to compensate for the lack of <code>mod_rewrite</code>, defaults to <code>true</code>
 </li>
 <li>
-<code>config('ini')</code> makes the specified ini contents accessible via <code>config()</code> calls</li>
+<code>config('source')</code> makes the specified ini contents accessible via <code>config()</code> calls</li>
 </ul><h3>Quick and Basic</h3>
+
+<p>A typical PHP app using dispatch() will look like this.</p>
 
 <div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
 <span class="c1">// include the library</span>
@@ -120,25 +127,6 @@
 <span class="cp">?&gt;</span><span class="x"></span>
 </pre></div>
 
-<h3>Conditions</h3>
-
-<p>This is taken from BreezePHP. Conditions let you setup functions that determine if execution continues or not. Condition functions must return true or false to determine if execution continues or not.</p>
-
-<div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
-<span class="c1">// if our token is invalid, print out an error</span>
-<span class="nx">condition</span><span class="p">(</span><span class="s1">'token_valid'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nv">$token</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="p">(</span><span class="nv">$token</span> <span class="o">==</span> <span class="nb">md5</span><span class="p">(</span><span class="s1">'s3cr3t-s4uc3'</span><span class="o">.</span><span class="nx">client_ip</span><span class="p">()));</span>
-<span class="p">});</span>
-
-<span class="c1">// require a valid token when accessing a page</span>
-<span class="nx">get</span><span class="p">(</span><span class="s1">'/admin/:token'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nv">$token</span><span class="p">)</span> <span class="p">{</span>
-    <span class="nx">condition</span><span class="p">(</span><span class="s1">'token_valid'</span><span class="p">,</span> <span class="nv">$token</span><span class="p">);</span>
-    <span class="c1">// if the precondition goes through, we render</span>
-    <span class="nx">render</span><span class="p">(</span><span class="s1">'admin'</span><span class="p">);</span>
-<span class="p">});</span>
-<span class="cp">?&gt;</span><span class="x"></span>
-</pre></div>
-
 <h3>Route Pass Through</h3>
 
 <p>This is also taken from BreezePHP. By default, dispatch will only execute the first route handler that matches the request URI. To let the route matching continue, call <code>pass()</code>.</p>
@@ -162,12 +150,12 @@
 
 <h3>Configurations</h3>
 
-<p>You can make use of ini files for configuration by doing something like <code>config('ini', 'myconfig.ini')</code>.
+<p>You can make use of ini files for configuration by doing something like <code>config('source', 'myconfig.ini')</code>.
 This lets you put configuration settings in ini files instead of making <code>config()</code> calls in your code.</p>
 
 <div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
 <span class="c1">// load a config.ini file</span>
-<span class="nx">config</span><span class="p">(</span><span class="s1">'ini'</span><span class="p">,</span> <span class="s1">'my-settings.ini'</span><span class="p">);</span>
+<span class="nx">config</span><span class="p">(</span><span class="s1">'source'</span><span class="p">,</span> <span class="s1">'my-settings.ini'</span><span class="p">);</span>
 
 <span class="c1">// set a different folder for the views</span>
 <span class="nx">config</span><span class="p">(</span><span class="s1">'views'</span><span class="p">,</span> <span class="nx">__DIR__</span><span class="o">.</span><span class="s1">'/myviews'</span><span class="p">);</span>
@@ -191,10 +179,16 @@ This lets you put configuration settings in ini files instead of making <code>co
 <span class="nx">stash</span><span class="p">(</span><span class="s1">'user'</span><span class="p">);</span> <span class="c1">// returns stored $user var</span>
 
 <span class="c1">// redirect with a status code</span>
-<span class="nx">redirect</span><span class="p">(</span><span class="s1">'/index'</span><span class="p">,</span> <span class="mi">302</span><span class="p">);</span>
+<span class="nx">redirect</span><span class="p">(</span><span class="mi">302</span><span class="p">,</span> <span class="s1">'/index'</span><span class="p">);</span>
 
 <span class="c1">// redirect if a condition is met</span>
-<span class="nx">redirect_if</span><span class="p">(</span><span class="o">!</span><span class="nv">$authenticated</span><span class="p">,</span> <span class="s1">'/users'</span><span class="p">,</span> <span class="mi">302</span><span class="p">);</span>
+<span class="nx">redirect</span><span class="p">(</span><span class="mi">403</span><span class="p">,</span> <span class="s1">'/users'</span><span class="p">,</span> <span class="o">!</span><span class="nv">$authenticated</span><span class="p">);</span>
+
+<span class="c1">// redirect only if func is satisfied</span>
+<span class="nx">redirect</span><span class="p">(</span><span class="s1">'/admin'</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="k">use</span> <span class="p">(</span><span class="nv">$auth</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="o">!!</span><span class="nv">$auth</span><span class="p">;</span> <span class="p">});</span>
+
+<span class="c1">// redirect only if func is satisfied, and with a diff code</span>
+<span class="nx">redirect</span><span class="p">(</span><span class="mi">301</span><span class="p">,</span> <span class="s1">'/admin'</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="k">use</span> <span class="p">(</span><span class="nv">$auth</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="o">!!</span><span class="nv">$auth</span><span class="p">;</span> <span class="p">});</span>
 
 <span class="c1">// send a http error code and print out a message</span>
 <span class="nx">error</span><span class="p">(</span><span class="mi">403</span><span class="p">,</span> <span class="s1">'Forbidden'</span><span class="p">);</span>
@@ -211,7 +205,10 @@ This lets you put configuration settings in ini files instead of making <code>co
 <span class="nv">$user</span> <span class="o">=</span> <span class="nx">from</span><span class="p">(</span><span class="nv">$_POST</span><span class="p">,</span> <span class="k">array</span><span class="p">(</span><span class="s1">'username'</span><span class="p">,</span> <span class="s1">'email'</span><span class="p">,</span> <span class="s1">'password'</span><span class="p">));</span>
 
 <span class="c1">// escape a string</span>
-<span class="nx">html</span><span class="p">(</span><span class="s1">'Marley &amp; Me'</span><span class="p">);</span>
+<span class="nx">_h</span><span class="p">(</span><span class="s1">'Marley &amp; Me'</span><span class="p">);</span>
+
+<span class="c1">// url encode</span>
+<span class="nx">_u</span><span class="p">(</span><span class="s1">'http://noodlehaus.github.com/dispatch'</span><span class="p">);</span>
 
 <span class="c1">// load a partial using some file and locals</span>
 <span class="nv">$html</span> <span class="o">=</span> <span class="nx">partial</span><span class="p">(</span><span class="s1">'users/profile'</span><span class="p">,</span> <span class="k">array</span><span class="p">(</span><span class="s1">'user'</span> <span class="o">=&gt;</span> <span class="nv">$user</span><span class="p">));</span>
