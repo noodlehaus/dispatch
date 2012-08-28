@@ -124,25 +124,6 @@
 <span class="cp">?&gt;</span><span class="x"></span>
 </pre></div>
 
-<h3>Conditions</h3>
-
-<p>This is taken from BreezePHP. Conditions let you setup functions that determine if execution continues or not. Condition functions must return true or false to determine if execution continues or not.</p>
-
-<div class="highlight"><pre><span class="cp">&lt;?php</span>
-<span class="c1">// if our token is invalid, print out an error</span>
-<span class="nx">condition</span><span class="p">(</span><span class="s1">'token_valid'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nv">$token</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="p">(</span><span class="nv">$token</span> <span class="o">==</span> <span class="nb">md5</span><span class="p">(</span><span class="s1">'s3cr3t-s4uc3'</span><span class="o">.</span><span class="nx">client_ip</span><span class="p">()));</span>
-<span class="p">});</span>
-
-<span class="c1">// require a valid token when accessing a page</span>
-<span class="nx">get</span><span class="p">(</span><span class="s1">'/admin/:token'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nv">$token</span><span class="p">)</span> <span class="p">{</span>
-    <span class="nx">condition</span><span class="p">(</span><span class="s1">'token_valid'</span><span class="p">,</span> <span class="nv">$token</span><span class="p">);</span>
-    <span class="c1">// if the precondition goes through, we render</span>
-    <span class="nx">render</span><span class="p">(</span><span class="s1">'admin'</span><span class="p">);</span>
-<span class="p">});</span>
-<span class="cp">?&gt;</span><span class="x"></span>
-</pre></div>
-
 <h3>Route Pass Through</h3>
 
 <p>This is also taken from BreezePHP. By default, dispatch will only execute the first route handler that matches the request URI. To let the route matching continue, call <code>pass()</code>.</p>
