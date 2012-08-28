@@ -132,10 +132,16 @@ stash('user', $user);
 stash('user'); // returns stored $user var
 
 // redirect with a status code
-redirect('/index', 302);
+redirect(302, '/index');
 
 // redirect if a condition is met
-redirect_if(!$authenticated, '/users', 302);
+redirect(403, '/users', !$authenticated);
+
+// redirect only if func is satisfied
+redirect('/admin', function () use ($auth) { return !!$auth; });
+
+// redirect only if func is satisfied, and with a diff code
+redirect(301, '/admin', function () use ($auth) { return !!$auth; });
 
 // send a http error code and print out a message
 error(403, 'Forbidden');
