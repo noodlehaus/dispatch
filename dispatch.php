@@ -22,10 +22,6 @@ if (!defined('PHP_VERSION_ID') || PHP_VERSION_ID < 50300) {
   error(500, 'dispatch requires at least PHP 5.3 to run.');
 }
 
-if (!extension_loaded('mcrypt')) {
-  error(500, 'PHP Extension mcrypt is required by dispatch.lib.php');
-}
-
 class PassException extends Exception {}
 
 function config($key, $value = null) {
@@ -56,36 +52,47 @@ function from_b64($str) {
   return $str;
 }
 
-function encrypt($decoded) {
+if (extension_loaded('mcrypt')) {
 
-  if (($secret = config('secret')) == null)
-    error(500, 'encrypt() requires that you define the [secret] setting.');
+  function encrypt($decoded) {
 
-  $iv_size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB);
-  $iv_code = mcrypt_create_iv($iv_size, MCRYPT_RAND);
+    if (($secret = config('secret')) == null)
+      error(500, 'encrypt() requires that you define the [secret] setting.');
 
-  return to_b64(mcrypt_encrypt(MCRYPT_RIJNDAEL_256, $secret, $decoded, MCRYPT_MODE_ECB, $iv_code));
-}
+    $iv_size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB);
+    $iv_code = mcrypt_create_iv($iv_size, MCRYPT_RAND);
 
-function decrypt($encoded) {
+    return to_b64(mcrypt_encrypt(MCRYPT_RIJNDAEL_256, $secret, $decoded, MCRYPT_MODE_ECB, $iv_code));
+  }
 
-  if (($secret = config('secret')) == null)
-    error(500, 'decrypt() requires that you define the [application.secret] setting.');
+  function decrypt($encoded) {
 
-  $enc_str = from_b64($encoded);
-  $iv_size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB);
-  $iv_code = mcrypt_create_iv($iv_size, MCRYPT_RAND);
-  $enc_str = mcrypt_decrypt(MCRYPT_RIJNDAEL_256, $secret, $enc_str, MCRYPT_MODE_ECB, $iv_code);
+    if (($secret = config('secret')) == null)
+      error(500, 'decrypt() requires that you define the [application.secret] setting.');
 
-  return rtrim($enc_str, "\0");
+    $enc_str = from_b64($encoded);
+    $iv_size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB);
+    $iv_code = mcrypt_create_iv($iv_size, MCRYPT_RAND);
+    $enc_str = mcrypt_decrypt(MCRYPT_RIJNDAEL_256, $secret, $enc_str, MCRYPT_MODE_ECB, $iv_code);
+
+    return rtrim($enc_str, "\0");
+  }
+
 }
 
 function set_cookie($name, $value, $expire = 31536000, $path = '/') {
+  $value = (function_exists('encrypt') ? encrypt($value) : $value);
   setcookie($name, encrypt($value), time() + $span, $path);
 }
 
 function get_cookie($name) {
-  return (!isset($_COOKIE[$name]) ? null : decrypt($_COOKIE[$name]));
+
+  $value = from($_COOKIE, $name);
+
+  if ($value)
+    $value = (function_exists('decrypt') ? decrypt($value) : $value);
+
+  return $value;
 }
 
 function delete_cookie() {
@@ -137,35 +144,39 @@ function stash($name, $value = null) {
   return $value;
 }
 
-function method($verb = null) {
+if (PHP_SAPI !== 'cli') {
 
-  if ($verb == null || (strtoupper($verb) == strtoupper($_SERVER['REQUEST_METHOD'])))
-    return strtoupper($_SERVER['REQUEST_METHOD']);
+  function method($verb = null) {
 
-  error(400, 'Bad request');
-}
+    if ($verb == null || (strtoupper($verb) == strtoupper($_SERVER['REQUEST_METHOD'])))
+      return strtoupper($_SERVER['REQUEST_METHOD']);
 
-function client_ip() {
+    error(400, 'Bad request');
+  }
 
-  if (isset($_SERVER['HTTP_CLIENT_IP']))
-    return $_SERVER['HTTP_CLIENT_IP'];
-  else if (isset($_SERVER['HTTP_X_FORWARDED_FOR']))
-    return $_SERVER['HTTP_X_FORWARDED_FOR'];
+  function client_ip() {
 
-  return $_SERVER['REMOTE_ADDR'];
-}
+    if (isset($_SERVER['HTTP_CLIENT_IP']))
+      return $_SERVER['HTTP_CLIENT_IP'];
+    else if (isset($_SERVER['HTTP_X_FORWARDED_FOR']))
+      return $_SERVER['HTTP_X_FORWARDED_FOR'];
 
-function redirect($uri, $code = 302) {
+    return $_SERVER['REMOTE_ADDR'];
+  }
 
-  $uri = (strtolower($uri) == 'back' ? $_SERVER['HTTP_REFERER'] : $uri);
-  $uri = (!$uri || !strlen(trim($uri)) ? '/' : $uri);
+  function redirect($uri, $code = 302) {
 
-  header('Location: '.$uri, true, $code);
-  exit;
-}
+    $uri = (strtolower($uri) == 'back' ? $_SERVER['HTTP_REFERER'] : $uri);
+    $uri = (!$uri || !strlen(trim($uri)) ? '/' : $uri);
 
-function redirect_if($expr, $uri, $code = 302) {
-  !!$expr && redirect($uri, $code);
+    header('Location: '.$uri, true, $code);
+    exit;
+  }
+
+  function redirect_if($expr, $uri, $code = 302) {
+    !!$expr && redirect($uri, $code);
+  }
+
 }
 
 function partial($view, $locals = null) {
@@ -407,6 +418,9 @@ function flash($key, $msg = null, $now = false) {
 }
 
 function dispatch($fake_uri = null, $fake_method = null) {
+
+  if (PHP_SAPI === 'cli' && (!$fake_uri || !$fake_method))
+    error(500, 'dispatch() requires a fake uri and method when invoked from the CLI');
 
   $parts = preg_split('/\?/', ($fake_uri == null ? $_SERVER['REQUEST_URI'] : $fake_uri), -1, PREG_SPLIT_NO_EMPTY);
 

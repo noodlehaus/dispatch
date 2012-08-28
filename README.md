@@ -2,13 +2,14 @@
 At the very least, `dispatch()` is a front controller for your web app. It doesn't give you the full MVC setup, but it lets you define url routes and segregate your app logic from your views.
 
 ### Requirements
-* PHP 5.3 with `mcrypt` extension for signed cookies
+* PHP 5.3
+* `mcrypt` extension if you want to use encrypted keys and wish to use `encrypt()` and `decrypt()` functions
 
 ### Configuration Variables
 The following functions rely on variables set via `config()`:
 * `config('views')` is used by `render()` and `partial()`, defaults to `./views`
 * `config('layout')` is used by `render()`, defaults to `layout`
-* `config('secret')` is used by `encrypt()`, `set_cookie()` and `get_cookie()`, defaults to an empty string
+* `config('secret')` is used by `encrypt()`, `decrypt()`, `set_cookie()` and `get_cookie()`, defaults to an empty string
 * `config('expire')` is used by `set_cookie()` and `get_cookie()`, defaults to `31536000`
 * `config('rewrite')` is used by `dispatch()` to compensate for the lack of `mod_rewrite`, defaults to `true`
 * `config('source')` makes the specified ini contents accessible via `config()` calls
