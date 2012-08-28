@@ -1,4 +1,11 @@
 <?php
+/**
+ * dispatch php 5.3 utility library
+ *
+ * Jesus A. Domingo
+ * http://noodlehaus.github.com/dispatch
+ **/
+
 function error($code, $message) {
   if (PHP_SAPI === 'cli')
     die("Error {$code}: {$message}\n");
@@ -19,11 +26,7 @@ if (!extension_loaded('mcrypt')) {
   error(500, 'PHP Extension mcrypt is required by dispatch.lib.php');
 }
 
-// throw this when pass() is called
 class PassException extends Exception {}
-
-// for failed conditions
-class ConditionException extends Exception {}
 
 function config($key, $value = null) {
 
@@ -77,45 +80,18 @@ function decrypt($encoded) {
   return rtrim($enc_str, "\0");
 }
 
-function set_cookie($name, $value, $expire = 31536000) {
-
-  $span = config('expire');
-  $span = ($span == null ? $expire : $span);
-
-  $stamp  = time() + $span;
-  $cksum  = md5("{$value}{$stamp}");
-  $token  = encrypt("{$value}-{$stamp}-{$cksum}");
-
-  setcookie($name, $token, time() + 314496000, '/'); // 10 years
+function set_cookie($name, $value, $expire = 31536000, $path = '/') {
+  setcookie($name, encrypt($value), time() + $span, $path);
 }
 
 function get_cookie($name) {
-
-  if (!isset($_COOKIE[$name]))
-    return null;
-
-  $token = decrypt($_COOKIE[$name]);
-	$parts = explode('-', $token);
-
-	if (count($parts) != 3)
-		return null;
-
-  list($value, $stamp, $cksum) = $parts;
-
-  if (md5("{$value}{$stamp}") === $cksum && time() < $stamp)
-    return $value;
-
-  return null;
+  return (!isset($_COOKIE[$name]) ? null : decrypt($_COOKIE[$name]));
 }
 
 function delete_cookie() {
   $cookies = func_get_args();
   foreach ($cookies as $ck)
     setcookie($ck, '', -10, '/');
-}
-
-function url($str) {
-  return urlencode($str);
 }
 
 function warn($name = null, $message = null) {
@@ -131,23 +107,22 @@ function warn($name = null, $message = null) {
 	$warnings[$name] = $message;
 }
 
-function html($str, $enc = 'UTF-8', $flags = ENT_QUOTES) {
+function _u($str) {
+  return urlencode($str);
+}
+
+function _h($str, 'UTF-8', $flags = ENT_QUOTES) {
   return htmlentities($str, $flags, $enc);
 }
 
 function from($source, $name) {
-
   if (is_array($name)) {
-
     $data = array();
-
     foreach ($name as $k)
-      $data[$k] = isset($source[$k]) ? $source[$k] : null ;
-
+      $data[$k] = isset($source[$k]) ? trim($source[$k]) : null ;
     return $data;
   }
-
-  return isset($source[$name]) ? $source[$name] : null ;
+  return isset($source[$name]) ? trim($source[$name]) : null ;
 }
 
 function stash($name, $value = null) {
@@ -181,6 +156,10 @@ function client_ip() {
 }
 
 function redirect($uri, $code = 302) {
+
+  $uri = (strtolower($uri) == 'back' ? $_SERVER['HTTP_REFERER'] : $uri);
+  $uri = (!$uri || !strlen(trim($uri)) ? '/' : $uri);
+
   header('Location: '.$uri, true, $code);
   exit;
 }
@@ -247,26 +226,6 @@ function render($view, $locals = null, $layout = null) {
 
   } else {
     echo content();
-  }
-}
-
-function condition() {
-
-  static $cb_map = array();
-
-  $args = func_get_args();
-
-  if (count($args) >= 1) {
-    $name = array_shift($args);
-    if (count($args) && is_callable($args[0])) {
-      $cb_map[$name] = $args[0];
-    } else {
-      if (isset($cb_map[$name]) && is_callable($cb_map[$name])) {
-        if (!call_user_func_array($cb_map[$name], $args)) {
-          throw new ConditionException('Condition not met');
-        }
-      }
-    }
   }
 }
 
@@ -400,9 +359,10 @@ function pass() {
 
 function flash($key, $msg = null, $now = false) {
 
-  static $x = array();
+  static $x = array(),
+         $f = (config('f_cookie') ? config('f_cookie') : '_F');
 
-  if ($c = get_cookie('_F'))
+  if ($c = get_cookie($f))
     $c = json_decode($c, true);
   else
     $c = array();
@@ -412,7 +372,7 @@ function flash($key, $msg = null, $now = false) {
     if (isset($c[$key])) {
       $x[$key] = $c[$key];
       unset($c[$key]);
-      set_cookie('_F', json_encode($c));
+      set_cookie($f, json_encode($c));
     }
 
     return (isset($x[$key]) ? $x[$key] : null);
@@ -420,7 +380,7 @@ function flash($key, $msg = null, $now = false) {
 
   if (!$now) {
     $c[$key] = $msg;
-    set_cookie('_F', json_encode($c));
+    set_cookie($f, json_encode($c));
   }
 
   $x[$key] = $msg;
