@@ -378,7 +378,9 @@ function pass() {
 function flash($key, $msg = null, $now = false) {
 
   static $x = array(),
-         $f = (config('f_cookie') ? config('f_cookie') : '_F');
+         $f = null;
+
+  $f = (config('f_cookie') ? config('f_cookie') : '_F');
 
   if ($c = get_cookie($f))
     $c = json_decode($c, true);
