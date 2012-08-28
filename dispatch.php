@@ -169,7 +169,8 @@ if (PHP_SAPI !== 'cli') {
     $argv = func_get_args();
     $argc = count($argv);
 
-    $code = $path = null;
+    $path = null;
+    $code = 302;
     $cond = true;
 
     switch ($argc) {
@@ -178,7 +179,7 @@ if (PHP_SAPI !== 'cli') {
         break;
       case 2:
         if (is_string($argv[0]) ? $argv[0] : $argv[1]) {
-          $code = 200;
+          $code = 302;
           $path = $argv[0];
           $cond = $argv[1];
         } else {
@@ -186,12 +187,16 @@ if (PHP_SAPI !== 'cli') {
           $path = $argv[1];
         }
         break;
+      case 1:
+        if (!is_string($argv[0]))
+          error(500, 'Incorrect call to redirect()');
+        $path = $argv[0];
+        break;
       default:
         error(500, 'Incorrect call to redirect()');
     }
 
-    if ($argc == 3)
-      $cond = (is_callable($cond) ? !!call_user_func($cond) : !!$cond);
+    $cond = (is_callable($cond) ? !!call_user_func($cond) : !!$cond);
 
     if (!$cond)
       return;
