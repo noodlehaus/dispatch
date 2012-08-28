@@ -126,10 +126,10 @@ function from($source, $name) {
   if (is_array($name)) {
     $data = array();
     foreach ($name as $k)
-      $data[$k] = isset($source[$k]) ? trim($source[$k]) : null ;
+      $data[$k] = isset($source[$k]) ? $source[$k] : null ;
     return $data;
   }
-  return isset($source[$name]) ? trim($source[$name]) : null ;
+  return isset($source[$name]) ? $source[$name] : null ;
 }
 
 function stash($name, $value = null) {
