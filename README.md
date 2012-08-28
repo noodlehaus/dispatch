@@ -158,7 +158,10 @@ $name = from($_POST, 'name');
 $user = from($_POST, array('username', 'email', 'password'));
 
 // escape a string
-html('Marley & Me');
+_h('Marley & Me');
+
+// url encode
+_u('http://noodlehaus.github.com/dispatch');
 
 // load a partial using some file and locals
 $html = partial('users/profile', array('user' => $user));
