@@ -37,7 +37,8 @@
 <h3>Requirements</h3>
 
 <ul>
-<li>PHP 5.3 with <code>mcrypt</code> extension for signed cookies</li>
+<li>PHP 5.3 with</li>
+<li><code>mcrypt</code> if you want to use encrypted cookies and want to use `encrypt()` and `decrypt()`</li>
 </ul><h3>Configuration Variables</h3>
 
 <p>The following functions rely on variables set via <code>config()</code>:</p>
@@ -50,7 +51,7 @@
 <code>config('layout')</code> is used by <code>render()</code>, defaults to <code>layout</code>
 </li>
 <li>
-<code>config('secret')</code> is used by <code>encrypt()</code>, <code>set_cookie()</code> and <code>get_cookie()</code>, defaults to an empty string</li>
+<code>config('secret')</code> is used by <code>encrypt()</code>, <code>decrypt()</code>, <code>set_cookie()</code> and <code>get_cookie()</code>, defaults to an empty string</li>
 <li>
 <code>config('expire')</code> is used by <code>set_cookie()</code> and <code>get_cookie()</code>, defaults to <code>31536000</code></li>
 <li>
