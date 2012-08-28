@@ -54,9 +54,6 @@
 <li>
 <code>config('secret')</code> is used by <code>encrypt()</code>, <code>decrypt()</code>, <code>set_cookie()</code> and <code>get_cookie()</code>, defaults to an empty string</li>
 <li>
-<code>config('expire')</code> is used by <code>set_cookie()</code> and <code>get_cookie()</code>, defaults to <code>31536000</code>
-</li>
-<li>
 <code>config('rewrite')</code> is used by <code>dispatch()</code> to compensate for the lack of <code>mod_rewrite</code>, defaults to <code>true</code>
 </li>
 <li>
@@ -107,6 +104,26 @@
 <span class="p">});</span>
 <span class="cp">?&gt;</span><span class="x"></span>
 </pre></div>
+
+<h3>Conditions</h3>
+
+<p>Conditions are basically helper functions. I adopted the name 'conditions' so as to encourage you to use it at the start of your handlers.</p>
+
+<div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+<span class="c1">// require that users are signed in</span>
+<span class="nx">condition</span><span class="p">(</span><span class="s1">'signed_in'</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="nx">redirect</span><span class="p">(</span><span class="mi">403</span><span class="p">,</span> <span class="s1">'/403-forbidden'</span><span class="p">,</span> <span class="o">!</span><span class="nx">stash</span><span class="p">(</span><span class="s1">'user'</span><span class="p">));</span>
+<span class="p">});</span>
+
+<span class="c1">// require a valid token when accessing a page</span>
+<span class="nx">get</span><span class="p">(</span><span class="s1">'/admin'</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="nx">condition</span><span class="p">(</span><span class="s1">'signed_in'</span><span class="p">);</span>
+  <span class="nx">render</span><span class="p">(</span><span class="s1">'admin'</span><span class="p">);</span>
+<span class="p">});</span>
+<span class="cp">?&gt;</span><span class="x"></span>
+</pre></div>
+
+<p><em>NOTE:</em> Because of the way they are defined, conditions can't have anonymous functions as their first parameter.</p>
 
 <h3>Middleware</h3>
 
