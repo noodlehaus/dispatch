@@ -263,6 +263,31 @@ function render($view, $locals = null, $layout = null) {
   }
 }
 
+function condition() {
+
+  static $cb = array();
+
+  $argv = func_get_args();
+  $argc = count($argv);
+
+  if (!$argc)
+    error(500, 'Incorrect call to condition()');
+
+  $name = array_shift($argv);
+  $argc = $argc - 1;
+
+  if (!$argc && is_callable($cb[$name]))
+    return call_user_func($cb[$name]);
+
+  if (is_callable($argv[0]))
+    return ($cb[$name] = $argv[0]);
+
+  if (is_callable($cb[$name]))
+    return call_user_func_array($cb[$name], $argv);
+
+  error(500, 'condition ['.$name.'] is undefined');
+}
+
 function middleware($cb_or_path = null) {
 
   static $cb_map = array();
