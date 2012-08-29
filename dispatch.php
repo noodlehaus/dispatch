@@ -82,7 +82,7 @@ if (extension_loaded('mcrypt')) {
 
 function set_cookie($name, $value, $expire = 31536000, $path = '/') {
   $value = (function_exists('encrypt') ? encrypt($value) : $value);
-  setcookie($name, encrypt($value), time() + $expire, $path);
+  setcookie($name, $value, time() + $expire, $path);
 }
 
 function get_cookie($name) {
