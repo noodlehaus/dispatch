@@ -105,11 +105,14 @@ function warn($name = null, $message = null) {
 
 	static $warnings = array();
 
+  if ($name == '*')
+    return $warnings;
+
 	if (!$name)
 		return count(array_keys($warnings));
 
 	if (!$message)
-		return isset($warnings[$name]) ? $warnings[$name] : '';
+		return isset($warnings[$name]) ? $warnings[$name] : null ;
 
 	$warnings[$name] = $message;
 }
