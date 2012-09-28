@@ -36,6 +36,12 @@ function config($key, $value = null) {
   $_config[$key] = $value;
 }
 
+function json_response($obj, $code = 200) {
+  header('Content-type: application/json', true, $code);
+  echo json_encode($obj);
+  exit;
+}
+
 function to_b64($str) {
   $str = base64_encode($str);
   $str = preg_replace('/\//', '_', $str);
