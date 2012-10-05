@@ -98,27 +98,6 @@ get('/list', function () {
 ?>
 ```
 
-### Route Pass Through
-This is also taken from BreezePHP. By default, dispatch will only execute the first route handler that matches the request URI. To let the route matching continue, call `pass()`.
-
-```php
-<?php
-get('/blog/:slug', function ($slug) {
-	// if the blog admin is what's being requested, let it through
-	if ($slug == 'admin') {
-		pass();
-	}
-	$blog = Blog::findBySlug($slug);
-	render('blogs/show', array('blog' => $blog));
-});
-
-// this is our actual route handler
-get('/blog/admin', function () {
-	render('admin');
-});
-?>
-```
-
 ### Configurations
 You can make use of ini files for configuration by doing something like `config('source', 'myconfig.ini')`.
 This lets you put configuration settings in ini files instead of making `config()` calls in your code.
