@@ -16,8 +16,8 @@ function config($key, $value = null) {
     $_config = parse_ini_file($value, true);
   else if ($value == null)
     return (isset($_config[$key]) ? $_config[$key] : null);
-
-  $_config[$key] = $value;
+  else
+    $_config[$key] = $value;
 }
 
 function to_b64($str) {
