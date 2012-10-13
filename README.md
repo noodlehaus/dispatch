@@ -7,10 +7,9 @@ At the very least, `dispatch()` is a front controller for your web app. It doesn
 
 ### Configuration Variables
 The following functions rely on variables set via `config()`:
-* `config('views')` is used by `render()` and `partial()`, defaults to `./views`
-* `config('layout')` is used by `render()`, defaults to `layout`
-* `config('secret')` is used by `encrypt()`, `decrypt()`, `set_cookie()` and `get_cookie()`, defaults to an empty string
-* `config('rewrite')` is used by `dispatch()` to compensate for the lack of `mod_rewrite`, defaults to `true`
+* `config('views.root')` is used by `render()` and `partial()`, defaults to `./views`
+* `config('views.layout')` is used by `render()`, defaults to `layout`
+* `config('cookies.secret')` is used by `encrypt()`, `decrypt()`, `set_cookie()` and `get_cookie()`, defaults to an empty string
 * `config('source')` makes the specified ini contents accessible via `config()` calls
 
 ### Quick and Basic
