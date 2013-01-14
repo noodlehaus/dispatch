@@ -3,6 +3,12 @@ if (!defined('PHP_VERSION_ID') || PHP_VERSION_ID < 50300) {
   error(500, 'dispatch requires at least PHP 5.3 to run.');
 }
 
+function _log($message) {
+  $file = config('debug.log');
+  $type = $file ? 3 : 0;
+  error_log($message, $type, $file);
+}
+
 function error($code, $message) {
   @header("HTTP/1.0 {$code} {$message}", true, $code);
   die($message);
@@ -87,18 +93,18 @@ function delete_cookie() {
 
 function warn($name = null, $message = null) {
 
-	static $warnings = array();
+  static $warnings = array();
 
   if ($name == '*')
     return $warnings;
 
-	if (!$name)
-		return count(array_keys($warnings));
+  if (!$name)
+    return count(array_keys($warnings));
 
-	if (!$message)
-		return isset($warnings[$name]) ? $warnings[$name] : null ;
+  if (!$message)
+    return isset($warnings[$name]) ? $warnings[$name] : null ;
 
-	$warnings[$name] = $message;
+  $warnings[$name] = $message;
 }
 
 function _u($str) {
@@ -367,7 +373,7 @@ function route($method, $pattern, $callback = null) {
       foreach ($keys as $index => $id) {
         $id = substr($id, 1);
         if (isset($vals[$id])) {
-          array_push($argv, $vals[$id]);
+          array_push($argv, trim(urldecode($vals[$id])));
         }
       }
 
