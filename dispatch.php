@@ -44,26 +44,29 @@ function from_b64($str) {
 
 if (extension_loaded('mcrypt')) {
 
-  function encrypt($decoded) {
+  function encrypt($decoded, $algo = MCRYPT_RIJNDAEL_256, $mode = MCRYPT_MODE_CBC) {
 
     if (($secret = config('cookies.secret')) == null)
       error(500, '[cookies.secret] is not set');
 
-    $iv_size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB);
-    $iv_code = mcrypt_create_iv($iv_size, MCRYPT_RAND);
+    $secret  = mb_substr($secret, 0, mcrypt_get_key_size($algo, $mode));
+    $iv_size = mcrypt_get_iv_size($algo, $mode);
+    $iv_code = mcrypt_create_iv($iv_size, MCRYPT_DEV_URANDOM);
+    $encrypted = to_b64(mcrypt_encrypt($algo, $secret, $decoded, $mode, $iv_code));
 
-    return to_b64(mcrypt_encrypt(MCRYPT_RIJNDAEL_256, $secret, $decoded, MCRYPT_MODE_ECB, $iv_code));
+    return sprintf('%s|%s', $encrypted, to_b64($iv_code));
   }
 
-  function decrypt($encoded) {
+  function decrypt($encoded, $algo = MCRYPT_RIJNDAEL_256, $mode = MCRYPT_MODE_CBC) {
 
     if (($secret = config('cookies.secret')) == null)
       error(500, '[cookies.secret] is not set');
 
-    $enc_str = from_b64($encoded);
-    $iv_size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB);
-    $iv_code = mcrypt_create_iv($iv_size, MCRYPT_RAND);
-    $enc_str = mcrypt_decrypt(MCRYPT_RIJNDAEL_256, $secret, $enc_str, MCRYPT_MODE_ECB, $iv_code);
+    $secret  = mb_substr($secret, 0, mcrypt_get_key_size($algo, $mode));
+    list($enc_str, $iv_code) = explode('|', $encoded);
+    $enc_str = from_b64($enc_str);
+    $iv_code = from_b64($iv_code);
+    $enc_str = mcrypt_decrypt($algo, $secret, $enc_str, $mode, $iv_code);
 
     return rtrim($enc_str, "\0");
   }
