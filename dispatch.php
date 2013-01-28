@@ -4,9 +4,11 @@ if (!defined('PHP_VERSION_ID') || PHP_VERSION_ID < 50300) {
 }
 
 function _log($message) {
-  $file = config('debug.log');
-  $type = $file ? 3 : 0;
-  error_log($message, $type, $file);
+  if (config('debug.enable') == true && php_sapi_name() !== 'cli') {
+    $file = config('debug.log');
+    $type = $file ? 3 : 0;
+    error_log("{$message}\n", $type, $file);
+  }
 }
 
 function error($code, $message) {
