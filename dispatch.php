@@ -20,12 +20,15 @@ function config($key, $value = null) {
 
   static $_config = array();
 
-  if ($key === 'source' && file_exists($value))
+  if ($key === 'source' && file_exists($value)) {
     $_config = parse_ini_file($value, true);
-  else if ($value == null)
+  }
+  else if ($value == null) {
     return (isset($_config[$key]) ? $_config[$key] : null);
-  else
+  }
+  else {
     $_config[$key] = $value;
+  }
 }
 
 function to_b64($str) {
@@ -33,6 +36,7 @@ function to_b64($str) {
   $str = preg_replace('/\//', '_', $str);
   $str = preg_replace('/\+/', '.', $str);
   $str = preg_replace('/\=/', '-', $str);
+
   return trim($str, '-');
 }
 
@@ -41,6 +45,7 @@ function from_b64($str) {
   $str = preg_replace('/\./', '+', $str);
   $str = preg_replace('/\-/', '=', $str);
   $str = base64_decode($str);
+  
   return $str;
 }
 
@@ -48,8 +53,10 @@ if (extension_loaded('mcrypt')) {
 
   function encrypt($decoded, $algo = MCRYPT_RIJNDAEL_256, $mode = MCRYPT_MODE_CBC) {
 
-    if (($secret = config('cookies.secret')) == null)
+    if (($secret = config('cookies.secret')) == null) {
       error(500, '[cookies.secret] is not set');
+    }
+      
 
     $secret  = mb_substr($secret, 0, mcrypt_get_key_size($algo, $mode));
     $iv_size = mcrypt_get_iv_size($algo, $mode);
@@ -61,8 +68,9 @@ if (extension_loaded('mcrypt')) {
 
   function decrypt($encoded, $algo = MCRYPT_RIJNDAEL_256, $mode = MCRYPT_MODE_CBC) {
 
-    if (($secret = config('cookies.secret')) == null)
+    if (($secret = config('cookies.secret')) == null) {
       error(500, '[cookies.secret] is not set');
+    }
 
     $secret  = mb_substr($secret, 0, mcrypt_get_key_size($algo, $mode));
     list($enc_str, $iv_code) = explode('|', $encoded);
@@ -84,30 +92,35 @@ function get_cookie($name) {
 
   $value = from($_COOKIE, $name);
 
-  if ($value)
+  if ($value) {
     $value = (function_exists('decrypt') ? decrypt($value) : $value);
+  }
 
   return $value;
 }
 
 function delete_cookie() {
   $cookies = func_get_args();
-  foreach ($cookies as $ck)
+  foreach ($cookies as $ck) {
     setcookie($ck, '', -10, '/');
+  }
 }
 
 function warn($name = null, $message = null) {
 
   static $warnings = array();
 
-  if ($name == '*')
+  if ($name == '*') {
     return $warnings;
+  }
 
-  if (!$name)
+  if (!$name) {
     return count(array_keys($warnings));
+  }
 
-  if (!$message)
+  if (!$message) {
     return isset($warnings[$name]) ? $warnings[$name] : null ;
+  }
 
   $warnings[$name] = $message;
 }
@@ -123,10 +136,12 @@ function _h($str, $enc = 'UTF-8', $flags = ENT_QUOTES) {
 function from($source, $name) {
   if (is_array($name)) {
     $data = array();
-    foreach ($name as $k)
+    foreach ($name as $k) {
       $data[$k] = isset($source[$k]) ? $source[$k] : null ;
+    }
     return $data;
   }
+
   return isset($source[$name]) ? $source[$name] : null ;
 }
 
@@ -134,8 +149,9 @@ function stash($name, $value = null) {
 
   static $_stash = array();
 
-  if ($value === null)
+  if ($value === null) {
     return isset($_stash[$name]) ? $_stash[$name] : null;
+  }
 
   $_stash[$name] = $value;
 
@@ -144,18 +160,21 @@ function stash($name, $value = null) {
 
 function method($verb = null) {
 
-  if ($verb == null || (strtoupper($verb) == strtoupper($_SERVER['REQUEST_METHOD'])))
+  if ($verb == null || (strtoupper($verb) == strtoupper($_SERVER['REQUEST_METHOD']))) {
     return strtoupper($_SERVER['REQUEST_METHOD']);
+  }
 
   error(400, 'bad request');
 }
 
 function client_ip() {
 
-  if (isset($_SERVER['HTTP_CLIENT_IP']))
+  if (isset($_SERVER['HTTP_CLIENT_IP'])) {
     return $_SERVER['HTTP_CLIENT_IP'];
-  else if (isset($_SERVER['HTTP_X_FORWARDED_FOR']))
+  }
+  else if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
     return $_SERVER['HTTP_X_FORWARDED_FOR'];
+  }
 
   return $_SERVER['REMOTE_ADDR'];
 }
@@ -173,29 +192,35 @@ function redirect(/* $code_or_path, $path_or_cond, $cond */) {
     case 3:
       list($code, $path, $cond) = $argv;
       break;
+
     case 2:
       if (is_string($argv[0]) ? $argv[0] : $argv[1]) {
         $code = 302;
         $path = $argv[0];
         $cond = $argv[1];
-      } else {
+      }
+      else {
         $code = $argv[0];
         $path = $argv[1];
       }
       break;
+
     case 1:
-      if (!is_string($argv[0]))
+      if (!is_string($argv[0])) {
         error(500, 'bad call to redirect()');
+      }
       $path = $argv[0];
       break;
+
     default:
       error(500, 'bad call to redirect()');
   }
 
   $cond = (is_callable($cond) ? !!call_user_func($cond) : !!$cond);
 
-  if (!$cond)
+  if (!$cond) {
     return;
+  }
 
   header('Location: '.$path, true, $code);
   exit;
@@ -207,8 +232,9 @@ function partial($view, $locals = null) {
     extract($locals, EXTR_SKIP);
   }
 
-  if (($view_root = config('views.root')) == null)
+  if (($view_root = config('views.root')) == null) {
     error(500, "[views.root] is not set");
+  }
 
   $path = basename($view);
   $view = preg_replace('/'.$path.'$/', "_{$path}", $view);
@@ -218,7 +244,8 @@ function partial($view, $locals = null) {
     ob_start();
     require $view;
     return ob_get_clean();
-  } else {
+  }
+  else {
     error(500, "partial [{$view}] not found");
   }
 
@@ -235,8 +262,9 @@ function render($view, $locals = null, $layout = null) {
     extract($locals, EXTR_SKIP);
   }
 
-  if (($view_root = config('views.root')) == null)
+  if (($view_root = config('views.root')) == null) {
     error(500, "[views.root] is not set");
+  }
 
   ob_start();
   include "{$view_root}/{$view}.html.php";
@@ -257,7 +285,8 @@ function render($view, $locals = null, $layout = null) {
     require $layout;
     echo trim(ob_get_clean());
 
-  } else {
+  }
+  else {
     echo content();
   }
 }
@@ -275,20 +304,24 @@ function condition() {
   $argv = func_get_args();
   $argc = count($argv);
 
-  if (!$argc)
+  if (!$argc) {
     error(500, 'bad call to condition()');
+  }
 
   $name = array_shift($argv);
   $argc = $argc - 1;
 
-  if (!$argc && is_callable($cb_map[$name]))
+  if (!$argc && is_callable($cb_map[$name])) {
     return call_user_func($cb_map[$name]);
+  }
 
-  if (is_callable($argv[0]))
+  if (is_callable($argv[0])) {
     return ($cb_map[$name] = $argv[0]);
+  }
 
-  if (is_callable($cb_map[$name]))
+  if (is_callable($cb_map[$name])) {
     return call_user_func_array($cb_map[$name], $argv);
+  }
 
   error(500, 'condition ['.$name.'] is undefined');
 }
@@ -301,7 +334,8 @@ function middleware($cb_or_path = null) {
     foreach ($cb_map as $cb) {
       call_user_func($cb, $cb_or_path);
     }
-  } else {
+  }
+  else {
     array_push($cb_map, $cb_or_path);
   }
 }
@@ -332,6 +366,7 @@ function route_to_regex($route) {
     $token = str_replace(':', '', $matches[0]);
     return '(?P<'.$token.'>[a-z0-9_\0-\.]+)';
   }, $route);
+  
   return '@^'.rtrim($route, '/').'$@i';
 }
 
@@ -345,8 +380,9 @@ function route($method, $pattern, $callback = null) {
 
   $method = strtoupper($method);
 
-  if (!in_array($method, array('GET', 'POST')))
+  if (!in_array($method, array('GET', 'POST'))) {
     error(500, 'Only GET and POST are supported');
+  }
 
   // a callback was passed, so we create a route defiition
   if ($callback !== null) {
@@ -357,14 +393,16 @@ function route($method, $pattern, $callback = null) {
       'cb' => $callback
     );
 
-  } else {
+  }
+  else {
 
     // callback is null, so this is a route invokation. look up the callback.
     foreach ($route_map[$method] as $pat => $obj) {
 
       // if the requested uri ($pat) has a matching route, let's invoke the cb
-      if (!preg_match($obj['xp'], $pattern, $vals))
+      if (!preg_match($obj['xp'], $pattern, $vals)) {
         continue;
+      }
 
       // call middleware
       middleware($pattern);
@@ -415,10 +453,12 @@ function flash($key, $msg = null, $now = false) {
 
   $f = (config('cookies.flash') ? config('cookies.flash') : '_F');
 
-  if ($c = get_cookie($f))
+  if ($c = get_cookie($f)) {
     $c = json_decode($c, true);
-  else
+  }
+  else {
     $c = array();
+  }
 
   if ($msg == null) {
 
