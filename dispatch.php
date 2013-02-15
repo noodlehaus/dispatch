@@ -448,4 +448,3 @@ function dispatch() {
 
   route(method(), "/{$uri}");
 }
-?>
