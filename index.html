@@ -38,22 +38,28 @@
 <li>PHP 5.3</li>
 <li>
 <code>mcrypt</code> extension if you want to use encrypted cookies and wish to use <code>encrypt()</code> and <code>decrypt()</code> functions</li>
+<li>
+<code>apc</code> extension if you want to use <code>cache()</code> and <code>cache_invalidate()</code>
+</li>
 </ul><h3>Configuration Variables</h3>
 
 <p>The following functions rely on variables set via <code>config()</code>:</p>
 
 <ul>
 <li>
-<code>config('views')</code> is used by <code>render()</code> and <code>partial()</code>, defaults to <code>./views</code>
+<code>config('debug.log')</code> is used by <code>_log()</code> as the destination log file</li>
+<li>
+<code>config('debug.enable')</code> dictates if <code>_log()</code> does something or not</li>
+<li>
+<code>config('views.root')</code> is used by <code>render()</code> and <code>partial()</code>, defaults to <code>./views</code>
 </li>
 <li>
-<code>config('layout')</code> is used by <code>render()</code>, defaults to <code>layout</code>
+<code>config('views.layout')</code> is used by <code>render()</code>, defaults to <code>layout</code>
 </li>
 <li>
-<code>config('secret')</code> is used by <code>encrypt()</code>, <code>decrypt()</code>, <code>set_cookie()</code> and <code>get_cookie()</code>, defaults to an empty string</li>
+<code>config('cookies.secret')</code> is used by <code>encrypt()</code>, <code>decrypt()</code>, <code>set_cookie()</code> and <code>get_cookie()</code>, defaults to an empty string</li>
 <li>
-<code>config('rewrite')</code> is used by <code>dispatch()</code> to compensate for the lack of <code>mod_rewrite</code>, defaults to <code>true</code>
-</li>
+<code>config('cookies.flash')</code> is used by <code>flash()</code> for setting messages</li>
 <li>
 <code>config('source')</code> makes the specified ini contents accessible via <code>config()</code> calls</li>
 </ul><h3>Quick and Basic</h3>
@@ -121,7 +127,7 @@
 <span class="cp">?&gt;</span><span class="x"></span>
 </pre></div>
 
-<p><em>NOTE:</em> Because of the way they are defined, conditions can't have anonymous functions as their first parameter.</p>
+<p><em>NOTE:</em> Because of the way conditions are defined, conditions can't have anonymous functions as their first parameter.</p>
 
 <h3>Middleware</h3>
 
@@ -142,25 +148,20 @@
 <span class="cp">?&gt;</span><span class="x"></span>
 </pre></div>
 
-<h3>Route Pass Through</h3>
+<h3>Caching via APC</h3>
 
-<p>This is also taken from BreezePHP. By default, dispatch will only execute the first route handler that matches the request URI. To let the route matching continue, call <code>pass()</code>.</p>
+<p>If you have <code>apc.so</code> enabled, you can make use of dispatch's simple caching functions.</p>
 
 <div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
-<span class="nx">get</span><span class="p">(</span><span class="s1">'/blog/:slug'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nv">$slug</span><span class="p">)</span> <span class="p">{</span>
-    <span class="c1">// if the blog admin is what's being requested, let it through</span>
-    <span class="k">if</span> <span class="p">(</span><span class="nv">$slug</span> <span class="o">==</span> <span class="s1">'admin'</span><span class="p">)</span> <span class="p">{</span>
-        <span class="nx">pass</span><span class="p">();</span>
-    <span class="p">}</span>
-    <span class="nv">$blog</span> <span class="o">=</span> <span class="nx">Blog</span><span class="o">::</span><span class="na">findBySlug</span><span class="p">(</span><span class="nv">$slug</span><span class="p">);</span>
-    <span class="nx">render</span><span class="p">(</span><span class="s1">'blogs/show'</span><span class="p">,</span> <span class="k">array</span><span class="p">(</span><span class="s1">'blog'</span> <span class="o">=&gt;</span> <span class="nv">$blog</span><span class="p">));</span>
-<span class="p">});</span>
+<span class="c1">// fetch something from the cache (ttl for the cache is 60, based on last parameter)</span>
+<span class="nv">$data</span> <span class="o">=</span> <span class="nx">cache</span><span class="p">(</span><span class="s1">'users'</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="c1">// this function is called as a loader if apc doesn't have 'users' in the cache,</span>
+  <span class="c1">// whatever it returns gets stored into apc and mapped to the 'users' key</span>
+  <span class="k">return</span> <span class="k">array</span><span class="p">(</span><span class="s1">'sheryl'</span><span class="p">,</span> <span class="s1">'addie'</span><span class="p">,</span> <span class="s1">'jaydee'</span><span class="p">);</span>
+<span class="p">},</span> <span class="mi">60</span><span class="p">);</span>
 
-<span class="c1">// this is our actual route handler</span>
-<span class="nx">get</span><span class="p">(</span><span class="s1">'/blog/admin'</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
-    <span class="nx">render</span><span class="p">(</span><span class="s1">'admin'</span><span class="p">);</span>
-<span class="p">});</span>
-<span class="cp">?&gt;</span><span class="x"></span>
+<span class="c1">// invalidate our cached keys (users, products, news)</span>
+<span class="nx">cache_invalidate</span><span class="p">(</span><span class="s1">'users'</span><span class="p">,</span> <span class="s1">'products'</span><span class="p">,</span> <span class="s1">'news'</span><span class="p">);</span>
 </pre></div>
 
 <h3>Configurations</h3>
@@ -173,10 +174,10 @@ This lets you put configuration settings in ini files instead of making <code>co
 <span class="nx">config</span><span class="p">(</span><span class="s1">'source'</span><span class="p">,</span> <span class="s1">'my-settings.ini'</span><span class="p">);</span>
 
 <span class="c1">// set a different folder for the views</span>
-<span class="nx">config</span><span class="p">(</span><span class="s1">'views'</span><span class="p">,</span> <span class="nx">__DIR__</span><span class="o">.</span><span class="s1">'/myviews'</span><span class="p">);</span>
+<span class="nx">config</span><span class="p">(</span><span class="s1">'views.root'</span><span class="p">,</span> <span class="nx">__DIR__</span><span class="o">.</span><span class="s1">'/myviews'</span><span class="p">);</span>
 
 <span class="c1">// get the encryption secret</span>
-<span class="nv">$secret</span> <span class="o">=</span> <span class="nx">config</span><span class="p">(</span><span class="s1">'secret'</span><span class="p">);</span>
+<span class="nv">$secret</span> <span class="o">=</span> <span class="nx">config</span><span class="p">(</span><span class="s1">'cookies.secret'</span><span class="p">);</span>
 <span class="cp">?&gt;</span><span class="x"></span>
 </pre></div>
 
@@ -186,8 +187,8 @@ This lets you put configuration settings in ini files instead of making <code>co
 
 <div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
 <span class="c1">// store a config and get it</span>
-<span class="nx">config</span><span class="p">(</span><span class="s1">'views'</span><span class="p">,</span> <span class="s1">'./views'</span><span class="p">);</span>
-<span class="nx">config</span><span class="p">(</span><span class="s1">'views'</span><span class="p">);</span> <span class="c1">// returns './views'</span>
+<span class="nx">config</span><span class="p">(</span><span class="s1">'views.root'</span><span class="p">,</span> <span class="s1">'./views'</span><span class="p">);</span>
+<span class="nx">config</span><span class="p">(</span><span class="s1">'views.root'</span><span class="p">);</span> <span class="c1">// returns './views'</span>
 
 <span class="c1">// stash a var and get it (useful for moving stuff between scopes)</span>
 <span class="nx">stash</span><span class="p">(</span><span class="s1">'user'</span><span class="p">,</span> <span class="nv">$user</span><span class="p">);</span>
@@ -232,7 +233,15 @@ This lets you put configuration settings in ini files instead of making <code>co
 
 <h2>LICENSE</h2>
 
-<p>MIT License</p>
+<p>(The MIT License)</p>
+
+<p>Copyright (c) 2013 Jesus A. Domingo <a href="mailto:jesus.domingo@gmail.com">jesus.domingo@gmail.com</a></p>
+
+<p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the 'Software'), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p>
+
+<p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p>
+
+<p>THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
       </section>
       <footer>
         <p>This project is maintained by <a href="https://github.com/noodlehaus">noodlehaus</a></p>
