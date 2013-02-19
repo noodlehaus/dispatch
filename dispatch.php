@@ -96,6 +96,27 @@ function delete_cookie() {
     setcookie($ck, '', -10, '/');
 }
 
+// if we have APC loaded, enable cache functions
+if (extension_loaded('apc')) {
+
+  function cache($key, $func, $ttl = 0) {
+    if (($data = apc_fetch($key)) === false) {
+      $data = call_user_func($func);
+      if ($data !== null) {
+        apc_store($key, $data, $ttl);
+      }
+    }
+    return $data;
+  }
+
+  function cache_invalidate() {
+    foreach (func_get_args() as $key) {
+      apc_delete($key);
+    }
+  }
+
+}
+
 function warn($name = null, $message = null) {
 
   static $warnings = array();
