@@ -114,7 +114,7 @@ $data = cache('users', function () {
 }, 60);
 
 // invalidate our cached keys (users, products, news)
-cache_invalidate('users', 'products', news');
+cache_invalidate('users', 'products', 'news');
 ```
 
 ### Configurations
