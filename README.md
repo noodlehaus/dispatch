@@ -4,16 +4,17 @@ At the very least, `dispatch()` is a front controller for your web app. It doesn
 ### Requirements
 * PHP 5.3
 * `mcrypt` extension if you want to use encrypted cookies and wish to use `encrypt()` and `decrypt()` functions
+* `apc` extension if you want to use `cache()` and `cache_invalidate()`
 
 ### Configuration Variables
 The following functions rely on variables set via `config()`:
+* `config('debug.log')` is used by `_log()` as the destination log file
+* `config('debug.enable')` dictates if `_log()` does something or not
 * `config('views.root')` is used by `render()` and `partial()`, defaults to `./views`
 * `config('views.layout')` is used by `render()`, defaults to `layout`
 * `config('cookies.secret')` is used by `encrypt()`, `decrypt()`, `set_cookie()` and `get_cookie()`, defaults to an empty string
 * `config('cookies.flash')` is used by `flash()` for setting messages
 * `config('source')` makes the specified ini contents accessible via `config()` calls
-* `config('debug.log')` is used by `_log()` as the destination log file
-* `config('debug.enable')` dictates if `_log()` does something or not
 
 ### Quick and Basic
 A typical PHP app using dispatch() will look like this.
@@ -98,6 +99,22 @@ get('/list', function () {
 	// do stuff with the DB
 });
 ?>
+```
+
+### Caching via APC
+If you have `apc.so` enabled, you can make use of dispatch's simple caching functions.
+
+```php
+<?php
+// fetch something from the cache (ttl for the cache is 60, based on last parameter)
+$data = cache('users', function () {
+  // this function is called as a loader if apc doesn't have 'users' in the cache,
+  // whatever it returns gets stored into apc and mapped to the 'users' key
+  return array('sheryl', 'addie', 'jaydee');
+}, 60);
+
+// invalidate our cached keys (users, products, news)
+cache_invalidate('users', 'products', news');
 ```
 
 ### Configurations
