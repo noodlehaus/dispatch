@@ -10,7 +10,10 @@ The following functions rely on variables set via `config()`:
 * `config('views.root')` is used by `render()` and `partial()`, defaults to `./views`
 * `config('views.layout')` is used by `render()`, defaults to `layout`
 * `config('cookies.secret')` is used by `encrypt()`, `decrypt()`, `set_cookie()` and `get_cookie()`, defaults to an empty string
+* `config('cookies.flash')` is used by `flash()` for setting messages
 * `config('source')` makes the specified ini contents accessible via `config()` calls
+* `config('debug.log')` is used by `_log()` as the destination log file
+* `config('debug.enable')` dictates if `_log()` does something or not
 
 ### Quick and Basic
 A typical PHP app using dispatch() will look like this.
@@ -107,10 +110,10 @@ This lets you put configuration settings in ini files instead of making `config(
 config('source', 'my-settings.ini');
 
 // set a different folder for the views
-config('views', __DIR__.'/myviews');
+config('views.root', __DIR__.'/myviews');
 
 // get the encryption secret
-$secret = config('secret');
+$secret = config('cookies.secret');
 ?>
 ```
 
@@ -120,8 +123,8 @@ There are a lot of other useful routines in the library. Documentation is still 
 ```php
 <?php
 // store a config and get it
-config('views', './views');
-config('views'); // returns './views'
+config('views.root', './views');
+config('views.root'); // returns './views'
 
 // stash a var and get it (useful for moving stuff between scopes)
 stash('user', $user);
