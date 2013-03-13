@@ -14,6 +14,7 @@ The following functions rely on variables set via `config()`:
 * `config('views.layout')` is used by `render()`, defaults to `layout`
 * `config('cookies.secret')` is used by `encrypt()`, `decrypt()`, `set_cookie()` and `get_cookie()`, defaults to an empty string
 * `config('cookies.flash')` is used by `flash()` for setting messages
+* `config('site.url')` is used by `site_url()` and `site_path()`
 * `config('source')` makes the specified ini contents accessible via `config()` calls
 
 ### Quick and Basic
