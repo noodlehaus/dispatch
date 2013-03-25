@@ -1,5 +1,4 @@
 <?php
-
 if (!defined('PHP_VERSION_ID') || PHP_VERSION_ID < 50300) {
   error(500, 'dispatch requires at least PHP 5.3 to run.');
 }
@@ -15,7 +14,7 @@ function _log($message) {
 function site_url(){
 
   if (config('site.url') == null)
-      error(500, '[site.url] is not set');
+    error(500, '[site.url] is not set');
 
   // Forcing the forward slash
   return rtrim(config('site.url'),'/').'/';
@@ -25,17 +24,18 @@ function site_path(){
   static $_path;
 
   if (config('site.url') == null)
-      error(500, '[site.url] is not set');
-  
+    error(500, '[site.url] is not set');
+
   if (!$_path)
     $_path = rtrim(parse_url(config('site.url'), PHP_URL_PATH),'/');
-  
+
   return $_path;
 }
 
 function error($code, $message) {
-  @header("HTTP/1.0 {$code} {$message}", true, $code);
-  die($message);
+  if (php_sapi_name() !== 'cli')
+    @header("HTTP/1.0 {$code} {$message}", true, $code);
+  die("{$code} - {$message}");
 }
 
 function config($key, $value = null) {
@@ -371,11 +371,16 @@ function filter($sym, $cb_or_val = null) {
 }
 
 function route_to_regex($route) {
+
   $route = preg_replace_callback('@:[\w]+@i', function ($matches) {
     $token = str_replace(':', '', $matches[0]);
     return '(?P<'.$token.'>[a-z0-9_\0-\.]+)';
   }, $route);
-  return '@^'.rtrim($route, '/').'$@i';
+
+  $route = rtrim($route, '/');
+  $route = '@^'.(!strlen($route) ? '/' : $route).'$@i';
+
+  return $route;
 }
 
 function route($method, $pattern, $callback = null) {
@@ -401,7 +406,6 @@ function route($method, $pattern, $callback = null) {
     );
 
   } else {
-
 
     // callback is null, so this is a route invokation. look up the callback.
     foreach ($route_map[$method] as $pat => $obj) {
@@ -483,17 +487,18 @@ function flash($key, $msg = null, $now = false) {
   $x[$key] = $msg;
 }
 
-function dispatch() {
+function dispatch($method = null, $path = null) {
 
-  $path = $_SERVER['REQUEST_URI'];
-  
+  // added params for cli testing
+  $path = ($path ? $path : $_SERVER['REQUEST_URI']);
+  $method = ($method ? $method : method());
+
   if (config('site.url') !== null)
     $path = preg_replace('@^'.preg_quote(site_path()).'@', '', $path);
 
   $parts = preg_split('/\?/', $path, -1, PREG_SPLIT_NO_EMPTY);
-
   $uri = trim($parts[0], '/');
-  $uri = strlen($uri) ? $uri : 'index';
 
-  route(method(), "/{$uri}");
+  route($method, "/{$uri}");
 }
+?>
