@@ -1,7 +1,6 @@
 <?php
-if (!defined('PHP_VERSION_ID') || PHP_VERSION_ID < 50300) {
+if (!defined('PHP_VERSION_ID') || PHP_VERSION_ID < 50300)
   error(500, 'dispatch requires at least PHP 5.3 to run.');
-}
 
 function _log($message) {
   if (config('debug.enable') == true && php_sapi_name() !== 'cli') {
@@ -11,23 +10,23 @@ function _log($message) {
   }
 }
 
-function site_url(){
+function site_url() {
 
   if (config('site.url') == null)
     error(500, '[site.url] is not set');
 
   // Forcing the forward slash
-  return rtrim(config('site.url'),'/').'/';
+  return rtrim(config('site.url'), '/').'/';
 }
 
-function site_path(){
+function site_path() {
   static $_path;
 
   if (config('site.url') == null)
     error(500, '[site.url] is not set');
 
   if (!$_path)
-    $_path = rtrim(parse_url(config('site.url'), PHP_URL_PATH),'/');
+    $_path = rtrim(parse_url(config('site.url'), PHP_URL_PATH), '/');
 
   return $_path;
 }
@@ -129,6 +128,14 @@ if (extension_loaded('apc')) {
       }
     }
     return $data;
+  }
+
+  function cache_cas($key, $func, $loop = false, $ttl = 0) {
+
+    $oldval = apc_fetch($key);
+    $newval = call_user_func($func);
+
+    apc_cas($key, $oldval, $newval);
   }
 
   function cache_invalidate() {
