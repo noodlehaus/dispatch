@@ -400,6 +400,15 @@ function client_ip() {
   return $_SERVER['REMOTE_ADDR'];
 }
 
+/**
+ * Performs an HTTP redirect.
+ *
+ * @param int|string http code for redirect, or path to redirect to
+ * @param string|bool path to redirect to, or condition for the redirect
+ * @param bool condition for the redirect, true means it happens
+ *
+ * @return void
+ */
 function redirect(/* $code_or_path, $path_or_cond, $cond */) {
 
   $argv = func_get_args();
@@ -441,6 +450,15 @@ function redirect(/* $code_or_path, $path_or_cond, $cond */) {
   exit;
 }
 
+/**
+ * Returns the contents of the template partial $view, using
+ * $locals (optional).
+ *
+ * @param string $view path to partial
+ * @param array $locals optional, hash to load as local variables in the partial's scope.
+ *
+ * @return string content of the partial.
+ */
 function partial($view, $locals = null) {
 
   if (is_array($locals) && count($locals)) {
@@ -465,10 +483,28 @@ function partial($view, $locals = null) {
   return '';
 }
 
+/**
+ * Convenience function for storing/fetching content to be
+ * plugged into the layout within render().
+ *
+ * @param string $value optional, value to use as content.
+ *
+ * @return string content
+ */
 function content($value = null) {
   return stash('$content$', $value);
 }
 
+/**
+ * Renders the contents of $view using $locals (optional), into
+ * $layout (optional). If $layout === false, no layout will be used.
+ *
+ * @param string $view path to the view file to render
+ * @param array $locals optional, hash to load into $view's scope
+ * @param string|bool path to the layout file to use, or if no layout is to be used.
+ *
+ * @return string contents of the view + layout
+ */
 function render($view, $locals = null, $layout = null) {
 
   if (is_array($locals) && count($locals)) {
@@ -502,12 +538,32 @@ function render($view, $locals = null, $layout = null) {
   }
 }
 
+/**
+ * Utility function for spitting out JSON content.
+ *
+ * @param mixed $obj value to serialize as JSON
+ * @param int $code optional, http code to use in the response.
+ *
+ * @return void
+ */
 function json($obj, $code = 200) {
   header('Content-type: application/json', true, $code);
   echo json_encode($obj);
   exit;
 }
 
+/**
+ * Creates conditions that can be invoked to determine
+ * if execution of an action for a route continues or not.
+ * If argument 2 is a callable, that becomes the handler
+ * for the condition. Otherwise, call becomes an invocation of the
+ * condition with all remaining arguments are passed to the condition.
+ *
+ * @param string $name name of the condition
+ * @param callable|mixed[] $cb_or_arg,... callback for condition, or args during invocation
+ *
+ * @return void
+ */
 function condition() {
 
   static $cb_map = array();
@@ -533,6 +589,14 @@ function condition() {
   error(500, 'condition ['.$name.'] is undefined');
 }
 
+/**
+ * Inserts a callback to be invoked before handling of requests
+ * or invokes all queued callbacks, if no argument was passed.
+ *
+ * @param callable|string $cb_or_path if callable, adds middleware, invokes all otherwise
+ *
+ * @return void
+ */
 function middleware($cb_or_path = null) {
 
   static $cb_map = array();
@@ -546,6 +610,16 @@ function middleware($cb_or_path = null) {
   }
 }
 
+/**
+ * Creates callbacks (filters) against certain
+ * symbols within a route. Whenever $sym is encountered
+ * in a route, the filter is invoked.
+ *
+ * @param string $sym symbol to create a filter for
+ * @param callable|mixed filter or value to pass to the filter
+ *
+ * @return void
+ */
 function filter($sym, $cb_or_val = null) {
 
   static $cb_map = array();
@@ -567,6 +641,13 @@ function filter($sym, $cb_or_val = null) {
   error(500, 'bad call to filter()');
 }
 
+/**
+ * Converts a route into a regular expression. Used within route().
+ *
+ * @param string $route string to convert.
+ *
+ * @return string regular expression
+ */
 function route_to_regex($route) {
 
   $route = preg_replace_callback('@:[\w]+@i', function ($matches) {
@@ -580,6 +661,20 @@ function route_to_regex($route) {
   return $route;
 }
 
+/**
+ * Maps a callback or invokes a callback for requests
+ * on $pattern. If $callback is not set, $pattern
+ * is matched against all routes for $method, and the
+ * the mapped callback for the match is invoked. If $callback
+ * is set, that callback is mapped against $pattern for $method
+ * requests.
+ *
+ * @param string $method HTTP request method to map to
+ * @param string $pattern regex or url path
+ * @param callable $callback optional, handler to map
+ *
+ * @return void
+ */
 function route($method, $pattern, $callback = null) {
 
   // callback map by request type
@@ -645,10 +740,28 @@ function route($method, $pattern, $callback = null) {
 
 }
 
+/**
+ * Utility for mapping $cb (callable) for GET requests on
+ * $path.
+ *
+ * @param string $path route to create a handler for
+ * @param callable $cb handler to map against GETs on $path
+ *
+ * @return void
+ */
 function get($path, $cb) {
   route('GET', $path, $cb);
 }
 
+/**
+ * Utility for mapping $cb (callable) for POST requests on
+ * $path.
+ *
+ * @param string $path route to create a handler for
+ * @param callable $cb handler to map against POSTs on $path
+ *
+ * @return void
+ */
 function post($path, $cb) {
   route('POST', $path, $cb);
 }
@@ -684,6 +797,14 @@ function flash($key, $msg = null, $now = false) {
   $x[$key] = $msg;
 }
 
+/**
+ * Entry point for the library.
+ *
+ * @param string $method optional, for testing in the cli
+ * @param string $path optional, for testing in the cli
+ *
+ * @return void
+ */
 function dispatch($method = null, $path = null) {
 
   // added params for cli testing
