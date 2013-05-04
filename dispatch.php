@@ -1,7 +1,19 @@
 <?php
+/**
+ * @author Jesus A. Domingo
+ * @license MIT
+ */
+
 if (!defined('PHP_VERSION_ID') || PHP_VERSION_ID < 50300)
   error(500, 'dispatch requires at least PHP 5.3 to run.');
 
+/**
+ * Sends a log message to the file pointed to by 'debug.log'.
+ *
+ * @param string $message string to put on the logger.
+ *
+ * @return void
+ */
 function _log($message) {
   if (config('debug.enable') == true && php_sapi_name() !== 'cli') {
     $file = config('debug.log');
@@ -10,6 +22,12 @@ function _log($message) {
   }
 }
 
+/**
+ * Returns the string contained by 'site.url' in config.ini.
+ * This includes the hostname and path.
+ *
+ * @return string value pointed to by 'site.url' in config.ini.
+ */
 function site_url() {
 
   if (config('site.url') == null)
@@ -19,6 +37,11 @@ function site_url() {
   return rtrim(config('site.url'), '/').'/';
 }
 
+/**
+ * Returns the path section of 'site.url' from config.ini.
+ *
+ * @return string path section of 'site.url'.
+ */
 function site_path() {
   static $_path;
 
@@ -31,12 +54,31 @@ function site_path() {
   return $_path;
 }
 
+/**
+ * A convenience function over header() for printing out
+ * HTTP error messages. If used in CLI mode, it die()s with
+ * the code and the message, instead.
+ *
+ * @param int $code http status code to use
+ * @param string $message string to display as content.
+ *
+ * @return void
+ */
 function error($code, $message) {
   if (php_sapi_name() !== 'cli')
     @header("HTTP/1.0 {$code} {$message}", true, $code);
   die("{$code} - {$message}");
 }
 
+/**
+ * Sets or gets an entry from the loaded config.ini file. If the $key passed
+ * is 'source', it expects $value to be a path to an ini file to load.
+ *
+ * @param string $key config setting to set or get
+ * @param string $value optional, If present, sets $key to this $value.
+ *
+ * @return mixed|null value
+ */
 function config($key, $value = null) {
 
   static $_config = array();
@@ -46,9 +88,16 @@ function config($key, $value = null) {
   else if ($value == null)
     return (isset($_config[$key]) ? $_config[$key] : null);
   else
-    $_config[$key] = $value;
+    return ($_config[$key] = $value);
 }
 
+/**
+ * Cookie-safe and URL-safe version of base64_encode()
+ *
+ * @param string $str string to encode
+ *
+ * @return string encoded string
+ */
 function to_b64($str) {
   $str = base64_encode($str);
   $str = preg_replace('/\//', '_', $str);
@@ -57,6 +106,13 @@ function to_b64($str) {
   return trim($str, '-');
 }
 
+/**
+ * Decodes a to_b64() encoded string.
+ *
+ * @param string $str encoded string
+ *
+ * @return string decoded string
+ */
 function from_b64($str) {
   $str = preg_replace('/\_/', '/', $str);
   $str = preg_replace('/\./', '+', $str);
@@ -67,6 +123,15 @@ function from_b64($str) {
 
 if (extension_loaded('mcrypt')) {
 
+  /**
+   * Encryption function that uses the mcrypt extension.
+   *
+   * @param string $decoded string to encrypt
+   * @param int $algo one of the MCRYPT_ciphername constants
+   * @param int $mode one of the MCRYPT_MODE_modename constants
+   *
+   * @return string encrypted string + iv code
+   */
   function encrypt($decoded, $algo = MCRYPT_RIJNDAEL_256, $mode = MCRYPT_MODE_CBC) {
 
     if (($secret = config('cookies.secret')) == null)
@@ -80,6 +145,15 @@ if (extension_loaded('mcrypt')) {
     return sprintf('%s|%s', $encrypted, to_b64($iv_code));
   }
 
+  /**
+   * Decrypts a string encrypted by encrypt().
+   *
+   * @param string $encoded encrypted string
+   * @param int $algo one of the MCRYPT_ciphername constants
+   * @param int $mode one of the MCRYPT_MODE_modename constants
+   *
+   * @return string decrypted string
+   */
   function decrypt($encoded, $algo = MCRYPT_RIJNDAEL_256, $mode = MCRYPT_MODE_CBC) {
 
     if (($secret = config('cookies.secret')) == null)
@@ -96,11 +170,29 @@ if (extension_loaded('mcrypt')) {
 
 }
 
+/**
+ * Wraps around setcookie() so it can encrypt the values if mcrypt is loaded.
+ *
+ * @param string $name name of the cookie
+ * @param string $value value of the cookie
+ * @param int $expire optional, how long the cookie lives
+ * @param string $path path for the cookie
+ *
+ * @return void
+ */
 function set_cookie($name, $value, $expire = 31536000, $path = '/') {
   $value = (function_exists('encrypt') ? encrypt($value) : $value);
   setcookie($name, $value, time() + $expire, $path);
 }
 
+/**
+ * Wraps $_COOKIE access to automatically decrypt() values if mcrypt
+ * is detected.
+ *
+ * @param string $name name of the cookie to get
+ *
+ * @return string cookie value
+ */
 function get_cookie($name) {
 
   $value = from($_COOKIE, $name);
@@ -111,15 +203,31 @@ function get_cookie($name) {
   return $value;
 }
 
+/**
+ * Wraps around setcookie() to allow removal of multiple cookies
+ *
+ * @param string $v,... cookies to unset
+ *
+ * @return void
+ */
 function delete_cookie() {
   $cookies = func_get_args();
   foreach ($cookies as $ck)
     setcookie($ck, '', -10, '/');
 }
 
-// if we have APC loaded, enable cache functions
 if (extension_loaded('apc')) {
 
+  /**
+   * Stores the value returned by $func into apc against $key if $func is passed,
+   * for $ttl seconds. If $func is not passed, the value mapped to $key is returned.
+   *
+   * @param string $key cache entry to fetch or store into
+   * @param callable $func function whose return value is stored against $key
+   * @param int $ttl optional, time-to-live for $key, in seconds
+   *
+   * @return mixed data cached against $key
+   */
   function cache($key, $func, $ttl = 0) {
     if (($data = apc_fetch($key)) === false) {
       $data = call_user_func($func);
@@ -130,7 +238,16 @@ if (extension_loaded('apc')) {
     return $data;
   }
 
-  function cache_cas($key, $func, $loop = false, $ttl = 0) {
+  /**
+   * Wraps around apc_cas() but accepts a callable as 2nd parameter.
+   *
+   * @param string $key cache entry to store into
+   * @param mixed $old old value to use as state
+   * @param callable $func function whose return value will be used as new value
+   *
+   * @return void
+   */
+  function cache_cas($key, $old, $func) {
 
     $oldval = apc_fetch($key);
     $newval = call_user_func($func);
@@ -138,6 +255,13 @@ if (extension_loaded('apc')) {
     apc_cas($key, $oldval, $newval);
   }
 
+  /**
+   * Invalidates a key or list of keys from the cache.
+   *
+   * @param string $v,... key or keys to invalidate from the cache.
+   *
+   * @return void
+   */
   function cache_invalidate() {
     foreach (func_get_args() as $key) {
       apc_delete($key);
@@ -146,6 +270,20 @@ if (extension_loaded('apc')) {
 
 }
 
+/**
+ * Form helper that stores form field warnings into
+ * a hash that can be fetched later. If no arguments are
+ * passed, it returns the number of warnings it accumulated.
+ * Passing just the $name will return all warnings for that
+ * field. Passing both $name and $message will map $message
+ * as an error for $name. Passing '*' as the only argument
+ * will return hash of all the errors.
+ *
+ * @param string $name optional, name of field
+ * @param string $message optional, message to map against $name
+ *
+ * @return mixed count of errors or hash of errors, or single error
+ */
 function warn($name = null, $message = null) {
 
   static $warnings = array();
@@ -162,24 +300,62 @@ function warn($name = null, $message = null) {
   $warnings[$name] = $message;
 }
 
+/**
+ * Convenience wrapper for urlencode()
+ *
+ * @param string $str string to encode.
+ *
+ * @return string url encoded string
+ */
 function _u($str) {
   return urlencode($str);
 }
 
+/**
+ * Convenience wrapper for htmlentities().
+ *
+ * @param string $str string to encode
+ * @param string $enc encoding to use.
+ * @param string $flags htmlentities() flags
+ *
+ * @return string encoded string
+ */
 function _h($str, $enc = 'UTF-8', $flags = ENT_QUOTES) {
   return htmlentities($str, $flags, $enc);
 }
 
-function from($source, $name) {
+/**
+ * Utility for getting values from arrays, ie. $_GET, $_POST.
+ * If $name is not set within $source, $default will be returned
+ * instead.
+ *
+ * @param array $source array to get data from
+ * @param string $name key to lookup in $source
+ * @param mixed $default optional, value to use for unset keys
+ *
+ * @return mixed whatever $name maps to, or $default
+ */
+function from($source, $name, $default = null) {
   if (is_array($name)) {
     $data = array();
     foreach ($name as $k)
-      $data[$k] = isset($source[$k]) ? $source[$k] : null ;
+      $data[$k] = isset($source[$k]) ? $source[$k] : $default ;
     return $data;
   }
-  return isset($source[$name]) ? $source[$name] : null ;
+  return isset($source[$name]) ? $source[$name] : $default ;
 }
 
+/**
+ * A utility for passing values between scopes. If $value
+ * is passed, $name will be set to $value. If $value is not
+ * passed, the value currently mapped against $name will be
+ * returned instead.
+ *
+ * @param string $name name of variable to store.
+ * @param mixed $value optional, value to store against $name
+ *
+ * @return mixed value mapped to $name
+ */
 function stash($name, $value = null) {
 
   static $_stash = array();
@@ -192,6 +368,15 @@ function stash($name, $value = null) {
   return $value;
 }
 
+/**
+ * Utility for checking the request method. If $verb is passed,
+ * that $verb is checked against the current request method. If
+ * $verb wasn't passed, it returns the request method.
+ *
+ * @param string $verb optional, verb to check against REQUEST_METHOD
+ *
+ * @return bool|string if $verb is passed, bool for if it matches, else, REQUEST_METHOD
+ */
 function method($verb = null) {
 
   if ($verb == null || (strtoupper($verb) == strtoupper($_SERVER['REQUEST_METHOD'])))
@@ -200,6 +385,11 @@ function method($verb = null) {
   error(400, 'bad request');
 }
 
+/**
+ * Returns the client's IP address.
+ *
+ * @return string client's ip address.
+ */
 function client_ip() {
 
   if (isset($_SERVER['HTTP_CLIENT_IP']))
