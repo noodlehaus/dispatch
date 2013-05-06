@@ -43,6 +43,7 @@ function site_url() {
  * @return string path section of 'site.url'.
  */
 function site_path() {
+
   static $_path;
 
   if (config('site.url') == null)
@@ -65,8 +66,10 @@ function site_path() {
  * @return void
  */
 function error($code, $message) {
+
   if (php_sapi_name() !== 'cli')
     @header("HTTP/1.0 {$code} {$message}", true, $code);
+
   die("{$code} - {$message}");
 }
 
@@ -231,9 +234,8 @@ if (extension_loaded('apc')) {
   function cache($key, $func, $ttl = 0) {
     if (($data = apc_fetch($key)) === false) {
       $data = call_user_func($func);
-      if ($data !== null) {
+      if ($data !== null)
         apc_store($key, $data, $ttl);
-      }
     }
     return $data;
   }
@@ -263,9 +265,8 @@ if (extension_loaded('apc')) {
    * @return void
    */
   function cache_invalidate() {
-    foreach (func_get_args() as $key) {
+    foreach (func_get_args() as $key)
       apc_delete($key);
-    }
   }
 
 }
@@ -507,9 +508,8 @@ function content($value = null) {
  */
 function render($view, $locals = null, $layout = null) {
 
-  if (is_array($locals) && count($locals)) {
+  if (is_array($locals) && count($locals))
     extract($locals, EXTR_SKIP);
-  }
 
   if (($view_root = config('views.root')) == null)
     error(500, "[views.root] is not set");
@@ -602,9 +602,8 @@ function middleware($cb_or_path = null) {
   static $cb_map = array();
 
   if ($cb_or_path == null || is_string($cb_or_path)) {
-    foreach ($cb_map as $cb) {
+    foreach ($cb_map as $cb)
       call_user_func($cb, $cb_or_path);
-    }
   } else {
     array_push($cb_map, $cb_or_path);
   }
@@ -717,20 +716,17 @@ function route($method, $pattern, $callback = null) {
 
       foreach ($keys as $index => $id) {
         $id = substr($id, 1);
-        if (isset($vals[$id])) {
+        if (isset($vals[$id]))
           array_push($argv, trim(urldecode($vals[$id])));
-        }
       }
 
       // call filters if we have symbols
-      if (count($keys)) {
+      if (count($keys))
         filter(array_values($keys), $vals);
-      }
 
       // if cb found, invoke it
-      if (is_callable($obj['cb'])) {
+      if (is_callable($obj['cb']))
         call_user_func_array($obj['cb'], $argv);
-      }
 
       // leave after first match
       break;
