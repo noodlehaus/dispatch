@@ -185,5 +185,12 @@ $html = partial('users/profile', array('user' => $user));
 ?>
 ```
 
+## Contributors
+Thanks to the following contributors for helping improve this tool :)
+
+* Kafene [kafene](https://github.com/kafene)
+* Martin Angelov [martingalv](https://github.com/martinaglv)
+
+
 ## LICENSE
 MIT
