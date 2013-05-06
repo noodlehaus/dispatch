@@ -6,6 +6,10 @@ At the very least, `dispatch()` is a front controller for your web app. It doesn
 * `mcrypt` extension if you want to use encrypted cookies and wish to use `encrypt()` and `decrypt()` functions
 * `apc` extension if you want to use `cache()` and `cache_invalidate()`
 
+### Related Libraries
+* [disptach-mongo](http://github.com/noodlehaus/dispatch-mongo) - wrapper for commonly used mongodb functions for dispatch
+* [disptach-elastic](http://github.com/noodlehaus/dispatch-elastic) - wrapper for commonly used elasticsearch operations for dispatch
+
 ### Configuration Variables
 The following functions rely on variables set via `config()`:
 * `config('debug.log')` is used by `_log()` as the destination log file
