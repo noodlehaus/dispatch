@@ -6,6 +6,16 @@ At the very least, `dispatch()` is a front controller for your web app. It doesn
 * `mcrypt` extension if you want to use encrypted cookies and wish to use `encrypt()` and `decrypt()` functions
 * `apc` extension if you want to use `cache()` and `cache_invalidate()`
 
+### Contributors
+Thanks to the following contributors for helping improve this tool :)
+
+* Kafene [kafene](https://github.com/kafene)
+* Martin Angelov [martingalv](https://github.com/martinaglv)
+
+### Related Libraries
+* [disptach-mongo](http://github.com/noodlehaus/dispatch-mongo) - wrapper for commonly used mongodb functions for dispatch
+* [disptach-elastic](http://github.com/noodlehaus/dispatch-elastic) - wrapper for commonly used elasticsearch operations for dispatch
+
 ### Configuration Variables
 The following functions rely on variables set via `config()`:
 * `config('debug.log')` is used by `_log()` as the destination log file
@@ -186,12 +196,4 @@ $html = partial('users/profile', array('user' => $user));
 ```
 
 ## LICENSE
-(The MIT License)
-
-Copyright (c) 2011 Jesus A. Domingo jesus.domingo@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the 'Software'), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+MIT
