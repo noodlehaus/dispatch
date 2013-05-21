@@ -11,6 +11,7 @@ Thanks to the following contributors for helping improve this tool :)
 
 * Kafene [kafene](https://github.com/kafene)
 * Martin Angelov [martingalv](https://github.com/martinaglv)
+* Lars [larsbo](https://github.com/larsbo)
 
 ### Related Libraries
 * [disptach-mongo](http://github.com/noodlehaus/dispatch-mongo) - wrapper for commonly used mongodb functions for dispatch
