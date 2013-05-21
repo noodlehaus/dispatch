@@ -26,7 +26,7 @@ The following functions rely on variables set via `config()`:
 * `config('cookies.secret')` is used by `encrypt()`, `decrypt()`, `set_cookie()` and `get_cookie()`, defaults to an empty string
 * `config('cookies.flash')` is used by `flash()` for setting messages
 * `config('site.url')` is used by `site_url()` and `site_path()`
-* `config('source')` makes the specified ini contents accessible via `config()` calls
+* `config('source', 'inifile.ini')` makes the contents of `inifile.ini` accessible via `config()` calls
 
 ### Quick and Basic
 A typical PHP app using dispatch() will look like this.
@@ -135,7 +135,7 @@ This lets you put configuration settings in ini files instead of making `config(
 
 ```php
 <?php
-// load a config.ini file
+// load the contents of my-settings.ini into config()
 config('source', 'my-settings.ini');
 
 // set a different folder for the views
