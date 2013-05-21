@@ -16,7 +16,7 @@
     <div class="wrapper">
       <header>
         <h1>dispatch</h1>
-        <p>php 5.3 utility library</p>
+        <p>PHP 5.3+ Utility Library</p>
 
         <p class="view"><a href="https://github.com/noodlehaus/dispatch">View the Project on GitHub <small>noodlehaus/dispatch</small></a></p>
 
@@ -41,6 +41,24 @@
 <li>
 <code>apc</code> extension if you want to use <code>cache()</code> and <code>cache_invalidate()</code>
 </li>
+</ul><h3>Contributors</h3>
+
+<p>Thanks to the following contributors for helping improve this tool :)</p>
+
+<ul>
+<li>Kafene <a href="https://github.com/kafene">kafene</a>
+</li>
+<li>Martin Angelov <a href="https://github.com/martinaglv">martingalv</a>
+</li>
+<li>Lars <a href="https://github.com/larsbo">larsbo</a>
+</li>
+</ul><h3>Related Libraries</h3>
+
+<ul>
+<li>
+<a href="http://github.com/noodlehaus/dispatch-mongo">disptach-mongo</a> - wrapper for commonly used mongodb functions for dispatch</li>
+<li>
+<a href="http://github.com/noodlehaus/dispatch-elastic">disptach-elastic</a> - wrapper for commonly used elasticsearch operations for dispatch</li>
 </ul><h3>Configuration Variables</h3>
 
 <p>The following functions rely on variables set via <code>config()</code>:</p>
@@ -61,7 +79,10 @@
 <li>
 <code>config('cookies.flash')</code> is used by <code>flash()</code> for setting messages</li>
 <li>
-<code>config('source')</code> makes the specified ini contents accessible via <code>config()</code> calls</li>
+<code>config('site.url')</code> is used by <code>site_url()</code> and <code>site_path()</code>
+</li>
+<li>
+<code>config('source', 'inifile.ini')</code> makes the contents of <code>inifile.ini</code> accessible via <code>config()</code> calls</li>
 </ul><h3>Quick and Basic</h3>
 
 <p>A typical PHP app using dispatch() will look like this.</p>
@@ -170,7 +191,7 @@
 This lets you put configuration settings in ini files instead of making <code>config()</code> calls in your code.</p>
 
 <div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
-<span class="c1">// load a config.ini file</span>
+<span class="c1">// load the contents of my-settings.ini into config()</span>
 <span class="nx">config</span><span class="p">(</span><span class="s1">'source'</span><span class="p">,</span> <span class="s1">'my-settings.ini'</span><span class="p">);</span>
 
 <span class="c1">// set a different folder for the views</span>
@@ -233,15 +254,7 @@ This lets you put configuration settings in ini files instead of making <code>co
 
 <h2>LICENSE</h2>
 
-<p>(The MIT License)</p>
-
-<p>Copyright (c) 2013 Jesus A. Domingo <a href="mailto:jesus.domingo@gmail.com">jesus.domingo@gmail.com</a></p>
-
-<p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the 'Software'), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p>
-
-<p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p>
-
-<p>THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
+<p>MIT</p>
       </section>
       <footer>
         <p>This project is maintained by <a href="https://github.com/noodlehaus">noodlehaus</a></p>
