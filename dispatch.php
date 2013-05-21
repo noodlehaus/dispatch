@@ -79,7 +79,9 @@ function error($code, $message) {
 
 /**
  * Sets or gets an entry from the loaded config.ini file. If the $key passed
- * is 'source', it expects $value to be a path to an ini file to load.
+ * is 'source', it expects $value to be a path to an ini file to load. Calls
+ * to config('source', 'inifile.ini') will aggregate the contents of the ini
+ * file into config().
  *
  * @param string $key config setting to set or get
  * @param string $value optional, If present, sets $key to this $value.
