@@ -98,6 +98,8 @@ function config($key, $value = null) {
     return (isset($_config[$key]) ? $_config[$key] : null);
   else
     return ($_config[$key] = $value);
+
+  return $value;
 }
 
 /**
@@ -852,16 +854,23 @@ function flash($key, $msg = null, $now = false) {
  */
 function dispatch($method = null, $path = null) {
 
-  // added params for cli testing
-  $path = ($path ? $path : $_SERVER['REQUEST_URI']);
+  // see if we were invoked with params
   $method = ($method ? $method : method());
+  $path = ($path ? $path : $_SERVER['REQUEST_URI']);
 
+  // remove the site base url
   if (config('site.url') !== null)
     $path = preg_replace('@^'.preg_quote(site_path()).'@', '', $path);
 
-  $parts = preg_split('/\?/', $path, -1, PREG_SPLIT_NO_EMPTY);
-  $uri = trim($parts[0], '/');
+  // if we have rewriting disabled, remove the first segment or go to '/'
+  if (config('rewrite.enable') == false)
+    $path = preg_replace('@^\/[^\/]+@', '', $path);
 
+  // clean up the route
+  $parts = preg_split('/\?/', $path, -1, PREG_SPLIT_NO_EMPTY);
+  $uri = count($parts) ? trim($parts[0], '/') : '';
+
+  // match it
   route($method, "/{$uri}");
 }
 ?>
