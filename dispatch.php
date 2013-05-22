@@ -48,13 +48,15 @@ function site_url() {
  */
 function site_path() {
 
-  static $_path;
+  static $_path = null;
 
-  if (config('site.url') == null)
-    error(500, '[site.url] is not set');
+  if (!$_path) {
 
-  if (!$_path)
+    if (config('site.url') == null)
+      error(500, '[site.url] is not set');
+
     $_path = rtrim(parse_url(config('site.url'), PHP_URL_PATH), '/');
+  }
 
   return $_path;
 }
