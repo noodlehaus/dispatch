@@ -742,7 +742,7 @@ function route($method, $pattern, $callback = null) {
     }
 
     // we got a 404
-    error(400, 'Page not found');
+    error(404, 'Page not found');
   }
 
 }
