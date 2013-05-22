@@ -82,8 +82,7 @@
 <li>
 <code>config('cookies.flash')</code> is used by <code>flash()</code> for setting messages</li>
 <li>
-<code>config('site.url')</code> is used by <code>site_url()</code> and <code>site_path()</code>
-</li>
+<code>config('site.url')</code> is used by <code>site_url()</code> and <code>site_path()</code>, used only if you're putting your app in a subfolder</li>
 <li>
 <code>config('source', 'inifile.ini')</code> makes the contents of <code>inifile.ini</code> accessible via <code>config()</code> calls</li>
 </ul><h3>Quick and Basic</h3>
@@ -113,7 +112,7 @@
 <span class="p">});</span>
 
 <span class="c1">// delete handler</span>
-<span class="nx">del</span><span class="p">(</span><span class="s1">'/users/:id'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nv">$id</span><span class="p">)</span> <span class="p">{</span>
+<span class="nx">delete</span><span class="p">(</span><span class="s1">'/users/:id'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nv">$id</span><span class="p">)</span> <span class="p">{</span>
   <span class="c1">// ...</span>
 <span class="p">});</span>
 
@@ -187,10 +186,12 @@
 <p>If you have <code>apc.so</code> enabled, you can make use of dispatch's simple caching functions.</p>
 
 <div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
-<span class="c1">// fetch something from the cache (ttl for the cache is 60, based on last parameter)</span>
+<span class="c1">// fetch something from the cache (ttl param is 60)</span>
 <span class="nv">$data</span> <span class="o">=</span> <span class="nx">cache</span><span class="p">(</span><span class="s1">'users'</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
-  <span class="c1">// this function is called as a loader if apc doesn't have 'users' in the cache,</span>
-  <span class="c1">// whatever it returns gets stored into apc and mapped to the 'users' key</span>
+  <span class="c1">// this function is called as a loader if apc</span>
+  <span class="c1">// doesn't have 'users' in the cache, whatever</span>
+  <span class="c1">// it returns gets stored into apc and mapped to</span>
+  <span class="c1">// the 'users' key</span>
   <span class="k">return</span> <span class="k">array</span><span class="p">(</span><span class="s1">'sheryl'</span><span class="p">,</span> <span class="s1">'addie'</span><span class="p">,</span> <span class="s1">'jaydee'</span><span class="p">);</span>
 <span class="p">},</span> <span class="mi">60</span><span class="p">);</span>
 
