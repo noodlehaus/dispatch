@@ -347,13 +347,16 @@ function _h($str, $enc = 'UTF-8', $flags = ENT_QUOTES) {
  * @return mixed whatever $name maps to, or $default
  */
 function from($source, $name, $default = null) {
-  if (is_array($name)) {
-    $data = array();
-    foreach ($name as $k)
-      $data[$k] = isset($source[$k]) ? $source[$k] : $default ;
-    return $data;
-  }
-  return isset($source[$name]) ? $source[$name] : $default ;
+
+  if (!is_array($name))
+    return isset($source[$name]) ? $source[$name] : $default ;
+
+  $data = array();
+
+  foreach ($name as $k)
+    $data[$k] = isset($source[$k]) ? $source[$k] : $default ;
+
+  return $data;
 }
 
 /**
@@ -390,10 +393,13 @@ function stash($name, $value = null) {
  */
 function method($verb = null) {
 
-  if ($verb == null || (strtoupper($verb) == strtoupper($_SERVER['REQUEST_METHOD'])))
-    return strtoupper($_SERVER['REQUEST_METHOD']);
+  if ($verb === null)
+    return $_SERVER['REQUEST_METHOD'];
 
-  error(400, 'bad request');
+  if (strtoupper($verb) === $_SERVER['REQUEST_METHOD'])
+    return true;
+
+  return false;
 }
 
 /**
@@ -472,9 +478,8 @@ function redirect(/* $code_or_path, $path_or_cond, $cond */) {
  */
 function partial($view, $locals = null) {
 
-  if (is_array($locals) && count($locals)) {
+  if (is_array($locals) && count($locals))
     extract($locals, EXTR_SKIP);
-  }
 
   if (($view_root = config('views.root')) == null)
     error(500, "[views.root] is not set");
@@ -483,15 +488,17 @@ function partial($view, $locals = null) {
   $view = preg_replace('/'.$path.'$/', "_{$path}", $view);
   $view = "{$view_root}/{$view}.html.php";
 
+  $html = '';
+
   if (file_exists($view)) {
     ob_start();
     require $view;
-    return ob_get_clean();
+    $html = ob_get_clean();
   } else {
     error(500, "partial [{$view}] not found");
   }
 
-  return '';
+  return $html;
 }
 
 /**
