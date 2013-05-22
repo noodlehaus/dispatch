@@ -25,7 +25,7 @@ The following functions rely on variables set via `config()`:
 * `config('views.layout')` is used by `render()`, defaults to `layout`
 * `config('cookies.secret')` is used by `encrypt()`, `decrypt()`, `set_cookie()` and `get_cookie()`, defaults to an empty string
 * `config('cookies.flash')` is used by `flash()` for setting messages
-* `config('site.url')` is used by `site_url()` and `site_path()`
+* `config('site.url')` is used by `site_url()` and `site_path()`, used only if you're putting your app in a subfolder
 * `config('source', 'inifile.ini')` makes the contents of `inifile.ini` accessible via `config()` calls
 
 ### Quick and Basic
@@ -128,10 +128,12 @@ If you have `apc.so` enabled, you can make use of dispatch's simple caching func
 
 ```php
 <?php
-// fetch something from the cache (ttl for the cache is 60, based on last parameter)
+// fetch something from the cache (ttl param is 60)
 $data = cache('users', function () {
-  // this function is called as a loader if apc doesn't have 'users' in the cache,
-  // whatever it returns gets stored into apc and mapped to the 'users' key
+  // this function is called as a loader if apc
+  // doesn't have 'users' in the cache, whatever
+  // it returns gets stored into apc and mapped to
+  // the 'users' key
   return array('sheryl', 'addie', 'jaydee');
 }, 60);
 
