@@ -689,7 +689,8 @@ function route($method, $pattern, $callback = null) {
     'GET' => array(),
     'POST' => array(),
     'PUT' => array(),
-    'DELETE' => array()
+    'DELETE' => array(),
+    'HEAD' => array()
   );
 
   $method = strtoupper($method);
@@ -745,6 +746,19 @@ function route($method, $pattern, $callback = null) {
     error(404, 'Page not found');
   }
 
+}
+
+/**
+ * Utility for mapping $cb (callable) to HEAD requests on
+ * $path.
+ *
+ * @param string $path route to create a handler for
+ * @param callable $cb handler to map against HEADs on $path
+ *
+ * @return void
+ */
+function head($path, $cb) {
+  route('HEAD', $path, $cb);
 }
 
 /**
