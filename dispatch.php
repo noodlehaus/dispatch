@@ -694,8 +694,8 @@ function route($method, $pattern, $callback = null) {
 
   $method = strtoupper($method);
 
-  if (!in_array($method, array('GET', 'POST')))
-    error(500, 'Only GET and POST are supported');
+  if (!in_array($method, array_keys($route_map)))
+    error(500, 'Only '.implode(', ', array_keys($route_map)).' are supported');
 
   // a callback was passed, so we create a route defiition
   if ($callback !== null) {
