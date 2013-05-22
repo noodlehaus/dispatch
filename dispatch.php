@@ -755,7 +755,7 @@ function route($method, $pattern, $callback = null) {
  *
  * @return void
  */
-function del($path, $cb) {
+function delete($path, $cb) {
   route('DELETE', $path, $cb);
 }
 

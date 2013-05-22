@@ -55,7 +55,7 @@ put('/users', function () {
 });
 
 // delete handler
-del('/users/:id', function ($id) {
+delete('/users/:id', function ($id) {
   // ...
 });
 
