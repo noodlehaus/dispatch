@@ -1,34 +1,37 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8">
+    <meta charset='utf-8'>
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>dispatch by noodlehaus</title>
-
-    <link rel="stylesheet" href="stylesheets/styles.css">
-    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
     <!--[if lt IE 9]>
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
+    <title>dispatch by noodlehaus</title>
   </head>
+
   <body>
-    <div class="wrapper">
-      <header>
-        <h1>dispatch</h1>
-        <p>PHP 5.3+ Utility Library</p>
+    <div id="container">
+      <div class="inner">
 
-        <p class="view"><a href="https://github.com/noodlehaus/dispatch">View the Project on GitHub <small>noodlehaus/dispatch</small></a></p>
+        <header>
+          <h1>dispatch</h1>
+          <h2>PHP 5.3+ Utility Library</h2>
+        </header>
 
+        <section id="downloads" class="clearfix">
+          <a href="https://github.com/noodlehaus/dispatch/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
+          <a href="https://github.com/noodlehaus/dispatch/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
+          <a href="https://github.com/noodlehaus/dispatch" id="view-on-github" class="button"><span>View on GitHub</span></a>
+        </section>
 
-        <ul>
-          <li><a href="https://github.com/noodlehaus/dispatch/zipball/master">Download <strong>ZIP File</strong></a></li>
-          <li><a href="https://github.com/noodlehaus/dispatch/tarball/master">Download <strong>TAR Ball</strong></a></li>
-          <li><a href="https://github.com/noodlehaus/dispatch">View On <strong>GitHub</strong></a></li>
-        </ul>
-      </header>
-      <section>
-        <h2>Dispatch PHP 5.3 Utility Library</h2>
+        <hr>
+
+        <section id="main_content">
+          <h2>Dispatch PHP 5.3 Utility Library</h2>
 
 <p>At the very least, <code>dispatch()</code> is a front controller for your web app. It doesn't give you the full MVC setup, but it lets you define url routes and segregate your app logic from your views.</p>
 
@@ -102,6 +105,16 @@
     <span class="nv">$name</span> <span class="o">=</span> <span class="nx">from</span><span class="p">(</span><span class="nv">$_POST</span><span class="p">,</span> <span class="s1">'name'</span><span class="p">);</span>
     <span class="c1">// render a view while passing some locals</span>
     <span class="nx">render</span><span class="p">(</span><span class="s1">'greet-show'</span><span class="p">,</span> <span class="k">array</span><span class="p">(</span><span class="s1">'name'</span> <span class="o">=&gt;</span> <span class="nv">$name</span><span class="p">));</span>
+<span class="p">});</span>
+
+<span class="c1">// put handler</span>
+<span class="nx">put</span><span class="p">(</span><span class="s1">'/users'</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="c1">// ...</span>
+<span class="p">});</span>
+
+<span class="c1">// delete handler</span>
+<span class="nx">del</span><span class="p">(</span><span class="s1">'/users/:id'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nv">$id</span><span class="p">)</span> <span class="p">{</span>
+  <span class="c1">// ...</span>
 <span class="p">});</span>
 
 <span class="c1">// serve your site</span>
@@ -237,9 +250,21 @@ This lets you put configuration settings in ini files instead of making <code>co
 <span class="c1">// client's IP</span>
 <span class="nx">client_ip</span><span class="p">();</span>
 
-<span class="c1">// get something or a hash from a hash</span>
+<span class="c1">// get a value from $_POST, returns null if not set</span>
 <span class="nv">$name</span> <span class="o">=</span> <span class="nx">from</span><span class="p">(</span><span class="nv">$_POST</span><span class="p">,</span> <span class="s1">'name'</span><span class="p">);</span>
+
+<span class="c1">// create an associative array using the passed keys,</span>
+<span class="c1">// pulling the values from $_POST</span>
 <span class="nv">$user</span> <span class="o">=</span> <span class="nx">from</span><span class="p">(</span><span class="nv">$_POST</span><span class="p">,</span> <span class="k">array</span><span class="p">(</span><span class="s1">'username'</span><span class="p">,</span> <span class="s1">'email'</span><span class="p">,</span> <span class="s1">'password'</span><span class="p">));</span>
+
+<span class="c1">// try to get a value from $_GET, use a default value if not set</span>
+<span class="nv">$user</span> <span class="o">=</span> <span class="nx">from</span><span class="p">(</span><span class="nv">$_GET</span><span class="p">,</span> <span class="s1">'username'</span><span class="p">,</span> <span class="s1">'Sranger'</span><span class="p">);</span>
+
+<span class="c1">// set a flash message</span>
+<span class="nx">flash</span><span class="p">(</span><span class="s1">'error'</span><span class="p">,</span> <span class="s1">'Invalid username'</span><span class="p">);</span>
+
+<span class="c1">// in a subsequent request, get the flash message</span>
+<span class="nv">$error</span> <span class="o">=</span> <span class="nx">flash</span><span class="p">(</span><span class="s1">'error'</span><span class="p">);</span>
 
 <span class="c1">// escape a string</span>
 <span class="nx">_h</span><span class="p">(</span><span class="s1">'Marley &amp; Me'</span><span class="p">);</span>
@@ -255,13 +280,15 @@ This lets you put configuration settings in ini files instead of making <code>co
 <h2>LICENSE</h2>
 
 <p>MIT</p>
-      </section>
-      <footer>
-        <p>This project is maintained by <a href="https://github.com/noodlehaus">noodlehaus</a></p>
-        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
-      </footer>
+        </section>
+
+        <footer>
+          dispatch is maintained by <a href="https://github.com/noodlehaus">noodlehaus</a><br>
+          This page was generated by <a href="http://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="http://twitter.com/jasonlong">Jason Long</a>.
+        </footer>
+
+        
+      </div>
     </div>
-    <script src="javascripts/scale.fix.js"></script>
-    
   </body>
 </html>
