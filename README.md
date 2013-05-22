@@ -49,6 +49,16 @@ post('/greet', function () {
 	render('greet-show', array('name' => $name));
 });
 
+// put handler
+put('/users', function () {
+  // ...
+});
+
+// delete handler
+del('/users/:id', function ($id) {
+  // ...
+});
+
 // serve your site
 dispatch();
 ?>
@@ -181,9 +191,21 @@ method('POST'); // true if POST request, false otherwise
 // client's IP
 client_ip();
 
-// get something or a hash from a hash
+// get a value from $_POST, returns null if not set
 $name = from($_POST, 'name');
+
+// create an associative array using the passed keys,
+// pulling the values from $_POST
 $user = from($_POST, array('username', 'email', 'password'));
+
+// try to get a value from $_GET, use a default value if not set
+$user = from($_GET, 'username', 'Sranger');
+
+// set a flash message
+flash('error', 'Invalid username');
+
+// in a subsequent request, get the flash message
+$error = flash('error');
 
 // escape a string
 _h('Marley & Me');
