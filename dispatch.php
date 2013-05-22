@@ -735,13 +735,14 @@ function route($method, $pattern, $callback = null) {
         filter(array_values($keys), $vals);
 
       // if cb found, invoke it
-      if (is_callable($obj['cb']))
+      if (is_callable($obj['cb'])) {
         call_user_func_array($obj['cb'], $argv);
-
-      // leave after first match
-      break;
-
+        return;
+      }
     }
+
+    // we got a 404
+    error(400, 'Page not found');
   }
 
 }
