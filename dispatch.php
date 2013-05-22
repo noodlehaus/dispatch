@@ -685,7 +685,9 @@ function route($method, $pattern, $callback = null) {
   // callback map by request type
   static $route_map = array(
     'GET' => array(),
-    'POST' => array()
+    'POST' => array(),
+    'PUT' => array(),
+    'DELETE' => array()
   );
 
   $method = strtoupper($method);
@@ -743,6 +745,32 @@ function route($method, $pattern, $callback = null) {
 }
 
 /**
+ * Utility for mapping $cb (callable) to DELETE requests on
+ * $path.
+ *
+ * @param string $path route to create a handler for
+ * @param callable $cb handler to map against DELETEs on $path
+ *
+ * @return void
+ */
+function del($path, $cb) {
+  route('DELETE', $path, $cb);
+}
+
+/**
+ * Utility for mapping $cb (callable) to PUT requests on
+ * $path.
+ *
+ * @param string $path route to create a handler for
+ * @param callable $cb handler to map against PUTs on $path
+ *
+ * @return void
+ */
+function put($path, $cb) {
+  route('PUT', $path, $cb);
+}
+
+/**
  * Utility for mapping $cb (callable) for GET requests on
  * $path.
  *
@@ -768,10 +796,23 @@ function post($path, $cb) {
   route('POST', $path, $cb);
 }
 
+/**
+ * Utility for setting cross-request messages using cookies,
+ * referred to as flash messages (invented by Rails folks).
+ * Calling flash('key') will return the message and remove
+ * the message making it unavailable in the following request.
+ * Calling flash('key', 'message', true) will store that message
+ * for the current request but not available for the next one.
+ *
+ * @param string $key name of the flash message
+ * @param string $msg string to store as the message
+ * @param bool $now if the message is available immediately
+ *
+ * @return $string message for the key
+ */
 function flash($key, $msg = null, $now = false) {
 
-  static $x = array(),
-         $f = null;
+  static $x = array();
 
   $f = (config('cookies.flash') ? config('cookies.flash') : '_F');
 
@@ -797,6 +838,8 @@ function flash($key, $msg = null, $now = false) {
   }
 
   $x[$key] = $msg;
+
+  return $msg;
 }
 
 /**
