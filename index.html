@@ -1,30 +1,40 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Dispatch PHP 5.3+ Web Library</title>
+<title>Dispatch PHP 5.3+ Utility Library</title>
 </head>
-<xmp theme="united" style="display:none">
-## Dispatch PHP 5.3 Utility Library
+<xmp theme="cerulean" style="display:none">
+# Dispatch
+
 At the very least, `dispatch()` is a front controller for your web app. It doesn't give you the full MVC setup, but it lets you define url routes and segregate your app logic from your views.
 
+
 ### Requirements
+
 * PHP 5.3
 * `mcrypt` extension if you want to use encrypted cookies and wish to use `encrypt()` and `decrypt()` functions
 * `apc` extension if you want to use `cache()` and `cache_invalidate()`
 
+
 ### Contributors
+
 Thanks to the following contributors for helping improve this tool :)
 
 * Kafene [kafene](https://github.com/kafene)
 * Martin Angelov [martingalv](https://github.com/martinaglv)
 * Lars [larsbo](https://github.com/larsbo)
 
+
 ### Related Libraries
+
 * [disptach-mongo](http://github.com/noodlehaus/dispatch-mongo) - wrapper for commonly used mongodb functions for dispatch
 * [disptach-elastic](http://github.com/noodlehaus/dispatch-elastic) - wrapper for commonly used elasticsearch operations for dispatch
 
+
 ### Configuration Variables
+
 The following functions rely on variables set via `config()`:
+
 * `config('debug.log')` is used by `_log()` as the destination log file
 * `config('debug.enable')` dictates if `_log()` does something or not
 * `config('views.root')` is used by `render()` and `partial()`, defaults to `./views`
@@ -34,7 +44,9 @@ The following functions rely on variables set via `config()`:
 * `config('site.url')` is used by `site_url()` and `site_path()`, used only if you're putting your app in a subfolder
 * `config('source', 'inifile.ini')` makes the contents of `inifile.ini` accessible via `config()` calls
 
+
 ### Quick and Basic
+
 A typical PHP app using dispatch() will look like this.
 
 ```php
@@ -70,7 +82,9 @@ dispatch();
 ?>
 ```
 
+
 ### Route Symbol Filters
+
 This is taken from ExpressJS. Route filters let you map functions against symbols in your routes. These functions then get executed when those symbols are matched.
 
 ```php
@@ -91,7 +105,9 @@ get('/blogs/:blog_id', function ($blog_id) {
 ?>
 ```
 
+
 ### Conditions
+
 Conditions are basically helper functions. I adopted the name 'conditions' so as to encourage you to use it at the start of your handlers.
 
 ```php
@@ -108,9 +124,12 @@ get('/admin', function () {
 });
 ?>
 ```
-*NOTE:* Because of the way conditions are defined, conditions can't have anonymous functions as their first parameter.
+
+Because of the way conditions are defined, conditions can't have anonymous functions as their first parameter.
+
 
 ### Middleware
+
 If you have wind up routines that need to be done before handling the request, you can queue them up using the `middleware()` function.
 
 ```php
@@ -129,7 +148,9 @@ get('/list', function () {
 ?>
 ```
 
+
 ### Caching via APC
+
 If you have `apc.so` enabled, you can make use of dispatch's simple caching functions.
 
 ```php
@@ -147,7 +168,9 @@ $data = cache('users', function () {
 cache_invalidate('users', 'products', 'news');
 ```
 
+
 ### Configurations
+
 You can make use of ini files for configuration by doing something like `config('source', 'myconfig.ini')`.
 This lets you put configuration settings in ini files instead of making `config()` calls in your code.
 
@@ -164,7 +187,9 @@ $secret = config('cookies.secret');
 ?>
 ```
 
+
 ### Utility Functions
+
 There are a lot of other useful routines in the library. Documentation is still lacking but they're very small and easy to figure out. Read the source for now.
 
 ```php
@@ -226,8 +251,15 @@ $html = partial('users/profile', array('user' => $user));
 ?>
 ```
 
+
 ## LICENSE
-MIT
+
+MIT: [http://noodlehaus.mit-license.org/](http://noodlehaus.mit-license.org/)
+
+<a href="https://github.com/you">
+  <img style="position:fixed;margin:0;top:0;right:0;border:0;z-index:1000" src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub">
+</a>
+
 </xmp>
 <script src="http://strapdownjs.com/v/0.2/strapdown.js"></script>
 </html>
