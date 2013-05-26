@@ -668,7 +668,7 @@ function route_to_regex($route) {
 
   $route = preg_replace_callback('@:[\w]+@i', function ($matches) {
     $token = str_replace(':', '', $matches[0]);
-    return '(?P<'.$token.'>[a-z0-9_\0-\.]+)';
+    return '(?<'.$token.'>[a-z0-9_\0-\.]+)';
   }, $route);
 
   $route = rtrim($route, '/');
@@ -754,7 +754,49 @@ function route($method, $pattern, $callback = null) {
     // we got a 404
     error(404, 'Page not found');
   }
+}
 
+/**
+ * Convenience tool for mounting a class or mapping
+ * as a RESTful service.
+ *
+ * @param string $root path where the resource will be mounted
+ * @param object $resource resource instance to mount
+ * @param array $actions optional list of actions to publish for the resource
+ *
+ * @return void
+ */
+function restify($root, $resource, $actions = null) {
+
+  if (!is_object($resource))
+    error(500, 'call to restify() requires a resource instance as 2nd argument');
+
+  $action_map = array(
+    'index' => array('GET', '(index/?)?'),
+    'show' => array('GET', ':id(/(show/?)?)?'),
+    'new' => array('GET', 'new/?'),
+    'create' => array('POST', 'create/?'),
+    'edit' => array('GET', 'edit/?'),
+    'update' => array('PUT', ':id/?'),
+    'delete' => array('DELETE', ':id/?')
+  );
+
+  $root = '/'.trim($root, '/').'/';
+
+  if ($actions && is_array($actions)) {
+    array_walk($actions, function (&$v) {
+      $v = strtolower($v);
+    });
+    $actions = array_intersect(array_keys($action_map), $actions);
+  }
+
+  foreach ($actions as $action) {
+    route(
+      $action_map[$action][0],
+      $root.$action_map[$action][1],
+      array($resource, 'on'.ucfirst($action))
+    );
+  }
 }
 
 /**
