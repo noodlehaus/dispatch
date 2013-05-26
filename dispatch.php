@@ -784,12 +784,12 @@ function restify($root, $resource, $actions = null) {
   $root = trim($root, '/');
   $root = (!strlen($root) ? '/' : '/'.$root);
 
-  if ($actions && is_array($actions)) {
-    array_walk($actions, function (&$v) {
-      $v = strtolower($v);
-    });
-    $actions = array_intersect(array_keys($action_map), $actions);
-  }
+  if ($actions && is_array($actions))
+    $actions = array_uintersect(
+      array_keys($action_map),
+      $actions,
+      'strcasecmp'
+    );
 
   foreach ($actions as $action) {
     route(
