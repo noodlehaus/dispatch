@@ -781,7 +781,8 @@ function restify($root, $resource, $actions = null) {
     'delete' => array('DELETE', ':id/?')
   );
 
-  $root = '/'.trim($root, '/').'/';
+  $root = trim($root, '/');
+  $root = (!strlen($root) ? '/' : '/'.$root);
 
   if ($actions && is_array($actions)) {
     array_walk($actions, function (&$v) {
@@ -793,7 +794,7 @@ function restify($root, $resource, $actions = null) {
   foreach ($actions as $action) {
     route(
       $action_map[$action][0],
-      $root.$action_map[$action][1],
+      $root.'/'.$action_map[$action][1],
       array($resource, 'on'.ucfirst($action))
     );
   }
