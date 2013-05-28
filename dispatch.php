@@ -776,7 +776,7 @@ function restify($root, $resource, $actions = null) {
     'show' => array('GET', ':id(/(show/?)?)?'),
     'new' => array('GET', 'new/?'),
     'create' => array('POST', 'create/?'),
-    'edit' => array('GET', 'edit/?'),
+    'edit' => array('GET', ':id/edit/?'),
     'update' => array('PUT', ':id/?'),
     'delete' => array('DELETE', ':id/?')
   );
@@ -784,12 +784,15 @@ function restify($root, $resource, $actions = null) {
   $root = trim($root, '/');
   $root = (!strlen($root) ? '/' : '/'.$root);
 
-  if ($actions && is_array($actions))
+  if ($actions && is_array($actions)) {
     $actions = array_uintersect(
       array_keys($action_map),
       $actions,
       'strcasecmp'
     );
+  } else {
+    $actions = array_keys($action_map);
+  }
 
   foreach ($actions as $action) {
     route(
