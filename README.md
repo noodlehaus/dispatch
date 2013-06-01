@@ -19,14 +19,15 @@ Thanks to the following contributors for helping improve this tool :)
 
 ### Configuration Variables
 The following functions rely on variables set via `config()`:
-* `config('debug.log')` is used by `_log()` as the destination log file
-* `config('debug.enable')` dictates if `_log()` does something or not
+* `config('source', 'inifile.ini')` makes the contents of `inifile.ini` accessible via `config()` calls
+* `config('rewrite.enable')` is used to determine if you have rewrites on or off
 * `config('views.root')` is used by `render()` and `partial()`, defaults to `./views`
 * `config('views.layout')` is used by `render()`, defaults to `layout`
 * `config('cookies.secret')` is used by `encrypt()`, `decrypt()`, `set_cookie()` and `get_cookie()`, defaults to an empty string
 * `config('cookies.flash')` is used by `flash()` for setting messages
 * `config('site.url')` is used by `site_url()` and `site_path()`, used only if you're putting your app in a subfolder
-* `config('source', 'inifile.ini')` makes the contents of `inifile.ini` accessible via `config()` calls
+* `config('debug.log')` is used by `_log()` as the destination log file
+* `config('debug.enable')` dictates if `_log()` does something or not
 
 ### Quick and Basic
 A typical PHP app using dispatch() will look like this.
