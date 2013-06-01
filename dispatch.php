@@ -71,12 +71,28 @@ function site_path() {
  *
  * @return void
  */
-function error($code, $message) {
+function error($code, $callback_or_text = null) {
 
-  if (php_sapi_name() !== 'cli')
-    @header("HTTP/1.0 {$code} {$message}", true, $code);
+  static $error_callbacks = array();
 
-  die("{$code} - {$message}");
+  $code = (string) $code;
+
+  if (is_callable($callback_or_text)) {
+    $error_callbacks[$code][] = $callback_or_text;
+  } else {
+
+    if (isset($error_callbacks[$code])) {
+      @header("HTTP/1.1 {$code} Page Error", true, $code);
+      foreach ($error_callbacks[$code] as $callback)
+        call_user_func($callback);
+      exit;
+    }
+
+    if ($callback_or_text && is_string($callback_or_text)) {
+      @header("HTTP/1.1 {$code} {$callback_or_text}", true, $code);
+      die("{$code} - {$callback_or_text}\n");
+    }
+  }
 }
 
 /**
@@ -96,7 +112,7 @@ function config($key, $value = null) {
 
   if ($key === 'source' && file_exists($value))
     $_config = array_merge($_config, parse_ini_file($value, true));
-  else if ($value == null)
+  else if ($value === null)
     return (isset($_config[$key]) ? $_config[$key] : null);
   else
     return ($_config[$key] = $value);
@@ -636,45 +652,22 @@ function middleware($cb_or_path = null) {
  *
  * @return void
  */
-function filter($sym, $cb_or_val = null) {
+function filter($symbol, $callback = null) {
 
-  static $cb_map = array();
+  static $filter_callbacks = array();
 
-  if (is_callable($cb_or_val)) {
-    $cb_map[$sym] = $cb_or_val;
+  if (is_callable($callback)) {
+    $filter_callbacks[$symbol][] = $callback;
     return;
   }
 
-  if (is_array($sym) && count($sym) > 0) {
-    foreach ($sym as $s) {
-      $s = substr($s, 1);
-      if (isset($cb_map[$s]) && isset($cb_or_val[$s]))
-        call_user_func($cb_map[$s], $cb_or_val[$s]);
+  foreach ($symbol as $sym => $val) {
+    if (isset($filter_callbacks[$sym])) {
+      foreach ($filter_callbacks[$sym] as $callback) {
+        call_user_func($callback, $val);
+      }
     }
-    return;
   }
-
-  error(500, 'bad call to filter()');
-}
-
-/**
- * Converts a route into a regular expression. Used within route().
- *
- * @param string $route string to convert.
- *
- * @return string regular expression
- */
-function route_to_regex($route) {
-
-  $route = preg_replace_callback('@:[\w]+@i', function ($matches) {
-    $token = str_replace(':', '', $matches[0]);
-    return '(?<'.$token.'>[a-z0-9_\0-\.]+)';
-  }, $route);
-
-  $route = rtrim($route, '/');
-  $route = '@^'.(!strlen($route) ? '/' : $route).'$@i';
-
-  return $route;
 }
 
 /**
@@ -691,115 +684,64 @@ function route_to_regex($route) {
  *
  * @return void
  */
-function route($method, $pattern, $callback = null) {
+function route($method, $path, $callback = null) {
 
   // callback map by request type
-  static $route_map = array(
-    'GET' => array(),
-    'POST' => array(),
-    'PUT' => array(),
-    'DELETE' => array(),
-    'HEAD' => array()
-  );
+  static $route_map = array();
 
   $method = strtoupper($method);
 
-  if (!in_array($method, array_keys($route_map)))
-    error(500, 'Only '.implode(', ', array_keys($route_map)).' are supported');
+  if (!in_array($method, array('GET', 'POST', 'PUT', 'DELETE', 'HEAD')))
+    error(400, 'Method not supported');
 
   // a callback was passed, so we create a route defiition
   if ($callback !== null) {
 
-    // create a route entry for this pattern
-    $route_map[$method][$pattern] = array(
-      'xp' => route_to_regex($pattern),
-      'cb' => $callback
+    // normalize slashes
+    $path = '/'.trim($path, '/');
+
+    // create the regex from the path
+    $regex = preg_replace_callback('@:\w+@', function ($matches) {
+      return '(?<'.str_replace(':', '', $matches[0]).'>[a-z0-9-_\.]+)';
+    }, $path);
+
+    // create a route entry for this path
+    $route_map[$method][$path] = array(
+      'regex' => '@^'.$regex.'$@i',
+      'callback' => $callback
     );
 
   } else {
 
     // callback is null, so this is a route invokation. look up the callback.
-    foreach ($route_map[$method] as $pat => $obj) {
+    foreach ($route_map[$method] as $pattern => $info) {
 
-      // if the requested uri ($pat) has a matching route, let's invoke the cb
-      if (!preg_match($obj['xp'], $pattern, $vals))
+      // skip non-matching routes
+      if (!preg_match($info['regex'], $path, $values))
         continue;
 
       // call middleware
-      middleware($pattern);
+      middleware($path);
 
       // construct the params for the callback
-      array_shift($vals);
-      preg_match_all('@:([\w]+)@', $pat, $keys, PREG_PATTERN_ORDER);
-      $keys = array_shift($keys);
-      $argv = array();
-
-      foreach ($keys as $index => $id) {
-        $id = substr($id, 1);
-        if (isset($vals[$id]))
-          array_push($argv, trim(urldecode($vals[$id])));
-      }
+      array_shift($values);
+      preg_match_all('@:([\w]+)@', $pattern, $symbols, PREG_PATTERN_ORDER);
+      $symbols = $symbols[1];
+      $values = array_intersect_key($values, array_flip($symbols));
 
       // call filters if we have symbols
-      if (count($keys))
-        filter(array_values($keys), $vals);
+      if (count($symbols))
+        filter($values);
 
-      // if cb found, invoke it
-      if (is_callable($obj['cb'])) {
-        call_user_func_array($obj['cb'], $argv);
-        return;
-      }
+      // invoke callback
+      call_user_func_array($info['callback'], array_values($values));
+
+      // done
+      return;
     }
 
     // we got a 404
     error(404, 'Page not found');
-  }
-}
-
-/**
- * Convenience tool for mounting a class or mapping
- * as a RESTful service.
- *
- * @param string $root path where the resource will be mounted
- * @param object $resource resource instance to mount
- * @param array $actions optional list of actions to publish for the resource
- *
- * @return void
- */
-function restify($root, $resource, $actions = null) {
-
-  if (!is_object($resource))
-    error(500, 'call to restify() requires a resource instance as 2nd argument');
-
-  $action_map = array(
-    'index' => array('GET', '(index/?)?'),
-    'show' => array('GET', ':id(/(show/?)?)?'),
-    'new' => array('GET', 'new/?'),
-    'create' => array('POST', 'create/?'),
-    'edit' => array('GET', ':id/edit/?'),
-    'update' => array('PUT', ':id/?'),
-    'delete' => array('DELETE', ':id/?')
-  );
-
-  $root = trim($root, '/');
-  $root = (!strlen($root) ? '/' : '/'.$root);
-
-  if ($actions && is_array($actions)) {
-    $actions = array_uintersect(
-      array_keys($action_map),
-      $actions,
-      'strcasecmp'
-    );
-  } else {
-    $actions = array_keys($action_map);
-  }
-
-  foreach ($actions as $action) {
-    route(
-      $action_map[$action][0],
-      $root.'/'.$action_map[$action][1],
-      array($resource, 'on'.ucfirst($action))
-    );
   }
 }
 
@@ -915,6 +857,52 @@ function flash($key, $msg = null, $now = false) {
 }
 
 /**
+ * Convenience tool for mounting a class or mapping
+ * as a RESTful service.
+ *
+ * @param string $root path where the resource will be mounted
+ * @param object $resource resource instance to mount
+ * @param array $actions optional list of actions to publish for the resource
+ *
+ * @return void
+ */
+function restify($root, $resource, $actions = null) {
+
+  if (!is_object($resource))
+    error(500, 'call to restify() requires a resource instance as 2nd argument');
+
+  $action_map = array(
+    'index' => array('GET', '(/(index/?)?)?'),
+    'show' => array('GET', '/:id(/(show/?)?)?'),
+    'new' => array('GET', '/new/?'),
+    'create' => array('POST', '/create/?'),
+    'edit' => array('GET', '/:id/edit/?'),
+    'update' => array('PUT', '/:id/?'),
+    'delete' => array('DELETE', '/:id/?')
+  );
+
+  $root = trim($root, '/');
+
+  if ($actions && is_array($actions)) {
+    $actions = array_uintersect(
+      array_keys($action_map),
+      $actions,
+      'strcasecmp'
+    );
+  } else {
+    $actions = array_keys($action_map);
+  }
+
+  foreach ($actions as $action) {
+    route(
+      $action_map[$action][0],
+      $root.$action_map[$action][1],
+      array($resource, 'on'.ucfirst($action))
+    );
+  }
+}
+
+/**
  * Entry point for the library.
  *
  * @param string $method optional, for testing in the cli
@@ -934,13 +922,9 @@ function dispatch($method = null, $path = null) {
 
   // if we have rewriting disabled, remove the first segment or go to '/'
   if (config('rewrite.enable') == false)
-    $path = preg_replace('@^\/[^\/]+@', '', $path);
-
-  // clean up the route
-  $parts = preg_split('/\?/', $path, -1, PREG_SPLIT_NO_EMPTY);
-  $uri = count($parts) ? trim($parts[0], '/') : '';
+    $path = preg_replace('@^/[^/]+@', '', $path);
 
   // match it
-  route($method, "/{$uri}");
+  route($method, '/'.trim($path, '/'));
 }
 ?>
