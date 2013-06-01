@@ -3,8 +3,6 @@ error_reporting(E_ALL|E_STRICT);
 
 include './dispatch.php';
 
-config('rewrite.enable', true);
-
 // some sample routes
 get('/index', function () {
   echo "GET index\n";
@@ -105,11 +103,11 @@ dispatch('DELETE', '/users/1');
 dispatch('GET', '/pages/');
 dispatch('GET', '/pages/1');
 
-// if you don't have mod_rewrite, do this
-config('rewrite.enable', false);
+// simulate no mod_rewrite and subdir apps
+config('routing.base', 'mysite/index.php');
 
 // index.php/ will be stripped from the request URIs
-dispatch('GET', '/index.php/users');
+dispatch('GET', '/mysite/index.php/users');
 
 // some custom 404 error hooks
 error(404, function () {

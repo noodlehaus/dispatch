@@ -8,60 +8,6 @@ if (!defined('PHP_VERSION_ID') || PHP_VERSION_ID < 50300)
   error(500, 'dispatch requires at least PHP 5.3 to run.');
 
 /**
- * Sends a log message to the file pointed to by 'debug.log'.
- *
- * @param string $message string to put on the logger.
- *
- * @return void
- */
-function _log($message) {
-  if (config('debug.enable') == true) {
-    if (php_sapi_name() !== 'cli') {
-      $file = config('debug.log');
-      $type = $file ? 3 : 0;
-      error_log("{$message}\n", $type, $file);
-    } else {
-      echo $message."\n";
-    }
-  }
-}
-
-/**
- * Returns the string contained by 'site.url' in config.ini.
- * This includes the hostname and path.
- *
- * @return string value pointed to by 'site.url' in config.ini.
- */
-function site_url() {
-
-  if (config('site.url') == null)
-    error(500, '[site.url] is not set');
-
-  // Forcing the forward slash
-  return rtrim(config('site.url'), '/').'/';
-}
-
-/**
- * Returns the path section of 'site.url' from config.ini.
- *
- * @return string path section of 'site.url'.
- */
-function site_path() {
-
-  static $_path = null;
-
-  if (!$_path) {
-
-    if (config('site.url') == null)
-      error(500, '[site.url] is not set');
-
-    $_path = rtrim(parse_url(config('site.url'), PHP_URL_PATH), '/');
-  }
-
-  return $_path;
-}
-
-/**
  * A convenience function over header() for printing out
  * HTTP error messages. If used in CLI mode, it die()s with
  * the code and the message, instead.
@@ -916,13 +862,11 @@ function dispatch($method = null, $path = null) {
   $method = ($method ? $method : method());
   $path = ($path ? $path : $_SERVER['REQUEST_URI']);
 
-  // remove the site base url
-  if (config('site.url') !== null)
-    $path = preg_replace('@^'.preg_quote(site_path()).'@', '', $path);
-
   // if we have rewriting disabled, remove the first segment or go to '/'
-  if (config('rewrite.enable') == false)
-    $path = preg_replace('@^/[^/]+@', '', $path);
+  if (is_string(config('routing.base'))) {
+    $root = trim(config('routing.base'), '/');
+    $path = preg_replace('@^/?'.preg_quote($root).'@i', '', $path);
+  }
 
   // match it
   route($method, '/'.trim($path, '/'));
