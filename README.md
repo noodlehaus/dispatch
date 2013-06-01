@@ -20,14 +20,11 @@ Thanks to the following contributors for helping improve this tool :)
 ### Configuration Variables
 The following functions rely on variables set via `config()`:
 * `config('source', 'inifile.ini')` makes the contents of `inifile.ini` accessible via `config()` calls
-* `config('rewrite.enable')` is used to determine if you have rewrites on or off
+* `config('routing.base', 'string/to/strip')` lets you specify a string to strip from the URI before routing
 * `config('views.root')` is used by `render()` and `partial()`, defaults to `./views`
 * `config('views.layout')` is used by `render()`, defaults to `layout`
-* `config('cookies.secret')` is used by `encrypt()`, `decrypt()`, `set_cookie()` and `get_cookie()`, defaults to an empty string
-* `config('cookies.flash')` is used by `flash()` for setting messages
-* `config('site.url')` is used by `site_url()` and `site_path()`, used only if you're putting your app in a subfolder
-* `config('debug.log')` is used by `_log()` as the destination log file
-* `config('debug.enable')` dictates if `_log()` does something or not
+* `config('cookies.secret')` encryption salt to be used by `encrypt()`, `decrypt()`, `set_cookie()` and `get_cookie()`
+* `config('cookies.flash')` cookie name to be used by `flash()` for setting messages
 
 ### Quick and Basic
 A typical PHP app using dispatch() will look like this.
@@ -62,6 +59,76 @@ delete('/users/:id', function ($id) {
 
 // serve your site
 dispatch();
+?>
+```
+
+### URI Rewriting and Stripping
+Setting `routing.base` to a string will strip that string from the URI before it is routed. Two use cases for this are when you don't have access to URI rewriting on your server, and if your dispatch application resides in a subdirectory.
+
+```php
+<?php
+// example 1: want to strip the index.php part from the URI
+config('routing.base', 'index.php');
+
+get('/users', function () {
+  echo "listing users...";
+});
+
+// requested URI = /index.php/users
+// response = "listing users..."
+
+// example 2: our app lives in /mysite
+config('routing.base', 'mysite');
+
+get('/users', function () {
+  echo "listing users...";
+});
+
+// requested URI = /mysite/users
+// response = "listing users..."
+?>
+```
+
+### RESTful Resources
+If you have a class that supports all or some of the default REST actions, you can easily publish them using `restify()`. By default, `restify()` will create all REST routes for your class. You can selectively publish actions by passing them to the function. To make a class support `restify()`, you need to implement some or all of the following methods:
+
+* `onIndex` - for the resource list
+* `onNew` - for the resource creation form
+* `onCreate` - for the creation action
+* `onShow($id)` - for viewing a resource
+* `onEdit($id)` - for the resource edit form
+* `onUpdate($id)` - for the resource edit action
+* `onDelete($id)` - for the resource delete action
+
+Note that the routes published by `restify()` uses the symbol `:id` to identify the resource.
+
+```php
+// resource to publish
+class Users {
+  public function onIndex() {}
+  public function onNew() {}
+  public function onCreate() {}
+  public function onShow($id) {}
+  public function onEdit($id) {}
+  public function onUpdate($id) {}
+  public function onDelete($id) {}
+}
+
+// publish the instance, with all endpoints, under /users
+restify('/users', new Users());
+
+// resource with just some of the REST endpoints
+class Pages {
+  public function onIndex() {
+    echo "Pages::onIndex\n";
+  }
+  public function onShow($id) {
+    echo "Pages::onShow {$id}\n";
+  }
+}
+
+// publish object under /pages, but with just the available actions
+restify('/pages', new Pages(), array('index', 'show'));
 ?>
 ```
 
