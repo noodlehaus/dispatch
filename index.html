@@ -1,331 +1,384 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-<title>Dispatch PHP 5.3+ Utility Library</title>
-<style type="text/css">
-.navbar .navbar-inner .container,
-#content {
-  max-width: 750px;
-}
-</style>
-</head>
-<xmp theme="cerulean" style="display:none">
-# Dispatch
-
-At the very least, `dispatch()` is a front controller for your web app. It doesn't give you the full MVC setup, but it lets you define url routes and segregate your app logic from your views.
-
-
-### Requirements
-
-* PHP 5.3
-* `mcrypt` extension if you want to use encrypted cookies and wish to use `encrypt()` and `decrypt()` functions
-* `apc` extension if you want to use `cache()` and `cache_invalidate()`
-
-
-### Configuration Variables
-
-The following functions rely on variables set via `config()`:
-
-* `config('source', 'inifile.ini')` makes the contents of `inifile.ini` accessible via `config()` calls
-* `config('routing.base', 'string/to/strip')` lets you specify a string to strip from the URI before routing
-* `config('views.root')` is used by `render()` and `partial()`, defaults to `./views`
-* `config('views.layout')` is used by `render()`, defaults to `layout`
-* `config('cookies.secret')` encryption salt to be used by `encrypt()`, `decrypt()`, `set_cookie()` and `get_cookie()`
-* `config('cookies.flash')` cookie name to be used by `flash()` for setting messages
-
-
-### Quick and Basic
-A typical PHP app using dispatch() will look like this.
-
-```php
-<?php
-// include the library
-include 'dispatch.php';
-
-// define your routes
-get('/greet', function () {
-  // render a view
-  render('greet-form');
-});
-
-// post handler
-post('/greet', function () {
-  $name = from($_POST, 'name');
-  // render a view while passing some locals
-  render('greet-show', array('name' => $name));
-});
-
-// put handler
-put('/users', function () {
-  // ...
-});
-
-// delete handler
-delete('/users/:id', function ($id) {
-  // ...
-});
-
-// serve your site
-dispatch();
-?>
-```
-
-### URI Rewriting and Stripping
-Setting `routing.base` to a string will strip that string from the URI before it is routed. Two use cases for this are when you don't have access to URI rewriting on your server, and if your dispatch application resides in a subdirectory.
-
-```php
-<?php
-// example 1: want to strip the index.php part from the URI
-config('routing.base', 'index.php');
-
-get('/users', function () {
-  echo "listing users...";
-});
-
-// requested URI = /index.php/users
-// response = "listing users..."
-
-// example 2: our app lives in /mysite
-config('routing.base', 'mysite');
-
-get('/users', function () {
-  echo "listing users...";
-});
-
-// requested URI = /mysite/users
-// response = "listing users..."
-?>
-```
-
-### RESTful Resources
-If you have a class that supports all or some of the default REST actions, you can easily publish them using `restify()`. By default, `restify()` will create all REST routes for your class. You can selectively publish actions by passing them to the function. To make a class support `restify()`, you need to implement some or all of the following methods:
-
-* `onIndex` - for the resource list
-* `onNew` - for the resource creation form
-* `onCreate` - for the creation action
-* `onShow($id)` - for viewing a resource
-* `onEdit($id)` - for the resource edit form
-* `onUpdate($id)` - for the resource edit action
-* `onDelete($id)` - for the resource delete action
-
-Note that the routes published by `restify()` uses the symbol `:id` to identify the resource.
-
-```php
-// resource to publish
-class Users {
-  public function onIndex() {}
-  public function onNew() {}
-  public function onCreate() {}
-  public function onShow($id) {}
-  public function onEdit($id) {}
-  public function onUpdate($id) {}
-  public function onDelete($id) {}
-}
-
-// publish the instance, with all endpoints, under /users
-restify('/users', new Users());
-
-// resource with just some of the REST endpoints
-class Pages {
-  public function onIndex() {
-    echo "Pages::onIndex\n";
-  }
-  public function onShow($id) {
-    echo "Pages::onShow {$id}\n";
-  }
-}
-
-// publish object under /pages, but with just the available actions
-restify('/pages', new Pages(), array('index', 'show'));
-?>
-```
-
-### Route Symbol Filters
-This is taken from ExpressJS. Route filters let you map functions against symbols in your routes. These functions then get executed when those symbols are matched.
-
-```php
-<?php
-// preload blog entry whenever a matching route has :blog_id in it
-filter('blog_id', function ($blog_id) {
-  $blog = Blog::findOne($blog_id);
-  // stash() lets you store stuff for later use (NOT a cache)
-  stash('blog', $blog);
-});
-
-// here, we have :blog_id in the route, so our preloader gets run
-get('/blogs/:blog_id', function ($blog_id) {
-  // pick up what we got from the stash
-  $blog = stash('blog');
-  render('blogs/show', array('blog' => $blog);
-});
-?>
-```
-
-### Conditions
-Conditions are basically helper functions. I adopted the name 'conditions' so as to encourage you to use it at the start of your handlers.
-
-```php
-<?php
-// require that users are signed in
-condition('signed_in', function () {
-  redirect(403, '/403-forbidden', !stash('user'));
-});
-
-// require a valid token when accessing a page
-get('/admin', function () {
-  condition('signed_in');
-  render('admin');
-});
-?>
-```
-*NOTE:* Because of the way conditions are defined, conditions can't have anonymous functions as their first parameter.
-
-### Middleware
-If you have wind up routines that need to be done before handling the request, you can queue them up using the `middleware()` function.
-
-```php
-<?php
-// create a db connection and stash it
-middleware(function () {
-  $db = create_connection();
-  stash('db', $db);
-});
-
-// assume that the db connection was stash()ed
-get('/list', function () {
-  $db = stash('db');
-  // do stuff with the DB
-});
-?>
-```
-
-### Caching via APC
-If you have `apc.so` enabled, you can make use of dispatch's simple caching functions.
-
-```php
-<?php
-// fetch something from the cache (ttl param is 60)
-$data = cache('users', function () {
-  // this function is called as a loader if apc
-  // doesn't have 'users' in the cache, whatever
-  // it returns gets stored into apc and mapped to
-  // the 'users' key
-  return array('sheryl', 'addie', 'jaydee');
-}, 60);
-
-// invalidate our cached keys (users, products, news)
-cache_invalidate('users', 'products', 'news');
-```
-
-### Configurations
-You can make use of ini files for configuration by doing something like `config('source', 'myconfig.ini')`.
-This lets you put configuration settings in ini files instead of making `config()` calls in your code.
-
-```php
-<?php
-// load the contents of my-settings.ini into config()
-config('source', 'my-settings.ini');
-
-// set a different folder for the views
-config('views.root', __DIR__.'/myviews');
-
-// get the encryption secret
-$secret = config('cookies.secret');
-?>
-```
-
-### Utility Functions
-There are a lot of other useful routines in the library. Documentation is still lacking but they're very small and easy to figure out. Read the source for now.
-
-```php
-<?php
-// store a config and get it
-config('views.root', './views');
-config('views.root'); // returns './views'
-
-// stash a var and get it (useful for moving stuff between scopes)
-stash('user', $user);
-stash('user'); // returns stored $user var
-
-// redirect with a status code
-redirect(302, '/index');
-
-// redirect if a condition is met
-redirect(403, '/users', !$authenticated);
-
-// redirect only if func is satisfied
-redirect('/admin', function () use ($auth) { return !!$auth; });
-
-// redirect only if func is satisfied, and with a diff code
-redirect(301, '/admin', function () use ($auth) { return !!$auth; });
-
-// send a http error code and print out a message
-error(403, 'Forbidden');
-
-// get the current HTTP method or check the current method
-method(); // GET, POST, PUT, DELETE
-method('POST'); // true if POST request, false otherwise
-
-// client's IP
-client_ip();
-
-// get a value from $_POST, returns null if not set
-$name = from($_POST, 'name');
-
-// create an associative array using the passed keys,
-// pulling the values from $_POST
-$user = from($_POST, array('username', 'email', 'password'));
-
-// try to get a value from $_GET, use a default value if not set
-$user = from($_GET, 'username', 'Sranger');
-
-// set a flash message
-flash('error', 'Invalid username');
-
-// in a subsequent request, get the flash message
-$error = flash('error');
-
-// escape a string
-_h('Marley & Me');
-
-// url encode
-_u('http://noodlehaus.github.com/dispatch');
-
-// load a partial using some file and locals
-$html = partial('users/profile', array('user' => $user));
-?>
-```
-
-
-### Related Libraries
-
-* [disptach-mongo](http://github.com/noodlehaus/dispatch-mongo) - wrapper for commonly used mongodb functions for dispatch
-* [disptach-elastic](http://github.com/noodlehaus/dispatch-elastic) - wrapper for commonly used elasticsearch operations for dispatch
-
-
-### Credits
-
-The following projects served as both references and inspirations for Dispatch:
-
-* [ExpressJS](http://expressjs.com/)
-* [Sinatra](http://sinatrarb.com/)
-* [BreezePHP](http://breezephp.com/)
-
-Thanks to the following contributors for helping improve this tool :)
-
-* Kafene [kafene](https://github.com/kafene)
-* Martin Angelov [martingalv](https://github.com/martinaglv)
-* Lars [larsbo](https://github.com/larsbo)
-
-
-## LICENSE
-
-MIT: [http://noodlehaus.mit-license.org/](http://noodlehaus.mit-license.org/)
-
-<a href="https://github.com/noodlehaus/dispatch">
-  <img style="position:fixed;margin:0;top:0;right:0;border:0;z-index:1000" src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub">
-</a>
-
-</xmp>
-<script src="http://strapdownjs.com/v/0.2/strapdown.js"></script>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Dispatch by noodlehaus</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Dispatch</h1>
+        <p>dispatch php 5.3 utility library</p>
+        <p class="view"><a href="https://github.com/noodlehaus/dispatch">View the Project on GitHub <small>noodlehaus/dispatch</small></a></p>
+        <ul>
+          <li><a href="https://github.com/noodlehaus/dispatch/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/noodlehaus/dispatch/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/noodlehaus/dispatch">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h2>
+<a name="dispatch-php-53-utility-library" class="anchor" href="#dispatch-php-53-utility-library"><span class="octicon octicon-link"></span></a>Dispatch PHP 5.3 Utility Library</h2>
+
+<p>At the very least, <code>dispatch()</code> is a front controller for your web app. It doesn't give you the full MVC setup, but it lets you define url routes and segregate your app logic from your views.</p>
+
+<h3>
+<a name="requirements" class="anchor" href="#requirements"><span class="octicon octicon-link"></span></a>Requirements</h3>
+
+<ul>
+<li>PHP 5.3</li>
+<li>
+<code>mcrypt</code> extension if you want to use encrypted cookies and wish to use <code>encrypt()</code> and <code>decrypt()</code> functions</li>
+<li>
+<code>apc</code> extension if you want to use <code>cache()</code> and <code>cache_invalidate()</code>
+</li>
+</ul><h3>
+<a name="configuration-variables" class="anchor" href="#configuration-variables"><span class="octicon octicon-link"></span></a>Configuration Variables</h3>
+
+<p>The following functions rely on variables set via <code>config()</code>:</p>
+
+<ul>
+<li>
+<code>config('source', 'inifile.ini')</code> makes the contents of <code>inifile.ini</code> accessible via <code>config()</code> calls</li>
+<li>
+<code>config('routing.base', 'string/to/strip')</code> lets you specify a string to strip from the URI before routing</li>
+<li>
+<code>config('views.root')</code> is used by <code>render()</code> and <code>partial()</code>, defaults to <code>./views</code>
+</li>
+<li>
+<code>config('views.layout')</code> is used by <code>render()</code>, defaults to <code>layout</code>
+</li>
+<li>
+<code>config('cookies.secret')</code> encryption salt to be used by <code>encrypt()</code>, <code>decrypt()</code>, <code>set_cookie()</code> and <code>get_cookie()</code>
+</li>
+<li>
+<code>config('cookies.flash')</code> cookie name to be used by <code>flash()</code> for setting messages</li>
+</ul><h3>
+<a name="quick-and-basic" class="anchor" href="#quick-and-basic"><span class="octicon octicon-link"></span></a>Quick and Basic</h3>
+
+<p>A typical PHP app using dispatch() will look like this.</p>
+
+<div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+<span class="c1">// include the library</span>
+<span class="k">include</span> <span class="s1">'dispatch.php'</span><span class="p">;</span>
+
+<span class="c1">// define your routes</span>
+<span class="nx">get</span><span class="p">(</span><span class="s1">'/greet'</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="c1">// render a view</span>
+    <span class="nx">render</span><span class="p">(</span><span class="s1">'greet-form'</span><span class="p">);</span>
+<span class="p">});</span>
+
+<span class="c1">// post handler</span>
+<span class="nx">post</span><span class="p">(</span><span class="s1">'/greet'</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="nv">$name</span> <span class="o">=</span> <span class="nx">from</span><span class="p">(</span><span class="nv">$_POST</span><span class="p">,</span> <span class="s1">'name'</span><span class="p">);</span>
+    <span class="c1">// render a view while passing some locals</span>
+    <span class="nx">render</span><span class="p">(</span><span class="s1">'greet-show'</span><span class="p">,</span> <span class="k">array</span><span class="p">(</span><span class="s1">'name'</span> <span class="o">=&gt;</span> <span class="nv">$name</span><span class="p">));</span>
+<span class="p">});</span>
+
+<span class="c1">// put handler</span>
+<span class="nx">put</span><span class="p">(</span><span class="s1">'/users'</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="c1">// ...</span>
+<span class="p">});</span>
+
+<span class="c1">// delete handler</span>
+<span class="nx">delete</span><span class="p">(</span><span class="s1">'/users/:id'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nv">$id</span><span class="p">)</span> <span class="p">{</span>
+  <span class="c1">// ...</span>
+<span class="p">});</span>
+
+<span class="c1">// serve your site</span>
+<span class="nx">dispatch</span><span class="p">();</span>
+<span class="cp">?&gt;</span><span class="x"></span>
+</pre></div>
+
+<h3>
+<a name="uri-rewriting-and-stripping" class="anchor" href="#uri-rewriting-and-stripping"><span class="octicon octicon-link"></span></a>URI Rewriting and Stripping</h3>
+
+<p>Setting <code>routing.base</code> to a string will strip that string from the URI before it is routed. Two use cases for this are when you don't have access to URI rewriting on your server, and if your dispatch application resides in a subdirectory.</p>
+
+<div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+<span class="c1">// example 1: want to strip the index.php part from the URI</span>
+<span class="nx">config</span><span class="p">(</span><span class="s1">'routing.base'</span><span class="p">,</span> <span class="s1">'index.php'</span><span class="p">);</span>
+
+<span class="nx">get</span><span class="p">(</span><span class="s1">'/users'</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="k">echo</span> <span class="s2">"listing users..."</span><span class="p">;</span>
+<span class="p">});</span>
+
+<span class="c1">// requested URI = /index.php/users</span>
+<span class="c1">// response = "listing users..."</span>
+
+<span class="c1">// example 2: our app lives in /mysite</span>
+<span class="nx">config</span><span class="p">(</span><span class="s1">'routing.base'</span><span class="p">,</span> <span class="s1">'mysite'</span><span class="p">);</span>
+
+<span class="nx">get</span><span class="p">(</span><span class="s1">'/users'</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="k">echo</span> <span class="s2">"listing users..."</span><span class="p">;</span>
+<span class="p">});</span>
+
+<span class="c1">// requested URI = /mysite/users</span>
+<span class="c1">// response = "listing users..."</span>
+<span class="cp">?&gt;</span><span class="x"></span>
+</pre></div>
+
+<h3>
+<a name="restful-resources" class="anchor" href="#restful-resources"><span class="octicon octicon-link"></span></a>RESTful Resources</h3>
+
+<p>If you have a class that supports all or some of the default REST actions, you can easily publish them using <code>restify()</code>. By default, <code>restify()</code> will create all REST routes for your class. You can selectively publish actions by passing them to the function. To make a class support <code>restify()</code>, you need to implement some or all of the following methods:</p>
+
+<ul>
+<li>
+<code>onIndex</code> - for the resource list</li>
+<li>
+<code>onNew</code> - for the resource creation form</li>
+<li>
+<code>onCreate</code> - for the creation action</li>
+<li>
+<code>onShow($id)</code> - for viewing a resource</li>
+<li>
+<code>onEdit($id)</code> - for the resource edit form</li>
+<li>
+<code>onUpdate($id)</code> - for the resource edit action</li>
+<li>
+<code>onDelete($id)</code> - for the resource delete action</li>
+</ul><p>Note that the routes published by <code>restify()</code> uses the symbol <code>:id</code> to identify the resource.</p>
+
+<div class="highlight"><pre><span class="c1">// resource to publish</span>
+<span class="k">class</span> <span class="nc">Users</span> <span class="p">{</span>
+  <span class="k">public</span> <span class="k">function</span> <span class="nf">onIndex</span><span class="p">()</span> <span class="p">{}</span>
+  <span class="k">public</span> <span class="k">function</span> <span class="nf">onNew</span><span class="p">()</span> <span class="p">{}</span>
+  <span class="k">public</span> <span class="k">function</span> <span class="nf">onCreate</span><span class="p">()</span> <span class="p">{}</span>
+  <span class="k">public</span> <span class="k">function</span> <span class="nf">onShow</span><span class="p">(</span><span class="nv">$id</span><span class="p">)</span> <span class="p">{}</span>
+  <span class="k">public</span> <span class="k">function</span> <span class="nf">onEdit</span><span class="p">(</span><span class="nv">$id</span><span class="p">)</span> <span class="p">{}</span>
+  <span class="k">public</span> <span class="k">function</span> <span class="nf">onUpdate</span><span class="p">(</span><span class="nv">$id</span><span class="p">)</span> <span class="p">{}</span>
+  <span class="k">public</span> <span class="k">function</span> <span class="nf">onDelete</span><span class="p">(</span><span class="nv">$id</span><span class="p">)</span> <span class="p">{}</span>
+<span class="p">}</span>
+
+<span class="c1">// publish the instance, with all endpoints, under /users</span>
+<span class="nx">restify</span><span class="p">(</span><span class="s1">'/users'</span><span class="p">,</span> <span class="k">new</span> <span class="nx">Users</span><span class="p">());</span>
+
+<span class="c1">// resource with just some of the REST endpoints</span>
+<span class="k">class</span> <span class="nc">Pages</span> <span class="p">{</span>
+  <span class="k">public</span> <span class="k">function</span> <span class="nf">onIndex</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">echo</span> <span class="s2">"Pages::onIndex</span><span class="se">\n</span><span class="s2">"</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">public</span> <span class="k">function</span> <span class="nf">onShow</span><span class="p">(</span><span class="nv">$id</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">echo</span> <span class="s2">"Pages::onShow </span><span class="si">{</span><span class="nv">$id</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">// publish object under /pages, but with just the available actions</span>
+<span class="nx">restify</span><span class="p">(</span><span class="s1">'/pages'</span><span class="p">,</span> <span class="k">new</span> <span class="nx">Pages</span><span class="p">(),</span> <span class="k">array</span><span class="p">(</span><span class="s1">'index'</span><span class="p">,</span> <span class="s1">'show'</span><span class="p">));</span>
+<span class="cp">?&gt;</span><span class="x"></span>
+</pre></div>
+
+<h3>
+<a name="route-symbol-filters" class="anchor" href="#route-symbol-filters"><span class="octicon octicon-link"></span></a>Route Symbol Filters</h3>
+
+<p>This is taken from ExpressJS. Route filters let you map functions against symbols in your routes. These functions then get executed when those symbols are matched.</p>
+
+<div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+<span class="c1">// preload blog entry whenever a matching route has :blog_id in it</span>
+<span class="nx">filter</span><span class="p">(</span><span class="s1">'blog_id'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nv">$blog_id</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nv">$blog</span> <span class="o">=</span> <span class="nx">Blog</span><span class="o">::</span><span class="na">findOne</span><span class="p">(</span><span class="nv">$blog_id</span><span class="p">);</span>
+    <span class="c1">// stash() lets you store stuff for later use (NOT a cache)</span>
+    <span class="nx">stash</span><span class="p">(</span><span class="s1">'blog'</span><span class="p">,</span> <span class="nv">$blog</span><span class="p">);</span>
+<span class="p">});</span>
+
+<span class="c1">// here, we have :blog_id in the route, so our preloader gets run</span>
+<span class="nx">get</span><span class="p">(</span><span class="s1">'/blogs/:blog_id'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nv">$blog_id</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// pick up what we got from the stash</span>
+    <span class="nv">$blog</span> <span class="o">=</span> <span class="nx">stash</span><span class="p">(</span><span class="s1">'blog'</span><span class="p">);</span>
+    <span class="nx">render</span><span class="p">(</span><span class="s1">'blogs/show'</span><span class="p">,</span> <span class="k">array</span><span class="p">(</span><span class="s1">'blog'</span> <span class="o">=&gt;</span> <span class="nv">$blog</span><span class="p">);</span>
+<span class="p">});</span>
+<span class="cp">?&gt;</span><span class="x"></span>
+</pre></div>
+
+<h3>
+<a name="conditions" class="anchor" href="#conditions"><span class="octicon octicon-link"></span></a>Conditions</h3>
+
+<p>Conditions are basically helper functions. I adopted the name 'conditions' so as to encourage you to use it at the start of your handlers.</p>
+
+<div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+<span class="c1">// require that users are signed in</span>
+<span class="nx">condition</span><span class="p">(</span><span class="s1">'signed_in'</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="nx">redirect</span><span class="p">(</span><span class="mi">403</span><span class="p">,</span> <span class="s1">'/403-forbidden'</span><span class="p">,</span> <span class="o">!</span><span class="nx">stash</span><span class="p">(</span><span class="s1">'user'</span><span class="p">));</span>
+<span class="p">});</span>
+
+<span class="c1">// require a valid token when accessing a page</span>
+<span class="nx">get</span><span class="p">(</span><span class="s1">'/admin'</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="nx">condition</span><span class="p">(</span><span class="s1">'signed_in'</span><span class="p">);</span>
+  <span class="nx">render</span><span class="p">(</span><span class="s1">'admin'</span><span class="p">);</span>
+<span class="p">});</span>
+<span class="cp">?&gt;</span><span class="x"></span>
+</pre></div>
+
+<p><em>NOTE:</em> Because of the way conditions are defined, conditions can't have anonymous functions as their first parameter.</p>
+
+<h3>
+<a name="middleware" class="anchor" href="#middleware"><span class="octicon octicon-link"></span></a>Middleware</h3>
+
+<p>If you have wind up routines that need to be done before handling the request, you can queue them up using the <code>middleware()</code> function.</p>
+
+<div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+<span class="c1">// create a db connection and stash it</span>
+<span class="nx">middleware</span><span class="p">(</span><span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="nv">$db</span> <span class="o">=</span> <span class="nx">create_connection</span><span class="p">();</span>
+    <span class="nx">stash</span><span class="p">(</span><span class="s1">'db'</span><span class="p">,</span> <span class="nv">$db</span><span class="p">);</span>
+<span class="p">});</span>
+
+<span class="c1">// assume that the db connection was stash()ed</span>
+<span class="nx">get</span><span class="p">(</span><span class="s1">'/list'</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="nv">$db</span> <span class="o">=</span> <span class="nx">stash</span><span class="p">(</span><span class="s1">'db'</span><span class="p">);</span>
+    <span class="c1">// do stuff with the DB</span>
+<span class="p">});</span>
+<span class="cp">?&gt;</span><span class="x"></span>
+</pre></div>
+
+<h3>
+<a name="caching-via-apc" class="anchor" href="#caching-via-apc"><span class="octicon octicon-link"></span></a>Caching via APC</h3>
+
+<p>If you have <code>apc.so</code> enabled, you can make use of dispatch's simple caching functions.</p>
+
+<div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+<span class="c1">// fetch something from the cache (ttl param is 60)</span>
+<span class="nv">$data</span> <span class="o">=</span> <span class="nx">cache</span><span class="p">(</span><span class="s1">'users'</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="c1">// this function is called as a loader if apc</span>
+  <span class="c1">// doesn't have 'users' in the cache, whatever</span>
+  <span class="c1">// it returns gets stored into apc and mapped to</span>
+  <span class="c1">// the 'users' key</span>
+  <span class="k">return</span> <span class="k">array</span><span class="p">(</span><span class="s1">'sheryl'</span><span class="p">,</span> <span class="s1">'addie'</span><span class="p">,</span> <span class="s1">'jaydee'</span><span class="p">);</span>
+<span class="p">},</span> <span class="mi">60</span><span class="p">);</span>
+
+<span class="c1">// invalidate our cached keys (users, products, news)</span>
+<span class="nx">cache_invalidate</span><span class="p">(</span><span class="s1">'users'</span><span class="p">,</span> <span class="s1">'products'</span><span class="p">,</span> <span class="s1">'news'</span><span class="p">);</span>
+</pre></div>
+
+<h3>
+<a name="configurations" class="anchor" href="#configurations"><span class="octicon octicon-link"></span></a>Configurations</h3>
+
+<p>You can make use of ini files for configuration by doing something like <code>config('source', 'myconfig.ini')</code>.
+This lets you put configuration settings in ini files instead of making <code>config()</code> calls in your code.</p>
+
+<div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+<span class="c1">// load the contents of my-settings.ini into config()</span>
+<span class="nx">config</span><span class="p">(</span><span class="s1">'source'</span><span class="p">,</span> <span class="s1">'my-settings.ini'</span><span class="p">);</span>
+
+<span class="c1">// set a different folder for the views</span>
+<span class="nx">config</span><span class="p">(</span><span class="s1">'views.root'</span><span class="p">,</span> <span class="nx">__DIR__</span><span class="o">.</span><span class="s1">'/myviews'</span><span class="p">);</span>
+
+<span class="c1">// get the encryption secret</span>
+<span class="nv">$secret</span> <span class="o">=</span> <span class="nx">config</span><span class="p">(</span><span class="s1">'cookies.secret'</span><span class="p">);</span>
+<span class="cp">?&gt;</span><span class="x"></span>
+</pre></div>
+
+<h3>
+<a name="utility-functions" class="anchor" href="#utility-functions"><span class="octicon octicon-link"></span></a>Utility Functions</h3>
+
+<p>There are a lot of other useful routines in the library. Documentation is still lacking but they're very small and easy to figure out. Read the source for now.</p>
+
+<div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+<span class="c1">// store a config and get it</span>
+<span class="nx">config</span><span class="p">(</span><span class="s1">'views.root'</span><span class="p">,</span> <span class="s1">'./views'</span><span class="p">);</span>
+<span class="nx">config</span><span class="p">(</span><span class="s1">'views.root'</span><span class="p">);</span> <span class="c1">// returns './views'</span>
+
+<span class="c1">// stash a var and get it (useful for moving stuff between scopes)</span>
+<span class="nx">stash</span><span class="p">(</span><span class="s1">'user'</span><span class="p">,</span> <span class="nv">$user</span><span class="p">);</span>
+<span class="nx">stash</span><span class="p">(</span><span class="s1">'user'</span><span class="p">);</span> <span class="c1">// returns stored $user var</span>
+
+<span class="c1">// redirect with a status code</span>
+<span class="nx">redirect</span><span class="p">(</span><span class="mi">302</span><span class="p">,</span> <span class="s1">'/index'</span><span class="p">);</span>
+
+<span class="c1">// redirect if a condition is met</span>
+<span class="nx">redirect</span><span class="p">(</span><span class="mi">403</span><span class="p">,</span> <span class="s1">'/users'</span><span class="p">,</span> <span class="o">!</span><span class="nv">$authenticated</span><span class="p">);</span>
+
+<span class="c1">// redirect only if func is satisfied</span>
+<span class="nx">redirect</span><span class="p">(</span><span class="s1">'/admin'</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="k">use</span> <span class="p">(</span><span class="nv">$auth</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="o">!!</span><span class="nv">$auth</span><span class="p">;</span> <span class="p">});</span>
+
+<span class="c1">// redirect only if func is satisfied, and with a diff code</span>
+<span class="nx">redirect</span><span class="p">(</span><span class="mi">301</span><span class="p">,</span> <span class="s1">'/admin'</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="k">use</span> <span class="p">(</span><span class="nv">$auth</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="o">!!</span><span class="nv">$auth</span><span class="p">;</span> <span class="p">});</span>
+
+<span class="c1">// send a http error code and print out a message</span>
+<span class="nx">error</span><span class="p">(</span><span class="mi">403</span><span class="p">,</span> <span class="s1">'Forbidden'</span><span class="p">);</span>
+
+<span class="c1">// get the current HTTP method or check the current method</span>
+<span class="nx">method</span><span class="p">();</span> <span class="c1">// GET, POST, PUT, DELETE</span>
+<span class="nx">method</span><span class="p">(</span><span class="s1">'POST'</span><span class="p">);</span> <span class="c1">// true if POST request, false otherwise</span>
+
+<span class="c1">// client's IP</span>
+<span class="nx">client_ip</span><span class="p">();</span>
+
+<span class="c1">// get a value from $_POST, returns null if not set</span>
+<span class="nv">$name</span> <span class="o">=</span> <span class="nx">from</span><span class="p">(</span><span class="nv">$_POST</span><span class="p">,</span> <span class="s1">'name'</span><span class="p">);</span>
+
+<span class="c1">// create an associative array using the passed keys,</span>
+<span class="c1">// pulling the values from $_POST</span>
+<span class="nv">$user</span> <span class="o">=</span> <span class="nx">from</span><span class="p">(</span><span class="nv">$_POST</span><span class="p">,</span> <span class="k">array</span><span class="p">(</span><span class="s1">'username'</span><span class="p">,</span> <span class="s1">'email'</span><span class="p">,</span> <span class="s1">'password'</span><span class="p">));</span>
+
+<span class="c1">// try to get a value from $_GET, use a default value if not set</span>
+<span class="nv">$user</span> <span class="o">=</span> <span class="nx">from</span><span class="p">(</span><span class="nv">$_GET</span><span class="p">,</span> <span class="s1">'username'</span><span class="p">,</span> <span class="s1">'Sranger'</span><span class="p">);</span>
+
+<span class="c1">// set a flash message</span>
+<span class="nx">flash</span><span class="p">(</span><span class="s1">'error'</span><span class="p">,</span> <span class="s1">'Invalid username'</span><span class="p">);</span>
+
+<span class="c1">// in a subsequent request, get the flash message</span>
+<span class="nv">$error</span> <span class="o">=</span> <span class="nx">flash</span><span class="p">(</span><span class="s1">'error'</span><span class="p">);</span>
+
+<span class="c1">// escape a string</span>
+<span class="nx">_h</span><span class="p">(</span><span class="s1">'Marley &amp; Me'</span><span class="p">);</span>
+
+<span class="c1">// url encode</span>
+<span class="nx">_u</span><span class="p">(</span><span class="s1">'http://noodlehaus.github.com/dispatch'</span><span class="p">);</span>
+
+<span class="c1">// load a partial using some file and locals</span>
+<span class="nv">$html</span> <span class="o">=</span> <span class="nx">partial</span><span class="p">(</span><span class="s1">'users/profile'</span><span class="p">,</span> <span class="k">array</span><span class="p">(</span><span class="s1">'user'</span> <span class="o">=&gt;</span> <span class="nv">$user</span><span class="p">));</span>
+<span class="cp">?&gt;</span><span class="x"></span>
+</pre></div>
+
+<h3>
+<a name="related-libraries" class="anchor" href="#related-libraries"><span class="octicon octicon-link"></span></a>Related Libraries</h3>
+
+<ul>
+<li>
+<a href="http://github.com/noodlehaus/dispatch-mongo">disptach-mongo</a> - wrapper for commonly used mongodb functions for dispatch</li>
+<li>
+<a href="http://github.com/noodlehaus/dispatch-elastic">disptach-elastic</a> - wrapper for commonly used elasticsearch operations for dispatch</li>
+</ul><h3>
+<a name="credits" class="anchor" href="#credits"><span class="octicon octicon-link"></span></a>Credits</h3>
+
+<p>The following projects served as both references and inspirations for Dispatch:</p>
+
+<ul>
+<li><a href="http://expressjs.com">ExpressJS</a></li>
+<li><a href="http://sinatrarb.com">Sinatra</a></li>
+<li><a href="http://breezephp.com">BreezePHP</a></li>
+</ul><p>Thanks to the following contributors for helping improve this tool :)</p>
+
+<ul>
+<li>Kafene <a href="https://github.com/kafene">kafene</a>
+</li>
+<li>Martin Angelov <a href="https://github.com/martinaglv">martingalv</a>
+</li>
+<li>Lars <a href="https://github.com/larsbo">larsbo</a>
+</li>
+</ul><h2>
+<a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>LICENSE</h2>
+
+<p>MIT <a href="http://noodlehaus.mit-license.org/">http://noodlehaus.mit-license.org/</a></p>
+      </section>
+    </div>
+    <footer>
+      <p>Project maintained by <a href="https://github.com/noodlehaus">noodlehaus</a></p>
+      <p>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></p>
+    </footer>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
 </html>
