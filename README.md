@@ -6,17 +6,6 @@ At the very least, `dispatch()` is a front controller for your web app. It doesn
 * `mcrypt` extension if you want to use encrypted cookies and wish to use `encrypt()` and `decrypt()` functions
 * `apc` extension if you want to use `cache()` and `cache_invalidate()`
 
-### Contributors
-Thanks to the following contributors for helping improve this tool :)
-
-* Kafene [kafene](https://github.com/kafene)
-* Martin Angelov [martingalv](https://github.com/martinaglv)
-* Lars [larsbo](https://github.com/larsbo)
-
-### Related Libraries
-* [disptach-mongo](http://github.com/noodlehaus/dispatch-mongo) - wrapper for commonly used mongodb functions for dispatch
-* [disptach-elastic](http://github.com/noodlehaus/dispatch-elastic) - wrapper for commonly used elasticsearch operations for dispatch
-
 ### Configuration Variables
 The following functions rely on variables set via `config()`:
 * `config('source', 'inifile.ini')` makes the contents of `inifile.ini` accessible via `config()` calls
@@ -287,6 +276,24 @@ _u('http://noodlehaus.github.com/dispatch');
 $html = partial('users/profile', array('user' => $user));
 ?>
 ```
+
+### Related Libraries
+* [disptach-mongo](http://github.com/noodlehaus/dispatch-mongo) - wrapper for commonly used mongodb functions for dispatch
+* [disptach-elastic](http://github.com/noodlehaus/dispatch-elastic) - wrapper for commonly used elasticsearch operations for dispatch
+
+### Credits
+
+The following projects served as both references and inspirations for Dispatch:
+
+* [ExpressJS](http://expressjs.com)
+* [Sinatra](http://sinatrarb.com)
+* [BreezePHP](http://breezephp.com)
+
+Thanks to the following contributors for helping improve this tool :)
+
+* Kafene [kafene](https://github.com/kafene)
+* Martin Angelov [martingalv](https://github.com/martinaglv)
+* Lars [larsbo](https://github.com/larsbo)
 
 ## LICENSE
 MIT
