@@ -1,7 +1,7 @@
 <?php
 error_reporting(E_ALL|E_STRICT);
 
-include './dispatch.php';
+include '../src/dispatch.php';
 
 // some sample routes
 get('/index', function () {

@@ -110,7 +110,7 @@ if (extension_loaded('mcrypt')) {
   function encrypt($decoded, $algo = MCRYPT_RIJNDAEL_256, $mode = MCRYPT_MODE_CBC) {
 
     if (($secret = config('cookies.secret')) == null)
-      error(500, '[cookies.secret] is not set');
+      error(500, "config('cookies.secret') is not set.");
 
     $secret  = mb_substr($secret, 0, mcrypt_get_key_size($algo, $mode));
     $iv_size = mcrypt_get_iv_size($algo, $mode);
@@ -132,7 +132,7 @@ if (extension_loaded('mcrypt')) {
   function decrypt($encoded, $algo = MCRYPT_RIJNDAEL_256, $mode = MCRYPT_MODE_CBC) {
 
     if (($secret = config('cookies.secret')) == null)
-      error(500, '[cookies.secret] is not set');
+      error(500, "config('cookies.secret') is not set.");
 
     $secret  = mb_substr($secret, 0, mcrypt_get_key_size($algo, $mode));
     list($enc_str, $iv_code) = explode('|', $encoded);
@@ -444,7 +444,7 @@ function partial($view, $locals = null) {
     extract($locals, EXTR_SKIP);
 
   if (($view_root = config('views.root')) == null)
-    error(500, "[views.root] is not set");
+    error(500, "config('views.root') is not set.");
 
   $path = basename($view);
   $view = preg_replace('/'.$path.'$/', "_{$path}", $view);
@@ -487,11 +487,11 @@ function content($value = null) {
  */
 function render($view, $locals = null, $layout = null) {
 
+  if (($view_root = config('views.root')) == null)
+    error(500, "config('views.root') is not set.");
+
   if (is_array($locals) && count($locals))
     extract($locals, EXTR_SKIP);
-
-  if (($view_root = config('views.root')) == null)
-    error(500, "[views.root] is not set");
 
   ob_start();
   include "{$view_root}/{$view}.html.php";
@@ -774,7 +774,10 @@ function flash($key, $msg = null, $now = false) {
 
   static $x = array();
 
-  $f = (config('cookies.flash') ? config('cookies.flash') : '_F');
+  $f = config('cookies.flash');
+
+  if (!$f)
+    error(500, "config('cookies.flash') is not set.");
 
   if ($c = get_cookie($f))
     $c = json_decode($c, true);
