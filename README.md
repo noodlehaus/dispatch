@@ -1,12 +1,18 @@
-## Dispatch PHP 5.3 Utility Library
+Dispatch PHP 5.3 Utility Library
+================================
 At the very least, `dispatch()` is a front controller for your web app. It doesn't give you the full MVC setup, but it lets you define url routes and segregate your app logic from your views.
 
-### Requirements
+## Requirements
 * PHP 5.3
 * `mcrypt` extension if you want to use encrypted cookies and wish to use `encrypt()` and `decrypt()` functions
 * `apc` extension if you want to use `cache()` and `cache_invalidate()`
 
-### Configuration Variables
+## Installation
+Dispatch can be installed using `composer` by requiring `dispatch/dispatch dev-master`. If you don't use `composer`, you can just download `src/dispatch.php` and include it directly in whichever folder you keep your libraries in.
+
+Note that Dispatch functions are all loaded into the global namespace.
+
+## Configuration Variables
 The following functions rely on variables set via `config()`:
 * `config('source', 'inifile.ini')` makes the contents of `inifile.ini` accessible via `config()` calls
 * `config('routing.base', 'string/to/strip')` lets you specify a string to strip from the URI before routing
@@ -15,7 +21,7 @@ The following functions rely on variables set via `config()`:
 * `config('cookies.secret')` encryption salt to be used by `encrypt()`, `decrypt()`, `set_cookie()` and `get_cookie()`
 * `config('cookies.flash')` cookie name to be used by `flash()` for setting messages
 
-### Quick and Basic
+## Quick and Basic
 A typical PHP app using dispatch() will look like this.
 
 ```php
@@ -51,7 +57,7 @@ dispatch();
 ?>
 ```
 
-### URI Rewriting and Stripping
+## URI Rewriting and Stripping
 Setting `routing.base` to a string will strip that string from the URI before it is routed. Two use cases for this are when you don't have access to URI rewriting on your server, and if your dispatch application resides in a subdirectory.
 
 ```php
@@ -78,7 +84,7 @@ get('/users', function () {
 ?>
 ```
 
-### RESTful Resources
+## RESTful Resources
 If you have a class that supports all or some of the default REST actions, you can easily publish them using `restify()`. By default, `restify()` will create all REST routes for your class. You can selectively publish actions by passing them to the function. To make a class support `restify()`, you need to implement some or all of the following methods:
 
 * `onIndex` - for the resource list
@@ -121,7 +127,7 @@ restify('/pages', new Pages(), array('index', 'show'));
 ?>
 ```
 
-### Route Symbol Filters
+## Route Symbol Filters
 This is taken from ExpressJS. Route filters let you map functions against symbols in your routes. These functions then get executed when those symbols are matched.
 
 ```php
@@ -142,7 +148,7 @@ get('/blogs/:blog_id', function ($blog_id) {
 ?>
 ```
 
-### Conditions
+## Conditions
 Conditions are basically helper functions. I adopted the name 'conditions' so as to encourage you to use it at the start of your handlers.
 
 ```php
@@ -161,7 +167,7 @@ get('/admin', function () {
 ```
 *NOTE:* Because of the way conditions are defined, conditions can't have anonymous functions as their first parameter.
 
-### Middleware
+## Middleware
 If you have wind up routines that need to be done before handling the request, you can queue them up using the `middleware()` function.
 
 ```php
@@ -180,7 +186,7 @@ get('/list', function () {
 ?>
 ```
 
-### Caching via APC
+## Caching via APC
 If you have `apc.so` enabled, you can make use of dispatch's simple caching functions.
 
 ```php
@@ -198,7 +204,7 @@ $data = cache('users', function () {
 cache_invalidate('users', 'products', 'news');
 ```
 
-### Configurations
+## Configurations
 You can make use of ini files for configuration by doing something like `config('source', 'myconfig.ini')`.
 This lets you put configuration settings in ini files instead of making `config()` calls in your code.
 
@@ -215,7 +221,7 @@ $secret = config('cookies.secret');
 ?>
 ```
 
-### Utility Functions
+## Utility Functions
 There are a lot of other useful routines in the library. Documentation is still lacking but they're very small and easy to figure out. Read the source for now.
 
 ```php
@@ -277,11 +283,11 @@ $html = partial('users/profile', array('user' => $user));
 ?>
 ```
 
-### Related Libraries
+## Related Libraries
 * [disptach-mongo](http://github.com/noodlehaus/dispatch-mongo) - wrapper for commonly used mongodb functions for dispatch
 * [disptach-elastic](http://github.com/noodlehaus/dispatch-elastic) - wrapper for commonly used elasticsearch operations for dispatch
 
-### Credits
+## Credits
 
 The following projects served as both references and inspirations for Dispatch:
 
