@@ -8,12 +8,26 @@ At the very least, `dispatch()` is a front controller for your web app. It doesn
 * `apc` extension if you want to use `cache()` and `cache_invalidate()`
 
 ## Installation
-Dispatch can be installed using `composer` by requiring `dispatch/dispatch dev-master`. If you don't use `composer`, you can just download `src/dispatch.php` and include it directly in whichever folder you keep your libraries in.
+Dispatch can be installed by using `composer`. In your `composer.json` file, do the following:
+
+```javascript
+{
+  "require": {
+    "php": ">= 5.3.0",
+    ...
+    "dispatch/dispatch": "dev-master"
+  }
+}
+```
+
+If you don't use `composer`, you can download and include [src/dispatch.php](https://github.com/noodlehaus/dispatch/raw/master/src/dispatch.php) directly in your application.
 
 Note that Dispatch functions are all loaded into the global namespace.
 
 ## Configuration Variables
-The following functions rely on variables set via `config()`:
+
+Certain properties and behaviours of Dispatch can be configured via the following `config()` entries:
+
 * `config('source', 'inifile.ini')` makes the contents of `inifile.ini` accessible via `config()` calls
 * `config('routing.base', 'string/to/strip')` lets you specify a string to strip from the URI before routing
 * `config('views.root')` is used by `render()` and `partial()`, defaults to `./views`
@@ -144,44 +158,6 @@ get('/blogs/:blog_id', function ($blog_id) {
 	// pick up what we got from the stash
 	$blog = stash('blog');
 	render('blogs/show', array('blog' => $blog);
-});
-?>
-```
-
-## Conditions
-Conditions are basically helper functions. I adopted the name 'conditions' so as to encourage you to use it at the start of your handlers.
-
-```php
-<?php
-// require that users are signed in
-condition('signed_in', function () {
-  redirect(403, '/403-forbidden', !stash('user'));
-});
-
-// require a valid token when accessing a page
-get('/admin', function () {
-  condition('signed_in');
-  render('admin');
-});
-?>
-```
-*NOTE:* Because of the way conditions are defined, conditions can't have anonymous functions as their first parameter.
-
-## Middleware
-If you have wind up routines that need to be done before handling the request, you can queue them up using the `middleware()` function.
-
-```php
-<?php
-// create a db connection and stash it
-middleware(function () {
-	$db = create_connection();
-	stash('db', $db);
-});
-
-// assume that the db connection was stash()ed
-get('/list', function () {
-	$db = stash('db');
-	// do stuff with the DB
 });
 ?>
 ```
