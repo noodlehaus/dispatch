@@ -5,12 +5,6 @@
 ; or if you're dispatch app lives in a sub-directory
 routing.base = 'mysite/index.php'
 
-; if url rewrite is NOT enabled, the first part of the
-; request URI is the bootstrap file and is removed
-; from the actual route to be handled.
-; ex: /index.php/users/edit --> index.php is removed
-rewrite.enable = true
-
 ; rendering vars
 views.root = views
 views.layout = layout
