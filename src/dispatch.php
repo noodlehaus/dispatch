@@ -532,63 +532,6 @@ function json($obj, $code = 200) {
 }
 
 /**
- * Creates conditions that can be invoked to determine
- * if execution of an action for a route continues or not.
- * If argument 2 is a callable, that becomes the handler
- * for the condition. Otherwise, call becomes an invocation of the
- * condition with all remaining arguments are passed to the condition.
- *
- * @param string $name name of the condition
- * @param callable|mixed[] $cb_or_arg,... callback for condition, or args during invocation
- *
- * @return void
- */
-function condition() {
-
-  static $cb_map = array();
-
-  $argv = func_get_args();
-  $argc = count($argv);
-
-  if (!$argc)
-    error(500, 'bad call to condition()');
-
-  $name = array_shift($argv);
-  $argc = $argc - 1;
-
-  if (!$argc && is_callable($cb_map[$name]))
-    return call_user_func($cb_map[$name]);
-
-  if (is_callable($argv[0]))
-    return ($cb_map[$name] = $argv[0]);
-
-  if (is_callable($cb_map[$name]))
-    return call_user_func_array($cb_map[$name], $argv);
-
-  error(500, 'condition ['.$name.'] is undefined');
-}
-
-/**
- * Inserts a callback to be invoked before handling of requests
- * or invokes all queued callbacks, if no argument was passed.
- *
- * @param callable|string $cb_or_path if callable, adds middleware, invokes all otherwise
- *
- * @return void
- */
-function middleware($cb_or_path = null) {
-
-  static $cb_map = array();
-
-  if ($cb_or_path == null || is_string($cb_or_path)) {
-    foreach ($cb_map as $cb)
-      call_user_func($cb, $cb_or_path);
-  } else {
-    array_push($cb_map, $cb_or_path);
-  }
-}
-
-/**
  * Creates callbacks (filters) against certain
  * symbols within a route. Whenever $sym is encountered
  * in a route, the filter is invoked.
