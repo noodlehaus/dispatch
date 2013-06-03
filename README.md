@@ -20,6 +20,8 @@ Dispatch can be installed by using `composer`. In your `composer.json` file, do 
 }
 ```
 
+After adding the appropriate `require` entries, do a `composer install` or `composer update` to install the package.
+
 If you don't use `composer`, you can download and include [src/dispatch.php](https://github.com/noodlehaus/dispatch/raw/master/src/dispatch.php) directly in your application.
 
 Note that Dispatch functions are all loaded into the global namespace.
