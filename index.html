@@ -45,14 +45,27 @@
 </ul><h2>
 <a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h2>
 
-<p>Dispatch can be installed using <code>composer</code> by requiring <code>dispatch/dispatch dev-master</code>. If you don't use <code>composer</code>, you can just download <code>src/dispatch.php</code> and include it directly in whichever folder you keep your libraries in.</p>
+<p>Dispatch can be installed by using <code>composer</code>. In your <code>composer.json</code> file, do the following:</p>
+
+<div class="highlight"><pre><span class="p">{</span>
+  <span class="s2">"require"</span><span class="o">:</span> <span class="p">{</span>
+    <span class="s2">"php"</span><span class="o">:</span> <span class="s2">"&gt;= 5.3.0"</span><span class="p">,</span>
+    <span class="p">...</span>
+    <span class="s2">"dispatch/dispatch"</span><span class="o">:</span> <span class="s2">"dev-master"</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>After adding the appropriate <code>require</code> entries, do a <code>composer install</code> or <code>composer update</code> to install the package.</p>
+
+<p>If you don't use <code>composer</code>, you can download and include <a href="https://github.com/noodlehaus/dispatch/raw/master/src/dispatch.php">src/dispatch.php</a> directly in your application.</p>
 
 <p>Note that Dispatch functions are all loaded into the global namespace.</p>
 
 <h2>
 <a name="configuration-variables" class="anchor" href="#configuration-variables"><span class="octicon octicon-link"></span></a>Configuration Variables</h2>
 
-<p>The following functions rely on variables set via <code>config()</code>:</p>
+<p>Certain properties and behaviours of Dispatch can be configured via the following <code>config()</code> entries:</p>
 
 <ul>
 <li>
@@ -204,47 +217,6 @@
     <span class="c1">// pick up what we got from the stash</span>
     <span class="nv">$blog</span> <span class="o">=</span> <span class="nx">stash</span><span class="p">(</span><span class="s1">'blog'</span><span class="p">);</span>
     <span class="nx">render</span><span class="p">(</span><span class="s1">'blogs/show'</span><span class="p">,</span> <span class="k">array</span><span class="p">(</span><span class="s1">'blog'</span> <span class="o">=&gt;</span> <span class="nv">$blog</span><span class="p">);</span>
-<span class="p">});</span>
-<span class="cp">?&gt;</span><span class="x"></span>
-</pre></div>
-
-<h2>
-<a name="conditions" class="anchor" href="#conditions"><span class="octicon octicon-link"></span></a>Conditions</h2>
-
-<p>Conditions are basically helper functions. I adopted the name 'conditions' so as to encourage you to use it at the start of your handlers.</p>
-
-<div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
-<span class="c1">// require that users are signed in</span>
-<span class="nx">condition</span><span class="p">(</span><span class="s1">'signed_in'</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
-  <span class="nx">redirect</span><span class="p">(</span><span class="mi">403</span><span class="p">,</span> <span class="s1">'/403-forbidden'</span><span class="p">,</span> <span class="o">!</span><span class="nx">stash</span><span class="p">(</span><span class="s1">'user'</span><span class="p">));</span>
-<span class="p">});</span>
-
-<span class="c1">// require a valid token when accessing a page</span>
-<span class="nx">get</span><span class="p">(</span><span class="s1">'/admin'</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
-  <span class="nx">condition</span><span class="p">(</span><span class="s1">'signed_in'</span><span class="p">);</span>
-  <span class="nx">render</span><span class="p">(</span><span class="s1">'admin'</span><span class="p">);</span>
-<span class="p">});</span>
-<span class="cp">?&gt;</span><span class="x"></span>
-</pre></div>
-
-<p><em>NOTE:</em> Because of the way conditions are defined, conditions can't have anonymous functions as their first parameter.</p>
-
-<h2>
-<a name="middleware" class="anchor" href="#middleware"><span class="octicon octicon-link"></span></a>Middleware</h2>
-
-<p>If you have wind up routines that need to be done before handling the request, you can queue them up using the <code>middleware()</code> function.</p>
-
-<div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
-<span class="c1">// create a db connection and stash it</span>
-<span class="nx">middleware</span><span class="p">(</span><span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
-    <span class="nv">$db</span> <span class="o">=</span> <span class="nx">create_connection</span><span class="p">();</span>
-    <span class="nx">stash</span><span class="p">(</span><span class="s1">'db'</span><span class="p">,</span> <span class="nv">$db</span><span class="p">);</span>
-<span class="p">});</span>
-
-<span class="c1">// assume that the db connection was stash()ed</span>
-<span class="nx">get</span><span class="p">(</span><span class="s1">'/list'</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
-    <span class="nv">$db</span> <span class="o">=</span> <span class="nx">stash</span><span class="p">(</span><span class="s1">'db'</span><span class="p">);</span>
-    <span class="c1">// do stuff with the DB</span>
 <span class="p">});</span>
 <span class="cp">?&gt;</span><span class="x"></span>
 </pre></div>
