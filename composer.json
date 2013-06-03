@@ -2,8 +2,8 @@
   "name": "dispatch/dispatch",
   "type": "library",
   "description": "Dispatch is a PHP 5.3+ utility library for creating web apps",
-  "keywords": ["framework", "router", "microframework", "microphp"],
-  "homepage": "http://github.com/noodlehaus/dispatch",
+  "keywords": ["framework", "router", "microframework", "micro", "microphp"],
+  "homepage": "http://noodlehaus.github.com/dispatch/",
   "license": "MIT",
   "authors": [{
     "name": "Jesus A. Domingo",
