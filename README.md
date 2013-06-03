@@ -15,7 +15,7 @@ Dispatch can be installed by using `composer`. In your `composer.json` file, do 
   "require": {
     "php": ">= 5.3.0",
     ...
-    "dispatch/dispatch": "dev-master"
+    "dispatch/dispatch": "*",
   }
 }
 ```
