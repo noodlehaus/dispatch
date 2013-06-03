@@ -1,9 +1,9 @@
-Dispatch PHP 5.3 Utility Library
-================================
-At the very least, `dispatch()` is a front controller for your web app. It doesn't give you the full MVC setup, but it lets you define url routes and segregate your app logic from your views.
+Dispatch PHP 5.3+ Micro-framework
+=================================
+Dispatch is a PHP micro-framework. It provides 29 short and easy functions that wrap commonly-used tasks in creating a web app. At the very least, Dispatch provides you with URL routing and view rendering.
 
 ## Requirements
-* PHP 5.3
+* PHP 5.3+
 * `mcrypt` extension if you want to use encrypted cookies and wish to use `encrypt()` and `decrypt()` functions
 * `apc` extension if you want to use `cache()` and `cache_invalidate()`
 
