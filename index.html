@@ -84,44 +84,30 @@
 <li>
 <code>config('cookies.flash')</code> cookie name to be used by <code>flash()</code> for setting messages</li>
 </ul><h2>
-<a name="quick-and-basic" class="anchor" href="#quick-and-basic"><span class="octicon octicon-link"></span></a>Quick and Basic</h2>
+<a name="url-routing" class="anchor" href="#url-routing"><span class="octicon octicon-link"></span></a>URL Routing</h2>
 
-<p>A typical PHP app using dispatch() will look like this.</p>
+<p>Dispatch supports the <code>GET</code>, <code>POST</code>, <code>PUT</code>, <code>DELETE</code>, and <code>HEAD</code> request methods. To create routes for these methods, you can either use their equivalent convenience functions or call <code>route()</code> directly.</p>
 
 <div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
-<span class="c1">// include the library</span>
-<span class="k">include</span> <span class="s1">'dispatch.php'</span><span class="p">;</span>
-
-<span class="c1">// define your routes</span>
-<span class="nx">get</span><span class="p">(</span><span class="s1">'/greet'</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
-    <span class="c1">// render a view</span>
-    <span class="nx">render</span><span class="p">(</span><span class="s1">'greet-form'</span><span class="p">);</span>
+<span class="c1">// get route for index</span>
+<span class="nx">get</span><span class="p">(</span><span class="s1">'/index'</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="k">echo</span> <span class="s2">"hello, world!</span><span class="se">\n</span><span class="s2">"</span><span class="p">;</span>
 <span class="p">});</span>
 
-<span class="c1">// post handler</span>
-<span class="nx">post</span><span class="p">(</span><span class="s1">'/greet'</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
-    <span class="nv">$name</span> <span class="o">=</span> <span class="nx">from</span><span class="p">(</span><span class="nv">$_POST</span><span class="p">,</span> <span class="s1">'name'</span><span class="p">);</span>
-    <span class="c1">// render a view while passing some locals</span>
-    <span class="nx">render</span><span class="p">(</span><span class="s1">'greet-show'</span><span class="p">,</span> <span class="k">array</span><span class="p">(</span><span class="s1">'name'</span> <span class="o">=&gt;</span> <span class="nv">$name</span><span class="p">));</span>
+<span class="c1">// this is the same as above</span>
+<span class="nx">route</span><span class="p">(</span><span class="s1">'GET'</span><span class="p">,</span> <span class="s1">'/index'</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="k">echo</span> <span class="s2">"hello, world!</span><span class="se">\n</span><span class="s2">"</span><span class="p">;</span>
 <span class="p">});</span>
 
-<span class="c1">// put handler</span>
-<span class="nx">put</span><span class="p">(</span><span class="s1">'/users'</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
-  <span class="c1">// ...</span>
-<span class="p">});</span>
-
-<span class="c1">// delete handler</span>
-<span class="nx">delete</span><span class="p">(</span><span class="s1">'/users/:id'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nv">$id</span><span class="p">)</span> <span class="p">{</span>
-  <span class="c1">// ...</span>
-<span class="p">});</span>
-
-<span class="c1">// serve your site</span>
-<span class="nx">dispatch</span><span class="p">();</span>
-<span class="cp">?&gt;</span><span class="x"></span>
+<span class="c1">// other routing functions are</span>
+<span class="c1">// post()</span>
+<span class="c1">// put()</span>
+<span class="c1">// delete()</span>
+<span class="c1">// head()</span>
 </pre></div>
 
 <h2>
-<a name="uri-rewriting-and-stripping" class="anchor" href="#uri-rewriting-and-stripping"><span class="octicon octicon-link"></span></a>URI Rewriting and Stripping</h2>
+<a name="url-rewriting-and-stripping" class="anchor" href="#url-rewriting-and-stripping"><span class="octicon octicon-link"></span></a>URL Rewriting and Stripping</h2>
 
 <p>Setting <code>routing.base</code> to a string will strip that string from the URI before it is routed. Two use cases for this are when you don't have access to URI rewriting on your server, and if your dispatch application resides in a subdirectory.</p>
 
@@ -149,7 +135,7 @@
 </pre></div>
 
 <h2>
-<a name="restful-resources" class="anchor" href="#restful-resources"><span class="octicon octicon-link"></span></a>RESTful Resources</h2>
+<a name="restful-objects" class="anchor" href="#restful-objects"><span class="octicon octicon-link"></span></a>RESTful Objects</h2>
 
 <p>If you have a class that supports all or some of the default REST actions, you can easily publish them using <code>restify()</code>. By default, <code>restify()</code> will create all REST routes for your class. You can selectively publish actions by passing them to the function. To make a class support <code>restify()</code>, you need to implement some or all of the following methods:</p>
 
@@ -222,22 +208,45 @@
 </pre></div>
 
 <h2>
-<a name="caching-via-apc" class="anchor" href="#caching-via-apc"><span class="octicon octicon-link"></span></a>Caching via APC</h2>
+<a name="before-and-after-callbacks" class="anchor" href="#before-and-after-callbacks"><span class="octicon octicon-link"></span></a>Before and After Callbacks</h2>
 
-<p>If you have <code>apc.so</code> enabled, you can make use of dispatch's simple caching functions.</p>
+<p>Dispatch also lets you setup routines that can be called before or after requests are handled.</p>
 
 <div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
-<span class="c1">// fetch something from the cache (ttl param is 60)</span>
-<span class="nv">$data</span> <span class="o">=</span> <span class="nx">cache</span><span class="p">(</span><span class="s1">'users'</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
-  <span class="c1">// this function is called as a loader if apc</span>
-  <span class="c1">// doesn't have 'users' in the cache, whatever</span>
-  <span class="c1">// it returns gets stored into apc and mapped to</span>
-  <span class="c1">// the 'users' key</span>
-  <span class="k">return</span> <span class="k">array</span><span class="p">(</span><span class="s1">'sheryl'</span><span class="p">,</span> <span class="s1">'addie'</span><span class="p">,</span> <span class="s1">'jaydee'</span><span class="p">);</span>
-<span class="p">},</span> <span class="mi">60</span><span class="p">);</span>
+<span class="c1">// setup a function to be called before each request</span>
+<span class="nx">before</span><span class="p">(</span><span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="c1">// do something...</span>
+  <span class="c1">// maybe setup the DB?</span>
+<span class="p">});</span>
 
-<span class="c1">// invalidate our cached keys (users, products, news)</span>
-<span class="nx">cache_invalidate</span><span class="p">(</span><span class="s1">'users'</span><span class="p">,</span> <span class="s1">'products'</span><span class="p">,</span> <span class="s1">'news'</span><span class="p">);</span>
+<span class="c1">// setup a function to be called after each request</span>
+<span class="nx">after</span><span class="p">(</span><span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="c1">// clean up stuff</span>
+  <span class="c1">// close connections</span>
+  <span class="c1">// etc</span>
+<span class="p">});</span>
+</pre></div>
+
+<h2>
+<a name="views-and-partials" class="anchor" href="#views-and-partials"><span class="octicon octicon-link"></span></a>Views and Partials</h2>
+
+<p>Dispatch gives you two functions for displaying views or templates and for loading view segments or partials.</p>
+
+<div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+<span class="c1">// this echos the contents of the templates, using the values</span>
+<span class="c1">// passed to it as locals in the template's scope</span>
+<span class="nx">render</span><span class="p">(</span><span class="s1">'users/profile'</span><span class="p">,</span> <span class="k">array</span><span class="p">(</span><span class="s1">'name'</span> <span class="o">=&gt;</span> <span class="s1">'jaydee'</span><span class="p">,</span> <span class="s1">'age'</span> <span class="o">=&gt;</span> <span class="mi">35</span><span class="p">));</span>
+
+<span class="c1">// by default, render uses a file called 'layout.html.php' as it's layout file.</span>
+<span class="c1">// to use a different one, pass the filename as the third argument (minues the extension)</span>
+<span class="nx">render</span><span class="p">(</span><span class="s1">'users/profile'</span><span class="p">,</span> <span class="k">null</span><span class="p">,</span> <span class="s1">'custom_layout'</span><span class="p">);</span>
+
+<span class="c1">// if you're trying to dump jason data, you can skip a layout file by setting it to false</span>
+<span class="nx">render</span><span class="p">(</span><span class="s1">'users/profile.json'</span><span class="p">,</span> <span class="k">null</span><span class="p">,</span> <span class="k">false</span><span class="p">);</span>
+
+<span class="c1">// partial files have filenames prefixed with the underscore (_). you don't need to</span>
+<span class="c1">// put in the underscore when loading them</span>
+<span class="nv">$html</span> <span class="o">=</span> <span class="nx">partial</span><span class="p">(</span><span class="s1">'users/profile_links'</span><span class="p">,</span> <span class="k">array</span><span class="p">(</span><span class="s1">'data'</span> <span class="o">=&gt;</span> <span class="nv">$data</span><span class="p">));</span>
 </pre></div>
 
 <h2>
@@ -256,6 +265,25 @@ This lets you put configuration settings in ini files instead of making <code>co
 <span class="c1">// get the encryption secret</span>
 <span class="nv">$secret</span> <span class="o">=</span> <span class="nx">config</span><span class="p">(</span><span class="s1">'cookies.secret'</span><span class="p">);</span>
 <span class="cp">?&gt;</span><span class="x"></span>
+</pre></div>
+
+<h2>
+<a name="caching-via-apc" class="anchor" href="#caching-via-apc"><span class="octicon octicon-link"></span></a>Caching via APC</h2>
+
+<p>If you have <code>apc.so</code> enabled, you can make use of dispatch's simple caching functions.</p>
+
+<div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+<span class="c1">// fetch something from the cache (ttl param is 60)</span>
+<span class="nv">$data</span> <span class="o">=</span> <span class="nx">cache</span><span class="p">(</span><span class="s1">'users'</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="c1">// this function is called as a loader if apc</span>
+  <span class="c1">// doesn't have 'users' in the cache, whatever</span>
+  <span class="c1">// it returns gets stored into apc and mapped to</span>
+  <span class="c1">// the 'users' key</span>
+  <span class="k">return</span> <span class="k">array</span><span class="p">(</span><span class="s1">'sheryl'</span><span class="p">,</span> <span class="s1">'addie'</span><span class="p">,</span> <span class="s1">'jaydee'</span><span class="p">);</span>
+<span class="p">},</span> <span class="mi">60</span><span class="p">);</span>
+
+<span class="c1">// invalidate our cached keys (users, products, news)</span>
+<span class="nx">cache_invalidate</span><span class="p">(</span><span class="s1">'users'</span><span class="p">,</span> <span class="s1">'products'</span><span class="p">,</span> <span class="s1">'news'</span><span class="p">);</span>
 </pre></div>
 
 <h2>
