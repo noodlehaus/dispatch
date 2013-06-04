@@ -666,6 +666,7 @@ function route($method, $path, $callback = null) {
       call_user_func_array($info['callback'], array_values($values));
 
       // do after() callbacks
+      after();
 
       // done
       return;
