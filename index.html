@@ -230,7 +230,7 @@
 <h2>
 <a name="views-and-partials" class="anchor" href="#views-and-partials"><span class="octicon octicon-link"></span></a>Views and Partials</h2>
 
-<p>Dispatch gives you two functions for displaying views or templates and for loading view segments or partials.</p>
+<p>Dispatch gives you two functions for displaying views or templates and for loading view segments or partials - <code>render()</code> and <code>partial()</code>. When you call these functions, Dispatch looks for the filenames you pass to it inside the path you set <code>views.root</code> to. The view files need to have the <code>.html.php</code> extensions. For partials, the filenames need to begin with the underscore (_).</p>
 
 <div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
 <span class="c1">// this echos the contents of the templates, using the values</span>
