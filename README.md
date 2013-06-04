@@ -170,7 +170,7 @@ after(function () {
 ```
 
 ## Views and Partials
-Dispatch gives you two functions for displaying views or templates and for loading view segments or partials.
+Dispatch gives you two functions for displaying views or templates and for loading view segments or partials - `render()` and `partial()`. When you call these functions, Dispatch looks for the filenames you pass to it inside the path you set `views.root` to. The view files need to have the `.html.php` extensions. For partials, the filenames need to begin with the underscore (_).
 
 ```php
 <?php
