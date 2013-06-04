@@ -3,6 +3,14 @@ error_reporting(E_ALL|E_STRICT);
 
 include '../src/dispatch.php';
 
+before(function () {
+  echo "inside callback mapped through before()\n";
+});
+
+after(function () {
+  echo "inside callback mapped through after()\n";
+});
+
 // some sample routes
 get('/index', function () {
   echo "GET index\n";
@@ -62,15 +70,6 @@ class Pages {
     echo "Pages::onShow {$id}\n";
   }
 }
-
-// sample middleware, gets called per request
-middleware(function () {
-  echo "executing middleware [1] before request\n";
-});
-
-middleware(function () {
-  echo "executing middleware [2] before request\n";
-});
 
 // some route filters, gets called when a matching
 // route contains the given symbol (in this case, :id)

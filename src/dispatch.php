@@ -560,6 +560,46 @@ function filter($symbol, $callback = null) {
 }
 
 /**
+ * Function for mapping callbacks to be invoked before each request.
+ * Order of execution depends on the order of mapping.
+ *
+ * @param callable $callback routine to invoke before each request.
+ *
+ * @return void
+ */
+function before($callback = null) {
+
+  static $before_callbacks = array();
+
+  if ($callback === null) {
+    foreach ($before_callbacks as $callback)
+      call_user_func($callback);
+  } else {
+    $before_callbacks[] = $callback;
+  }
+}
+
+/**
+ * Function for mapping callbacks to be invoked after each request.
+ * Order of execution depends on the order of mapping.
+ *
+ * @param callable $callback routine to invoke after each request.
+ *
+ * @return void
+ */
+function after($callback = null) {
+
+  static $after_callbacks = array();
+
+  if ($callback === null) {
+    foreach ($after_callbacks as $callback)
+      call_user_func($callback);
+  } else {
+    $after_callbacks[] = $callback;
+  }
+}
+
+/**
  * Maps a callback or invokes a callback for requests
  * on $pattern. If $callback is not set, $pattern
  * is matched against all routes for $method, and the
@@ -609,9 +649,6 @@ function route($method, $path, $callback = null) {
       if (!preg_match($info['regex'], $path, $values))
         continue;
 
-      // call middleware
-      middleware($path);
-
       // construct the params for the callback
       array_shift($values);
       preg_match_all('@:([\w]+)@', $pattern, $symbols, PREG_PATTERN_ORDER);
@@ -622,8 +659,13 @@ function route($method, $path, $callback = null) {
       if (count($symbols))
         filter($values);
 
+      // do before() callbacks
+      before();
+
       // invoke callback
       call_user_func_array($info['callback'], array_values($values));
+
+      // do after() callbacks
 
       // done
       return;
