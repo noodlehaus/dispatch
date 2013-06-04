@@ -37,43 +37,29 @@ Certain properties and behaviours of Dispatch can be configured via the followin
 * `config('cookies.secret')` encryption salt to be used by `encrypt()`, `decrypt()`, `set_cookie()` and `get_cookie()`
 * `config('cookies.flash')` cookie name to be used by `flash()` for setting messages
 
-## Quick and Basic
-A typical PHP app using dispatch() will look like this.
+## URL Routing
+Dispatch supports the `GET`, `POST`, `PUT`, `DELETE`, and `HEAD` request methods. To create routes for these methods, you can either use their equivalent convenience functions or call `route()` directly.
 
 ```php
 <?php
-// include the library
-include 'dispatch.php';
-
-// define your routes
-get('/greet', function () {
-	// render a view
-	render('greet-form');
+// get route for index
+get('/index', function () {
+  echo "hello, world!\n";
 });
 
-// post handler
-post('/greet', function () {
-	$name = from($_POST, 'name');
-	// render a view while passing some locals
-	render('greet-show', array('name' => $name));
+// this is the same as above
+route('GET', '/index', function () {
+  echo "hello, world!\n";
 });
 
-// put handler
-put('/users', function () {
-  // ...
-});
-
-// delete handler
-delete('/users/:id', function ($id) {
-  // ...
-});
-
-// serve your site
-dispatch();
-?>
+// other routing functions are
+// post()
+// put()
+// delete()
+// head()
 ```
 
-## URI Rewriting and Stripping
+## URL Rewriting and Stripping
 Setting `routing.base` to a string will strip that string from the URI before it is routed. Two use cases for this are when you don't have access to URI rewriting on your server, and if your dispatch application resides in a subdirectory.
 
 ```php
@@ -100,7 +86,7 @@ get('/users', function () {
 ?>
 ```
 
-## RESTful Resources
+## RESTful Objects
 If you have a class that supports all or some of the default REST actions, you can easily publish them using `restify()`. By default, `restify()` will create all REST routes for your class. You can selectively publish actions by passing them to the function. To make a class support `restify()`, you need to implement some or all of the following methods:
 
 * `onIndex` - for the resource list
@@ -164,22 +150,44 @@ get('/blogs/:blog_id', function ($blog_id) {
 ?>
 ```
 
-## Caching via APC
-If you have `apc.so` enabled, you can make use of dispatch's simple caching functions.
+## Before and After Callbacks
+Dispatch also lets you setup routines that can be called before or after requests are handled.
 
 ```php
 <?php
-// fetch something from the cache (ttl param is 60)
-$data = cache('users', function () {
-  // this function is called as a loader if apc
-  // doesn't have 'users' in the cache, whatever
-  // it returns gets stored into apc and mapped to
-  // the 'users' key
-  return array('sheryl', 'addie', 'jaydee');
-}, 60);
+// setup a function to be called before each request
+before(function () {
+  // do something...
+  // maybe setup the DB?
+});
 
-// invalidate our cached keys (users, products, news)
-cache_invalidate('users', 'products', 'news');
+// setup a function to be called after each request
+after(function () {
+  // clean up stuff
+  // close connections
+  // etc
+});
+```
+
+## Views and Partials
+Dispatch gives you two functions for displaying views or templates and for loading view segments or partials.
+
+```php
+<?php
+// this echos the contents of the templates, using the values
+// passed to it as locals in the template's scope
+render('users/profile', array('name' => 'jaydee', 'age' => 35));
+
+// by default, render uses a file called 'layout.html.php' as it's layout file.
+// to use a different one, pass the filename as the third argument (minues the extension)
+render('users/profile', null, 'custom_layout');
+
+// if you're trying to dump jason data, you can skip a layout file by setting it to false
+render('users/profile.json', null, false);
+
+// partial files have filenames prefixed with the underscore (_). you don't need to
+// put in the underscore when loading them
+$html = partial('users/profile_links', array('data' => $data));
 ```
 
 ## Configurations
@@ -197,6 +205,24 @@ config('views.root', __DIR__.'/myviews');
 // get the encryption secret
 $secret = config('cookies.secret');
 ?>
+```
+
+## Caching via APC
+If you have `apc.so` enabled, you can make use of dispatch's simple caching functions.
+
+```php
+<?php
+// fetch something from the cache (ttl param is 60)
+$data = cache('users', function () {
+  // this function is called as a loader if apc
+  // doesn't have 'users' in the cache, whatever
+  // it returns gets stored into apc and mapped to
+  // the 'users' key
+  return array('sheryl', 'addie', 'jaydee');
+}, 60);
+
+// invalidate our cached keys (users, products, news)
+cache_invalidate('users', 'products', 'news');
 ```
 
 ## Utility Functions
