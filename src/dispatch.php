@@ -808,10 +808,10 @@ function restify($root, $resource, $actions = null) {
 
   $action_map = array(
     'index' => array('GET', '(/(index/?)?)?'),
-    'show' => array('GET', '/:id(/(show/?)?)?'),
     'new' => array('GET', '/new/?'),
-    'create' => array('POST', '/create/?'),
     'edit' => array('GET', '/:id/edit/?'),
+    'show' => array('GET', '/:id(/(show/?)?)?'),
+    'create' => array('POST', '/create/?'),
     'update' => array('PUT', '/:id/?'),
     'delete' => array('DELETE', '/:id/?')
   );
