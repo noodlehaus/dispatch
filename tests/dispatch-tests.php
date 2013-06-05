@@ -75,7 +75,6 @@ $REQUEST_METHOD = 'GET';
 get('/index', function () {
   global $REQUEST_URI;
   assert($REQUEST_URI === '/index');
-  stash('name', 'jaydee');
 });
 
 get('/index/:name', function ($name) {
@@ -102,8 +101,9 @@ after(function () {
 
 // invoke routes
 dispatch('GET', $REQUEST_URI = '/index');
-assert(stash('name') === 'jaydee');
 dispatch('GET', $REQUEST_URI = '/index/sheryl');
+
+// check handler execution
 assert(stash('name') === 'sheryl');
 assert(stash('kid') === 'addie');
 assert(stash('before') === true);
