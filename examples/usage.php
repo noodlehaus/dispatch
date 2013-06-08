@@ -118,6 +118,21 @@ error(404, function () {
   echo "Oops!\n";
 });
 
-// let's invoke a 404
-dispatch('GET', '/does/not/exist');
+// try out new routing
+route('GET /sample-route', function () {
+  echo "new route format\n";
+});
+
+// call new route
+dispatch('GET', '/sample-route');
+
+// try mounting routes
+/*
+mount('/forums', array(
+  'GET /index' => function () {
+  },
+  'POST /index' => function () {
+  }
+));
+*/
 ?>

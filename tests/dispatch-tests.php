@@ -4,7 +4,6 @@ include '../src/dispatch.php';
 // custom error handler
 function oh_crap($errno, $errstr, $errfile, $errline) {
   echo "Test failed at line [{$errline}]\n";
-  exit($errno);
 }
 
 // custom error handler
@@ -180,5 +179,14 @@ assert($TOKEN === 'update');
 dispatch($REQUEST_METHOD = 'DELETE', $REQUEST_URI = '/a/1');
 assert($TOKEN === 'delete');
 
+// test new routing format
+route('GET /sample-route', function () {
+  stash('sample-route', true);
+});
+
+dispatch('GET', '/sample-route');
+assert(stash('sample-route') === true);
+
+// if we got here, then good
 echo "all tests passed!\n";
 ?>

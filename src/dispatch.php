@@ -274,6 +274,55 @@ function warn($name = null, $message = null) {
 }
 
 /**
+ * Utility for setting cross-request messages using cookies,
+ * referred to as flash messages (invented by Rails folks).
+ * Calling flash('key') will return the message and remove
+ * the message making it unavailable in the following request.
+ * Calling flash('key', 'message', true) will store that message
+ * for the current request but not available for the next one.
+ *
+ * @param string $key name of the flash message
+ * @param string $msg string to store as the message
+ * @param bool $now if the message is available immediately
+ *
+ * @return $string message for the key
+ */
+function flash($key, $msg = null, $now = false) {
+
+  static $x = array();
+
+  $f = config('cookies.flash');
+
+  if (!$f)
+    error(500, "config('cookies.flash') is not set.");
+
+  if ($c = get_cookie($f))
+    $c = json_decode($c, true);
+  else
+    $c = array();
+
+  if ($msg == null) {
+
+    if (isset($c[$key])) {
+      $x[$key] = $c[$key];
+      unset($c[$key]);
+      set_cookie($f, json_encode($c));
+    }
+
+    return (isset($x[$key]) ? $x[$key] : null);
+  }
+
+  if (!$now) {
+    $c[$key] = $msg;
+    set_cookie($f, json_encode($c));
+  }
+
+  $x[$key] = $msg;
+
+  return $msg;
+}
+
+/**
  * Convenience wrapper for urlencode()
  *
  * @param string $str string to encode.
@@ -607,8 +656,8 @@ function after($callback = null) {
  * is set, that callback is mapped against $pattern for $method
  * requests.
  *
- * @param string $method HTTP request method to map to
- * @param string $pattern regex or url path
+ * @param string $method HTTP request method or method + path
+ * @param string $pattern path or callback
  * @param callable $callback optional, handler to map
  *
  * @return void
@@ -617,6 +666,12 @@ function route($method, $path, $callback = null) {
 
   // callback map by request type
   static $route_map = array();
+
+  // support for 'GET /uri/path' format of routes
+  if (is_callable($path)) {
+    $callback = $path;
+    list($method, $path) = preg_split('@\s+@', $method, 2);
+  }
 
   $method = strtoupper($method);
 
@@ -740,55 +795,6 @@ function get($path, $cb) {
  */
 function post($path, $cb) {
   route('POST', $path, $cb);
-}
-
-/**
- * Utility for setting cross-request messages using cookies,
- * referred to as flash messages (invented by Rails folks).
- * Calling flash('key') will return the message and remove
- * the message making it unavailable in the following request.
- * Calling flash('key', 'message', true) will store that message
- * for the current request but not available for the next one.
- *
- * @param string $key name of the flash message
- * @param string $msg string to store as the message
- * @param bool $now if the message is available immediately
- *
- * @return $string message for the key
- */
-function flash($key, $msg = null, $now = false) {
-
-  static $x = array();
-
-  $f = config('cookies.flash');
-
-  if (!$f)
-    error(500, "config('cookies.flash') is not set.");
-
-  if ($c = get_cookie($f))
-    $c = json_decode($c, true);
-  else
-    $c = array();
-
-  if ($msg == null) {
-
-    if (isset($c[$key])) {
-      $x[$key] = $c[$key];
-      unset($c[$key]);
-      set_cookie($f, json_encode($c));
-    }
-
-    return (isset($x[$key]) ? $x[$key] : null);
-  }
-
-  if (!$now) {
-    $c[$key] = $msg;
-    set_cookie($f, json_encode($c));
-  }
-
-  $x[$key] = $msg;
-
-  return $msg;
 }
 
 /**
