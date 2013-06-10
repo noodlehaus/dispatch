@@ -68,8 +68,10 @@ function config($key, $value = null) {
 
 /**
  * Returns the string contained by 'site.url' in config.ini.
- * This includes the hostname and path.
+ * This includes the hostname and path. If called with $path_only set to
+ * true, it will return only the path section of the URL.
  *
+ * @param boolean $path_only defaults to false, true means return only the path
  * @return string value pointed to by 'site.url' in config.ini.
  */
 function site_url($path_only = false) {
