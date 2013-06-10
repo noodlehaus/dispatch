@@ -71,7 +71,9 @@
 <li>
 <code>config('source', 'inifile.ini')</code> makes the contents of <code>inifile.ini</code> accessible via <code>config()</code> calls</li>
 <li>
-<code>config('routing.base', 'string/to/strip')</code> lets you specify a string to strip from the URI before routing</li>
+<code>config('site.url')</code> optional setting for specifying your application's full URL (host and path)</li>
+<li>
+<code>config('site.router')</code> if present, will be stripped from the request URI. useful if you don't have mod_rewrite</li>
 <li>
 <code>config('views.root')</code> is used by <code>render()</code> and <code>partial()</code>, defaults to <code>./views</code>
 </li>
@@ -109,11 +111,11 @@
 <h2>
 <a name="url-rewriting-and-stripping" class="anchor" href="#url-rewriting-and-stripping"><span class="octicon octicon-link"></span></a>URL Rewriting and Stripping</h2>
 
-<p>Setting <code>routing.base</code> to a string will strip that string from the URI before it is routed. Two use cases for this are when you don't have access to URI rewriting on your server, and if your dispatch application resides in a subdirectory.</p>
+<p>Setting <code>site.router</code> to a string will strip that string from the URI before it is routed. Two use cases for this are when you don't have access to URI rewriting on your server, and if your dispatch application resides in a subdirectory.</p>
 
 <div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
 <span class="c1">// example 1: want to strip the index.php part from the URI</span>
-<span class="nx">config</span><span class="p">(</span><span class="s1">'routing.base'</span><span class="p">,</span> <span class="s1">'index.php'</span><span class="p">);</span>
+<span class="nx">config</span><span class="p">(</span><span class="s1">'site.router'</span><span class="p">,</span> <span class="s1">'index.php'</span><span class="p">);</span>
 
 <span class="nx">get</span><span class="p">(</span><span class="s1">'/users'</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
   <span class="k">echo</span> <span class="s2">"listing users..."</span><span class="p">;</span>
