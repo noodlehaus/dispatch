@@ -83,37 +83,37 @@ function site_url($path_only = false) {
   return rtrim(config('site.url'), '/').'/';
 }
 
-/**
- * Cookie-safe and URL-safe version of base64_encode()
- *
- * @param string $str string to encode
- *
- * @return string encoded string
- */
-function to_b64($str) {
-  $str = base64_encode($str);
-  $str = preg_replace('/\//', '_', $str);
-  $str = preg_replace('/\+/', '.', $str);
-  $str = preg_replace('/\=/', '-', $str);
-  return trim($str, '-');
-}
-
-/**
- * Decodes a to_b64() encoded string.
- *
- * @param string $str encoded string
- *
- * @return string decoded string
- */
-function from_b64($str) {
-  $str = preg_replace('/\_/', '/', $str);
-  $str = preg_replace('/\./', '+', $str);
-  $str = preg_replace('/\-/', '=', $str);
-  $str = base64_decode($str);
-  return $str;
-}
-
 if (extension_loaded('mcrypt')) {
+
+  /**
+   * Cookie-safe and URL-safe version of base64_encode()
+   *
+   * @param string $str string to encode
+   *
+   * @return string encoded string
+   */
+  function to_b64($str) {
+    $str = base64_encode($str);
+    $str = preg_replace('/\//', '_', $str);
+    $str = preg_replace('/\+/', '.', $str);
+    $str = preg_replace('/\=/', '-', $str);
+    return trim($str, '-');
+  }
+
+  /**
+   * Decodes a to_b64() encoded string.
+   *
+   * @param string $str encoded string
+   *
+   * @return string decoded string
+   */
+  function from_b64($str) {
+    $str = preg_replace('/\_/', '/', $str);
+    $str = preg_replace('/\./', '+', $str);
+    $str = preg_replace('/\-/', '=', $str);
+    $str = base64_decode($str);
+    return $str;
+  }
 
   /**
    * Encryption function that uses the mcrypt extension.
@@ -359,7 +359,7 @@ function _u($str) {
  *
  * @return string encoded string
  */
-function _h($str, $enc = 'UTF-8', $flags = ENT_QUOTES) {
+function _h($str, $flags = ENT_QUOTES, $enc = 'UTF-8') {
   return htmlentities($str, $flags, $enc);
 }
 
