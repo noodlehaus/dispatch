@@ -1,7 +1,7 @@
 {
   "name": "dispatch/dispatch",
   "type": "library",
-  "description": "Dispatch is a PHP 5.3+ utility library for creating web apps",
+  "description": "a microframework/front-controller",
   "keywords": ["framework", "router", "microframework", "micro", "microphp"],
   "homepage": "http://noodlehaus.github.com/dispatch/",
   "license": "MIT",
