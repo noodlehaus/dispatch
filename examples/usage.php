@@ -103,7 +103,7 @@ dispatch('GET', '/pages/');
 dispatch('GET', '/pages/1');
 
 // simulate no mod_rewrite and subdir apps
-config('routing.base', 'mysite/index.php');
+config('site.router', 'mysite/index.php');
 
 // index.php/ will be stripped from the request URIs
 dispatch('GET', '/mysite/index.php/users');
@@ -125,14 +125,4 @@ route('GET /sample-route', function () {
 
 // call new route
 dispatch('GET', '/sample-route');
-
-// try mounting routes
-/*
-mount('/forums', array(
-  'GET /index' => function () {
-  },
-  'POST /index' => function () {
-  }
-));
-*/
 ?>

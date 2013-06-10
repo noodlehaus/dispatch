@@ -67,6 +67,23 @@ function config($key, $value = null) {
 }
 
 /**
+ * Returns the string contained by 'site.url' in config.ini.
+ * This includes the hostname and path.
+ *
+ * @return string value pointed to by 'site.url' in config.ini.
+ */
+function site_url($path_only = false) {
+
+  if (!config('site.url'))
+    return null;
+
+  if ($path_only)
+    return rtrim(parse_url(config('site.url'), PHP_URL_PATH), '/');
+
+  return rtrim(config('site.url'), '/').'/';
+}
+
+/**
  * Cookie-safe and URL-safe version of base64_encode()
  *
  * @param string $str string to encode
@@ -855,13 +872,19 @@ function dispatch($method = null, $path = null) {
 
   // see if we were invoked with params
   $method = ($method ? $method : method());
-  $path = ($path ? $path : $_SERVER['REQUEST_URI']);
 
-  // if we have rewriting disabled, remove the first segment or go to '/'
-  if (is_string(config('routing.base'))) {
-    $root = trim(config('routing.base'), '/');
-    $path = preg_replace('@^/?'.preg_quote($root).'@i', '', $path);
-  }
+  // normalize routing base, if site is in sub-dir
+  $path = ($path ? $path : $_SERVER['REQUEST_URI']);
+  $root = config('site.router');
+  $base = site_url(true);
+
+  // strip base from path
+  if ($base !== null)
+    $path = preg_replace('@^'.preg_quote($base).'@', '', $path);
+
+  // if we have a routing file (no mod_rewrite), strip it from the URI
+  if ($root)
+    $path = preg_replace('@^/?'.preg_quote(trim($root, '/')).'@i', '', $path);
 
   // match it
   route($method, '/'.trim($path, '/'));
