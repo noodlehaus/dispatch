@@ -187,6 +187,18 @@ route('GET /sample-route', function () {
 dispatch('GET', '/sample-route');
 assert(stash('sample-route') === true);
 
+// test site.router stripping
+config('site.router', 'index.php');
+stash('sample-route', false);
+dispatch('GET', '/index.php/sample-route');
+assert(stash('sample-route') === true);
+
+// test site.url path stripping
+config('site.url', 'http://localhost/myapp/');
+stash('sample-route', false);
+dispatch('GET', '/myapp/index.php/sample-route');
+assert(stash('sample-route') === true);
+
 // if we got here, then good
 echo "all tests passed!\n";
 ?>
