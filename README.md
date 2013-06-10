@@ -31,7 +31,8 @@ Note that Dispatch functions are all loaded into the global namespace.
 Certain properties and behaviours of Dispatch can be configured via the following `config()` entries:
 
 * `config('source', 'inifile.ini')` makes the contents of `inifile.ini` accessible via `config()` calls
-* `config('routing.base', 'string/to/strip')` lets you specify a string to strip from the URI before routing
+* `config('site.url')` optional setting for specifying your application's full URL (host and path)
+* `config('site.router')` if present, will be stripped from the request URI. useful if you don't have mod_rewrite
 * `config('views.root')` is used by `render()` and `partial()`, defaults to `./views`
 * `config('views.layout')` is used by `render()`, defaults to `layout`
 * `config('cookies.secret')` encryption salt to be used by `encrypt()`, `decrypt()`, `set_cookie()` and `get_cookie()`
@@ -60,12 +61,12 @@ route('GET', '/index', function () {
 ```
 
 ## URL Rewriting and Stripping
-Setting `routing.base` to a string will strip that string from the URI before it is routed. Two use cases for this are when you don't have access to URI rewriting on your server, and if your dispatch application resides in a subdirectory.
+Setting `site.router` to a string will strip that string from the URI before it is routed. Two use cases for this are when you don't have access to URI rewriting on your server, and if your dispatch application resides in a subdirectory.
 
 ```php
 <?php
 // example 1: want to strip the index.php part from the URI
-config('routing.base', 'index.php');
+config('site.router', 'index.php');
 
 get('/users', function () {
   echo "listing users...";
