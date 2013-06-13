@@ -716,6 +716,10 @@ function route($method, $path, $callback = null) {
 
   } else {
 
+    // do we have a method override?
+    if (isset($_REQUEST['_method']))
+      $method = strtoupper($_REQUEST['_method']);
+
     // callback is null, so this is a route invokation. look up the callback.
     foreach ($route_map[$method] as $pattern => $info) {
 
@@ -836,7 +840,7 @@ function restify($root, $resource, $actions = null) {
     'new' => array('GET', '/new/?'),
     'edit' => array('GET', '/:id/edit/?'),
     'show' => array('GET', '/:id(/(show/?)?)?'),
-    'create' => array('POST', '/create/?'),
+    'create' => array('POST', '(/(create/?)?)?'),
     'update' => array('PUT', '/:id/?'),
     'delete' => array('DELETE', '/:id/?')
   );

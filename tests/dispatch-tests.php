@@ -127,14 +127,14 @@ class A {
   }
   public function onCreate() {
     global $REQUEST_URI, $REQUEST_METHOD, $TOKEN;
-    assert($REQUEST_URI === '/a/create');
+    assert($REQUEST_URI === '/a');
     assert($REQUEST_METHOD === 'POST');
     $TOKEN = 'create';
   }
   public function onShow($id) {
     global $REQUEST_URI, $REQUEST_METHOD, $TOKEN;
     assert($id === '1');
-    assert($REQUEST_URI === '/a/1/show');
+    assert($REQUEST_URI === '/a/1');
     assert($REQUEST_METHOD === 'GET');
     $TOKEN = 'show';
   }
@@ -168,9 +168,9 @@ dispatch($REQUEST_METHOD = 'GET', $REQUEST_URI = '/a/index');
 assert($TOKEN === 'index');
 dispatch($REQUEST_METHOD = 'GET', $REQUEST_URI = '/a/new');
 assert($TOKEN === 'new');
-dispatch($REQUEST_METHOD = 'POST', $REQUEST_URI = '/a/create');
+dispatch($REQUEST_METHOD = 'POST', $REQUEST_URI = '/a');
 assert($TOKEN === 'create');
-dispatch($REQUEST_METHOD = 'GET', $REQUEST_URI = '/a/1/show');
+dispatch($REQUEST_METHOD = 'GET', $REQUEST_URI = '/a/1');
 assert($TOKEN === 'show');
 dispatch($REQUEST_METHOD = 'GET', $REQUEST_URI = '/a/1/edit');
 assert($TOKEN === 'edit');
