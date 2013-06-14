@@ -150,9 +150,9 @@ Until browsers provide support for DELETE and PUT methods in their forms, you ca
 ```
 
 ## PUT Requests and JSON Requests
-In cases where you're handling PUT requests or JSON posts and you need access to the raw http request body contents, you can use `request\_body()` for this. The `request\_body()` function will return an associative array containing the body's `content-type`, `content-length`, `content-parsed` and `content-raw`.
+In cases where you're handling PUT requests or JSON posts and you need access to the raw http request body contents, you can use `request_body()` for this. The `request_body()` function will return an associative array containing the body's `content-type`, `content-length`, `content-parsed` and `content-raw`.
 
-The `request\_body()` function accepts an optional parameter, which should be a `callable` that takes three arguments - content type, length and raw data. This callable will be treated as the parser for the data and whatever it returns will be used by `request\_body()` as the value for `content-parsed`.
+The `request_body()` function accepts an optional parameter, which should be a `callable` that takes three arguments - content type, length and raw data. This callable will be treated as the parser for the data and whatever it returns will be used by `request_body()` as the value for `content-parsed`.
 
 ```php
 put('/users/:id', function ($id) {
