@@ -81,7 +81,7 @@
 <code>config('views.layout')</code> is used by <code>render()</code>, defaults to <code>layout</code>
 </li>
 <li>
-<code>config('cookies.secret')</code> encryption salt to be used by <code>encrypt()</code>, <code>decrypt()</code>, <code>set_cookie()</code> and <code>get_cookie()</code>
+<code>config('cookies.secret')</code> encryption salt to be used by <code>encrypt()</code>, <code>decrypt()</code>, <code>set\_cookie()</code> and <code>get\_cookie()</code>
 </li>
 <li>
 <code>config('cookies.flash')</code> cookie name to be used by <code>flash()</code> for setting messages</li>
@@ -185,6 +185,51 @@
 <span class="c1">// publish object under /pages, but with just the available actions</span>
 <span class="nx">restify</span><span class="p">(</span><span class="s1">'/pages'</span><span class="p">,</span> <span class="k">new</span> <span class="nx">Pages</span><span class="p">(),</span> <span class="k">array</span><span class="p">(</span><span class="s1">'index'</span><span class="p">,</span> <span class="s1">'show'</span><span class="p">));</span>
 <span class="cp">?&gt;</span><span class="x"></span>
+</pre></div>
+
+<h2>
+<a name="delete-and-put-request-overrides" class="anchor" href="#delete-and-put-request-overrides"><span class="octicon octicon-link"></span></a>DELETE and PUT Request Overrides</h2>
+
+<p>Until browsers provide support for DELETE and PUT methods in their forms, you can instead use a <code>hidden</code> <code>input</code> field named <code>\_method</code> to override the request method for your form.</p>
+
+<div class="highlight"><pre><span class="c">&lt;!-- sample PUT request --&gt;</span>
+<span class="nt">&lt;form</span> <span class="na">method=</span><span class="s">"POST"</span> <span class="na">action=</span><span class="s">"/users/1"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">"hidden"</span> <span class="na">name=</span><span class="s">"_method"</span> <span class="na">value=</span><span class="s">"PUT"</span><span class="nt">&gt;</span>
+  ...
+  <span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">"submit"</span> <span class="na">value=</span><span class="s">"Update"</span><span class="nt">&gt;</span>
+<span class="nt">&lt;/form&gt;</span>
+
+<span class="c">&lt;!-- sample DELETE request --&gt;</span>
+<span class="nt">&lt;form</span> <span class="na">method=</span><span class="s">"POST"</span> <span class="na">action=</span><span class="s">"/users/1"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">"hidden"</span> <span class="na">name=</span><span class="s">"_method"</span> <span class="na">value=</span><span class="s">"DELETE"</span><span class="nt">&gt;</span>
+  ...
+  <span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">"submit"</span> <span class="na">value=</span><span class="s">"Remove"</span><span class="nt">&gt;</span>
+<span class="nt">&lt;/form&gt;</span>
+</pre></div>
+
+<h2>
+<a name="put-requests-and-json-requests" class="anchor" href="#put-requests-and-json-requests"><span class="octicon octicon-link"></span></a>PUT Requests and JSON Requests</h2>
+
+<p>In cases where you're handling PUT requests or JSON posts and you need access to the raw http request body contents, you can use <code>request\_body()</code> for this. The <code>request\_body()</code> function will return an associative array containing the body's <code>content-type</code>, <code>content-length</code>, <code>content-parsed</code> and <code>content-raw</code>.</p>
+
+<p>The <code>request\_body()</code> function accepts an optional parameter, which should be a <code>callable</code> that takes three arguments - content type, length and raw data. This callable will be treated as the parser for the data and whatever it returns will be used by <code>request\_body()</code> as the value for <code>content-parsed</code>.</p>
+
+<div class="highlight"><pre><span class="nx">put</span><span class="p">(</span><span class="s1">'/users/:id'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nv">$id</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nv">$data</span> <span class="o">=</span> <span class="nx">request_body</span><span class="p">();</span>
+  <span class="c1">// or</span>
+  <span class="nv">$data</span> <span class="o">=</span> <span class="nx">request_body</span><span class="p">(</span><span class="k">function</span> <span class="p">(</span><span class="nv">$type</span><span class="p">,</span> <span class="nv">$length</span><span class="p">,</span> <span class="nv">$raw</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nb">json_decode</span><span class="p">(</span><span class="nv">$raw</span><span class="p">);</span>
+  <span class="p">});</span>
+  <span class="sd">/**</span>
+<span class="sd">  $data will be a hash of this structure</span>
+<span class="sd">  array(</span>
+<span class="sd">    'content-type' =&gt; 'content/type-here',</span>
+<span class="sd">    'content-length' =&gt; 123,</span>
+<span class="sd">    'content-parsed' =&gt; 'some data',</span>
+<span class="sd">    'content-raw' =&gt; 'raw data'</span>
+<span class="sd">  )</span>
+<span class="sd">  */</span>
+<span class="p">});</span>
 </pre></div>
 
 <h2>
