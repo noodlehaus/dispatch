@@ -390,6 +390,46 @@ function from($source, $name, $default = null) {
 }
 
 /**
+ * Function that returns the request body along with content type
+ * and content length info in a hash, if they're available.
+ *
+ * @param callable $parser optional function that will be used to parse the
+ *    content. this callback will be sent 3 parameters -- content-type,
+ *    content-length and actual content.
+ * @return array hash containing content-length, content-type and content
+ */
+function request_body($parser = null) {
+
+  $content_type = isset($_SERVER['HTTP_CONTENT_TYPE']) ?
+    $_SERVER['HTTP_CONTENT_TYPE'] :
+    $_SERVER['CONTENT_TYPE'];
+
+  preg_match('@^[^;]+@', $content_type, $content_type);
+
+  $content_raw = file_get_contents('php://input');
+  $content_length = strlen($content_raw);
+
+  // if no parser was passed, try to do smart parsing
+  if (!is_callable($parser)) {
+
+    if ($content_type[0] == 'application/json')
+      $content = json_decode($content_raw);
+    else if ($content_type[0] == 'application/x-www-form-urlencoded')
+      parse_str($content_raw, $content);
+
+  } else {
+    $content = $parser($content_type, $content_length, $content_raw);
+  }
+
+  return array(
+    'content-length' => $content_length,
+    'content-type' => $content_type[0],
+    'content-parsed' => $content,
+    'content-raw' => $content_raw
+  );
+}
+
+/**
  * A utility for passing values between scopes. If $value
  * is passed, $name will be set to $value. If $value is not
  * passed, the value currently mapped against $name will be
@@ -891,6 +931,9 @@ function dispatch($method = null, $path = null) {
   // if we have a routing file (no mod_rewrite), strip it from the URI
   if ($root)
     $path = preg_replace('@^/?'.preg_quote(trim($root, '/')).'@i', '', $path);
+
+  // get just the route path, minus the query
+  $path = parse_url($path, PHP_URL_PATH);
 
   // match it
   route($method, '/'.trim($path, '/'));

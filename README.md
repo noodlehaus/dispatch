@@ -35,7 +35,7 @@ Certain properties and behaviours of Dispatch can be configured via the followin
 * `config('site.router')` if present, will be stripped from the request URI. useful if you don't have mod_rewrite
 * `config('views.root')` is used by `render()` and `partial()`, defaults to `./views`
 * `config('views.layout')` is used by `render()`, defaults to `layout`
-* `config('cookies.secret')` encryption salt to be used by `encrypt()`, `decrypt()`, `set_cookie()` and `get_cookie()`
+* `config('cookies.secret')` encryption salt to be used by `encrypt()`, `decrypt()`, `set\_cookie()` and `get\_cookie()`
 * `config('cookies.flash')` cookie name to be used by `flash()` for setting messages
 
 ## URL Routing
@@ -128,6 +128,49 @@ class Pages {
 // publish object under /pages, but with just the available actions
 restify('/pages', new Pages(), array('index', 'show'));
 ?>
+```
+
+## DELETE and PUT Request Overrides
+Until browsers provide support for DELETE and PUT methods in their forms, you can instead use a `hidden` `input` field named `\_method` to override the request method for your form.
+
+```html
+<!-- sample PUT request -->
+<form method="POST" action="/users/1">
+  <input type="hidden" name="_method" value="PUT">
+  ...
+  <input type="submit" value="Update">
+</form>
+
+<!-- sample DELETE request -->
+<form method="POST" action="/users/1">
+  <input type="hidden" name="_method" value="DELETE">
+  ...
+  <input type="submit" value="Remove">
+</form>
+```
+
+## PUT Requests and JSON Requests
+In cases where you're handling PUT requests or JSON posts and you need access to the raw http request body contents, you can use `request\_body()` for this. The `request\_body()` function will return an associative array containing the body's `content-type`, `content-length`, `content-parsed` and `content-raw`.
+
+The `request\_body()` function accepts an optional parameter, which should be a `callable` that takes three arguments - content type, length and raw data. This callable will be treated as the parser for the data and whatever it returns will be used by `request\_body()` as the value for `content-parsed`.
+
+```php
+put('/users/:id', function ($id) {
+  $data = request_body();
+  // or
+  $data = request_body(function ($type, $length, $raw) {
+    return json_decode($raw);
+  });
+  /**
+  $data will be a hash of this structure
+  array(
+    'content-type' => 'content/type-here',
+    'content-length' => 123,
+    'content-parsed' => 'some data',
+    'content-raw' => 'raw data'
+  )
+  */
+});
 ```
 
 ## Route Symbol Filters
