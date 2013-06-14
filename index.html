@@ -210,9 +210,9 @@
 <h2>
 <a name="put-requests-and-json-requests" class="anchor" href="#put-requests-and-json-requests"><span class="octicon octicon-link"></span></a>PUT Requests and JSON Requests</h2>
 
-<p>In cases where you're handling PUT requests or JSON posts and you need access to the raw http request body contents, you can use <code>request\_body()</code> for this. The <code>request\_body()</code> function will return an associative array containing the body's <code>content-type</code>, <code>content-length</code>, <code>content-parsed</code> and <code>content-raw</code>.</p>
+<p>In cases where you're handling PUT requests or JSON posts and you need access to the raw http request body contents, you can use <code>request_body()</code> for this. The <code>request_body()</code> function will return an associative array containing the body's <code>content-type</code>, <code>content-length</code>, <code>content-parsed</code> and <code>content-raw</code>.</p>
 
-<p>The <code>request\_body()</code> function accepts an optional parameter, which should be a <code>callable</code> that takes three arguments - content type, length and raw data. This callable will be treated as the parser for the data and whatever it returns will be used by <code>request\_body()</code> as the value for <code>content-parsed</code>.</p>
+<p>The <code>request_body()</code> function accepts an optional parameter, which should be a <code>callable</code> that takes three arguments - content type, length and raw data. This callable will be treated as the parser for the data and whatever it returns will be used by <code>request_body()</code> as the value for <code>content-parsed</code>.</p>
 
 <div class="highlight"><pre><span class="nx">put</span><span class="p">(</span><span class="s1">'/users/:id'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nv">$id</span><span class="p">)</span> <span class="p">{</span>
   <span class="nv">$data</span> <span class="o">=</span> <span class="nx">request_body</span><span class="p">();</span>
