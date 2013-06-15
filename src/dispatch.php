@@ -210,56 +210,134 @@ function delete_cookie() {
     setcookie($ck, '', -10, '/');
 }
 
-if (extension_loaded('apc')) {
+/**
+ * Function that declares the caching functions depending on the back-end
+ * module used.
+ *
+ * @param string $module either apc or memcached
+ *
+ * @return void
+ */
+function cache_enable($module) {
 
-  /**
-   * Stores the value returned by $func into apc against $key if $func is passed,
-   * for $ttl seconds. If $func is not passed, the value mapped to $key is returned.
-   *
-   * @param string $key cache entry to fetch or store into
-   * @param callable $func function whose return value is stored against $key
-   * @param int $ttl optional, time-to-live for $key, in seconds
-   *
-   * @return mixed data cached against $key
-   */
-  function cache($key, $func, $ttl = 0) {
-    if (($data = apc_fetch($key)) === false) {
-      $data = call_user_func($func);
-      if ($data !== null)
-        apc_store($key, $data, $ttl);
+  if ($module != 'apc' && $module != 'memcached')
+    error(500, 'cache_enable() only supports apc or memcached');
+
+  if (!extension_loaded('apc') && !extension_loaded('memcached'))
+    error(500, 'cache_enable() requires either apc or memcached extensions');
+
+  if ($module === 'memcached') {
+
+    /**
+     * Initializer for memcached.
+     *
+     * @return object Memcached instance
+     */
+    function _memcached() {
+
+      static $memcached = null;
+
+      if (!$memcached) {
+
+        $connections = config('cache.connection');
+
+        if (!$connections)
+          error(500, '[cache.driver] set to memcached but [cache.connection] entries missing');
+
+        // cast it so we just have a generic array handler
+        if (!is_array($connections))
+          $connections = (array) $connections;
+
+        // our memcached servers
+        $servers = array();
+
+        // go through each cache.connection[] entry and require
+        // at least a host and port for each one
+        foreach ($connections as $str) {
+          $parts = explode(':', $str);
+          if (count($parts) < 2)
+            error(500, '[cache.connection] format is <host>:<port>[:<weight>]');
+          $servers[] = $parts;
+        }
+
+        $memcached = new Memcached();
+        $memcached->addservers($servers);
+      }
+
+      return $memcached;
     }
-    return $data;
+
+    /**
+     * Stores the value returned by $func into apc against $key if $func is passed,
+     * for $ttl seconds. If $func is not passed, the value mapped to $key is returned.
+     *
+     * @param string $key cache entry to fetch or store into
+     * @param callable $func function whose return value is stored against $key
+     * @param int $ttl optional, time-to-live for $key, in seconds
+     *
+     * @return mixed data cached against $key
+     */
+    function cache($key, $func, $ttl = 0) {
+
+      $store = _memcached();
+      $value = $store->get($key);
+
+      if ($store->getResultCode() === Memcached::RES_NOTFOUND) {
+        $value = call_user_func($func);
+        if (!$value !== null)
+          $store->set($key, $value, $ttl);
+      }
+
+      return $value;
+    }
+
+    /**
+     * Invalidates a key or list of keys from the cache.
+     *
+     * @param string $v,... key or keys to invalidate from the cache.
+     *
+     * @return void
+     */
+    function cache_invalidate() {
+      _memcached()->deleteMulti(func_get_args());
+    }
+
+  // apc
+  } else {
+
+    /**
+     * Stores the value returned by $func into apc against $key if $func is passed,
+     * for $ttl seconds. If $func is not passed, the value mapped to $key is returned.
+     *
+     * @param string $key cache entry to fetch or store into
+     * @param callable $func function whose return value is stored against $key
+     * @param int $ttl optional, time-to-live for $key, in seconds
+     *
+     * @return mixed data cached against $key
+     */
+    function cache($key, $func, $ttl = 0) {
+
+      if (($data = apc_fetch($key)) === false) {
+        $data = call_user_func($func);
+        if ($data !== null)
+          apc_add($key, $data, $ttl);
+      }
+
+      return $data;
+    }
+
+    /**
+     * Invalidates a key or list of keys from the cache.
+     *
+     * @param string $v,... key or keys to invalidate from the cache.
+     *
+     * @return void
+     */
+    function cache_invalidate() {
+      foreach (func_get_args() as $key)
+        apc_delete($key);
+    }
   }
-
-  /**
-   * Wraps around apc_cas() but accepts a callable as 2nd parameter.
-   *
-   * @param string $key cache entry to store into
-   * @param mixed $old old value to use as state
-   * @param callable $func function whose return value will be used as new value
-   *
-   * @return void
-   */
-  function cache_cas($key, $old, $func) {
-
-    $oldval = apc_fetch($key);
-    $newval = call_user_func($func);
-
-    apc_cas($key, $oldval, $newval);
-  }
-
-  /**
-   * Invalidates a key or list of keys from the cache.
-   *
-   * @param string $v,... key or keys to invalidate from the cache.
-   *
-   * @return void
-   */
-  function cache_invalidate() {
-    foreach (func_get_args() as $key)
-      apc_delete($key);
-  }
-
 }
 
 /**
