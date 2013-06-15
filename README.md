@@ -5,7 +5,7 @@ Dispatch is a PHP micro-framework. It provides 29 short and easy functions that 
 ## Requirements
 * PHP 5.3+
 * `mcrypt` extension if you want to use encrypted cookies and wish to use `encrypt()` and `decrypt()` functions
-* `apc` extension if you want to use `cache()` and `cache_invalidate()`
+* `apc` or `memcached` extension if you want to use `cache()` and `cache_invalidate()`
 
 ## Installation
 Dispatch can be installed by using `composer`. In your `composer.json` file, do the following:
@@ -251,8 +251,12 @@ $secret = config('cookies.secret');
 ?>
 ```
 
-## Caching via APC
-If you have `apc.so` enabled, you can make use of dispatch's simple caching functions.
+## Caching with APC and Memcached
+If you have either APC or Memcached loaded into PHP, you can enable the caching functions
+by making a call to `cache_enable()` and passing either `apc` or `memcached` to specify
+which backend library to use.
+
+Using the cache lets you then make calls to `cache()` and `cache_invalidate()`.
 
 ```php
 <?php
