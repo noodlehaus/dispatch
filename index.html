@@ -40,7 +40,7 @@
 <li>
 <code>mcrypt</code> extension if you want to use encrypted cookies and wish to use <code>encrypt()</code> and <code>decrypt()</code> functions</li>
 <li>
-<code>apc</code> extension if you want to use <code>cache()</code> and <code>cache_invalidate()</code>
+<code>apc</code> or <code>memcached</code> extension if you want to use <code>cache()</code> and <code>cache_invalidate()</code>
 </li>
 </ul><h2>
 <a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h2>
@@ -315,9 +315,13 @@ This lets you put configuration settings in ini files instead of making <code>co
 </pre></div>
 
 <h2>
-<a name="caching-via-apc" class="anchor" href="#caching-via-apc"><span class="octicon octicon-link"></span></a>Caching via APC</h2>
+<a name="caching-with-apc-and-memcached" class="anchor" href="#caching-with-apc-and-memcached"><span class="octicon octicon-link"></span></a>Caching with APC and Memcached</h2>
 
-<p>If you have <code>apc.so</code> enabled, you can make use of dispatch's simple caching functions.</p>
+<p>If you have either APC or Memcached loaded into PHP, you can enable the caching functions
+by making a call to <code>cache_enable()</code> and passing either <code>apc</code> or <code>memcached</code> to specify
+which backend library to use.</p>
+
+<p>Using the cache lets you then make calls to <code>cache()</code> and <code>cache_invalidate()</code>.</p>
 
 <div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
 <span class="c1">// fetch something from the cache (ttl param is 60)</span>
@@ -331,6 +335,19 @@ This lets you put configuration settings in ini files instead of making <code>co
 
 <span class="c1">// invalidate our cached keys (users, products, news)</span>
 <span class="nx">cache_invalidate</span><span class="p">(</span><span class="s1">'users'</span><span class="p">,</span> <span class="s1">'products'</span><span class="p">,</span> <span class="s1">'news'</span><span class="p">);</span>
+</pre></div>
+
+<p>Note that if you're using <code>memcached</code> as cache, you also need to define the connection
+string to be used via <code>config('cache.connection')</code>. This setting can be a single string
+or an array of strings, with the format <code>hostname:port:weight</code>.</p>
+
+<div class="highlight"><pre><span class="c1">; for a single server</span>
+<span class="na">cache.connection</span> <span class="o">=</span> <span class="s">localhost:11211</span>
+
+<span class="c1">; for multiple servers</span>
+<span class="na">cache.connection[]</span> <span class="o">=</span> <span class="s">hostname1:11211:40</span>
+<span class="na">cache.connection[]</span> <span class="o">=</span> <span class="s">hostname2:11211:40</span>
+<span class="na">cache.connection[]</span> <span class="o">=</span> <span class="s">hostname3:11211:20</span>
 </pre></div>
 
 <h2>
