@@ -273,6 +273,20 @@ $data = cache('users', function () {
 cache_invalidate('users', 'products', 'news');
 ```
 
+Note that if you're using `memcached` as cache, you also need to define the connection
+string to be used via `config('cache.connection')`. This setting can be a single string
+or an array of strings, with the format `hostname:port:weight`.
+
+```ini
+; for a single server
+cache.connection = localhost:11211
+
+; for multiple servers
+cache.connection[] = hostname1:11211:40
+cache.connection[] = hostname2:11211:40
+cache.connection[] = hostname3:11211:20
+```
+
 ## Utility Functions
 There are a lot of other useful routines in the library. Documentation is still lacking but they're very small and easy to figure out. Read the source for now.
 
