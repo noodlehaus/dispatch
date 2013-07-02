@@ -125,14 +125,34 @@
 <span class="c1">// response = "listing users..."</span>
 
 <span class="c1">// example 2: our app lives in /mysite</span>
-<span class="nx">config</span><span class="p">(</span><span class="s1">'routing.base'</span><span class="p">,</span> <span class="s1">'mysite'</span><span class="p">);</span>
+<span class="nx">config</span><span class="p">(</span><span class="s1">'site.url'</span><span class="p">,</span> <span class="s1">'http://somehost.com/mysite'</span><span class="p">);</span>
+
+<span class="c1">// example 2.1: our routing file is at /mysite/index.php</span>
+<span class="nx">config</span><span class="p">(</span><span class="s1">'site.router'</span><span class="p">,</span> <span class="s1">'index.php'</span><span class="p">);</span>
 
 <span class="nx">get</span><span class="p">(</span><span class="s1">'/users'</span><span class="p">,</span> <span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
   <span class="k">echo</span> <span class="s2">"listing users..."</span><span class="p">;</span>
 <span class="p">});</span>
 
-<span class="c1">// requested URI = /mysite/users</span>
+<span class="c1">// requested URI = http://somehost.com/mysite/index.php/users</span>
 <span class="c1">// response = "listing users..."</span>
+<span class="cp">?&gt;</span><span class="x"></span>
+</pre></div>
+
+<h2>
+<a name="site-url-and-site-path" class="anchor" href="#site-url-and-site-path"><span class="octicon octicon-link"></span></a>Site URL and Site Path</h2>
+
+<p>In your app, you usually have a need to get your site's domain and your application's entire path. This can be setup by assigning a value to <code>site.url</code> in your config. Doing this will let you fetch its parts by calling <code>site_url($path_only = false)</code>.</p>
+
+<div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+<span class="c1">// map entire app path</span>
+<span class="nx">config</span><span class="p">(</span><span class="s1">'site.url'</span><span class="p">,</span> <span class="s1">'http://somedomain.com/myapp'</span><span class="p">);</span>
+
+<span class="c1">// get the entire url</span>
+<span class="nv">$complete</span> <span class="o">=</span> <span class="nx">site_url</span><span class="p">();</span>
+
+<span class="c1">// get just the app path</span>
+<span class="nv">$path</span> <span class="o">=</span> <span class="nx">site_url</span><span class="p">(</span><span class="nv">$path_only</span> <span class="o">=</span> <span class="k">true</span><span class="p">);</span>
 <span class="cp">?&gt;</span><span class="x"></span>
 </pre></div>
 
