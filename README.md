@@ -76,13 +76,16 @@ get('/users', function () {
 // response = "listing users..."
 
 // example 2: our app lives in /mysite
-config('routing.base', 'mysite');
+config('site.url', 'http://somehost.com/mysite');
+
+// example 2.1: our routing file is at /mysite/index.php
+config('site.router', 'index.php');
 
 get('/users', function () {
   echo "listing users...";
 });
 
-// requested URI = /mysite/users
+// requested URI = http://somehost.com/mysite/index.php/users
 // response = "listing users..."
 ?>
 ```
