@@ -90,6 +90,22 @@ get('/users', function () {
 ?>
 ```
 
+## Site URL and Site Path
+In your app, you usually have a need to get your site's domain and your application's entire path. This can be setup by assigning a value to `site.url` in your config. Doing this will let you fetch its parts by calling `site_url($path_only = false)`.
+
+```php
+<?php
+// map entire app path
+config('site.url', 'http://somedomain.com/myapp');
+
+// get the entire url
+$complete = site_url();
+
+// get just the app path
+$path = site_url($path_only = true);
+?>
+```
+
 ## RESTful Objects
 If you have a class that supports all or some of the default REST actions, you can easily publish them using `restify()`. By default, `restify()` will create all REST routes for your class. You can selectively publish actions by passing them to the function. To make a class support `restify()`, you need to implement some or all of the following methods:
 
