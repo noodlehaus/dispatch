@@ -72,16 +72,6 @@ filter('name', function ($name) {
   stash('kid', 'addie');
 });
 
-// test before
-before(function () {
-  stash('before', true);
-});
-
-// test after
-after(function () {
-  stash('after', true);
-});
-
 // invoke routes
 dispatch('GET', $REQUEST_URI = '/index');
 dispatch('GET', $REQUEST_URI = '/index/sheryl');
@@ -89,9 +79,6 @@ dispatch('GET', $REQUEST_URI = '/index/sheryl');
 // check handler execution
 assert(stash('name') === 'sheryl');
 assert(stash('kid') === 'addie');
-assert(stash('before') === true);
-// can't test following line, after() is now a shutdown callback
-// assert(stash('after') === true);
 
 // we'll assert against this
 $TOKEN = '';

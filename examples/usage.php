@@ -3,14 +3,6 @@ error_reporting(E_ALL|E_STRICT);
 
 include '../src/dispatch.php';
 
-before(function () {
-  echo "inside callback mapped through before()\n";
-});
-
-after(function () {
-  echo "inside callback mapped through after()\n";
-});
-
 // some sample routes
 get('/index', function () {
   echo "GET index\n";
