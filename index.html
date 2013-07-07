@@ -317,6 +317,31 @@
 </pre></div>
 
 <h2>
+<a name="_get-and-_post-values" class="anchor" href="#_get-and-_post-values"><span class="octicon octicon-link"></span></a>$_GET and $_POST Values</h2>
+
+<p>If you want to fetch a value from a request without regard to wether it comes from <code>$_GET</code> or <code>$_POST</code>, you can use the function <code>param($name)</code> to get this value. This is just like Rails' <code>params</code> hash, where the <code>$_POST</code> values take priority over the <code>$_GET</code> values.</p>
+
+<div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+<span class="c1">// get 'name' from either $_GET or $_POST</span>
+<span class="nv">$name</span> <span class="o">=</span> <span class="nx">param</span><span class="p">(</span><span class="s1">'name'</span><span class="p">);</span>
+
+<span class="c1">// get 'name', set a default value if not found</span>
+<span class="nv">$name</span> <span class="o">=</span> <span class="nx">param</span><span class="p">(</span><span class="s1">'name'</span><span class="p">,</span> <span class="s1">'stranger'</span><span class="p">);</span>
+<span class="cp">?&gt;</span><span class="x"></span>
+</pre></div>
+
+<h2>
+<a name="_files-values" class="anchor" href="#_files-values"><span class="octicon octicon-link"></span></a>$_FILES Values</h2>
+
+<p>Dispatch gives you the function <code>upload($name)</code> to fetch the information on a file upload field from the <code>$_FILES</code> superglobal. If the field is present, then the function will return a hash containing all file information about the upload. This function also works on array of files. Every file that passes through <code>upload($name)</code> is checked with <code>is_uploaded_file()</code>.</p>
+
+<div class="highlight"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+<span class="c1">// get info on an uploaded file</span>
+<span class="nv">$file</span> <span class="o">=</span> <span class="nx">upload</span><span class="p">(</span><span class="s1">'photo'</span><span class="p">);</span>
+<span class="cp">?&gt;</span><span class="x"></span>
+</pre></div>
+
+<h2>
 <a name="configurations" class="anchor" href="#configurations"><span class="octicon octicon-link"></span></a>Configurations</h2>
 
 <p>You can make use of ini files for configuration by doing something like <code>config('source', 'myconfig.ini')</code>.
