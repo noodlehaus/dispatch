@@ -855,14 +855,8 @@ function route($method, $path, $callback = null) {
       if (count($symbols))
         filter($values);
 
-      // do before() callbacks
-      before();
-
       // invoke callback
       call_user_func_array($info['callback'], array_values($values));
-
-      // do after() callbacks
-      after();
 
       // done
       return;
@@ -1012,6 +1006,14 @@ function dispatch($method = null, $path = null) {
 
   // get just the route path, minus the query
   $path = parse_url($path, PHP_URL_PATH);
+
+  // setup shutdown func for after() callbacks
+  register_shutdown_function(function () {
+    after();
+  });
+
+  // call all before() callbacks
+  before();
 
   // match it
   route($method, '/'.trim($path, '/'));

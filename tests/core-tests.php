@@ -90,7 +90,8 @@ dispatch('GET', $REQUEST_URI = '/index/sheryl');
 assert(stash('name') === 'sheryl');
 assert(stash('kid') === 'addie');
 assert(stash('before') === true);
-assert(stash('after') === true);
+// can't test following line, after() is now a shutdown callback
+// assert(stash('after') === true);
 
 // we'll assert against this
 $TOKEN = '';
