@@ -253,6 +253,29 @@ render('users/profile.json', null, false);
 $html = partial('users/profile_links', array('data' => $data));
 ```
 
+## $\_GET and $\_POST Values
+If you want to fetch a value from a request without regard to wether it comes from `$_GET` or `$_POST`, you can use the function `param($name)` to get this value. This is just like Rails' `params` hash, where the `$_POST` values take priority over the `$_GET` values.
+
+```php
+<?php
+// get 'name' from either $_GET or $_POST
+$name = param('name');
+
+// get 'name', set a default value if not found
+$name = param('name', 'stranger');
+?>
+```
+
+## $\_FILES Values
+Dispatch gives you the function `upload($name)` to fetch the information on a file upload field from the `$_FILES` superglobal. If the field is present, then the function will return a hash containing all file information about the upload. This function also works on array of files. Every file that passes through `upload($name)` is checked with `is_uploaded_file()`.
+
+```php
+<?php
+// get info on an uploaded file
+$file = upload('photo');
+?>
+```
+
 ## Configurations
 You can make use of ini files for configuration by doing something like `config('source', 'myconfig.ini')`.
 This lets you put configuration settings in ini files instead of making `config()` calls in your code.

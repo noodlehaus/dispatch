@@ -468,6 +468,59 @@ function from($source, $name, $default = null) {
 }
 
 /**
+ * File upload wrapper. Returns a hash containing file
+ * upload info. Skips invalid uploads based on
+ * is_uploaded_file() check.
+ *
+ * @param string $name input file field name to check.
+ *
+ * @param array info of file if found.
+ */
+function upload($name) {
+
+  if (!isset($_FILES[$name]))
+    return null;
+
+  $result = null;
+
+  // if file field is an array
+  if (is_array($_FILES[$name])) {
+    $result = array();
+    foreach ($_FILES[$name] as $k1 => $v1) {
+      // let's skip invalid file paths
+      if (!is_uploaded_file($v1['tmp_name']))
+        continue;
+      foreach ($v1 as $k2 => $v2)
+        $result[$k2][$k1] = $v2;
+    }
+    $result = (!count($result) ? null : $result);
+  } else {
+    // only if file path is valid
+    if (is_uploaded_file($_FILES[$name]['tmp_name']))
+      $result = $_FILES[$name];
+  }
+
+  // null if no file or invalid, hash if valid
+  return $result;
+}
+
+/**
+ * Helper for getting values from $_GET and $_POST. Simply
+ * merges the two arrays with $_POST getting priority.
+ *
+ * @param string $name parameter to get the value for
+ * @param mixed $default optional. default value for param
+ *
+ * @return mixed param value.
+ */
+function param($name, $default = null) {
+  static $source = null;
+  if (!$source)
+    $source = array_merge($_GET, $_POST);
+  return (isset($source[$name]) ? $source[$name] : $default);
+}
+
+/**
  * Function that returns the request body along with content type
  * and content length info in a hash, if they're available.
  *
