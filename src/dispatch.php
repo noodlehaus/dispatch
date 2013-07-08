@@ -687,7 +687,7 @@ function partial($view, $locals = null) {
 
   $path = basename($view);
   $view = preg_replace('/'.$path.'$/', "_{$path}", $view);
-  $view = "{$view_root}/{$view}.html.php";
+  $view = $view_root.DIRECTORY_SEPARATOR.$view.'.html.php';
 
   $html = '';
 
@@ -733,7 +733,7 @@ function render($view, $locals = null, $layout = null) {
     extract($locals, EXTR_SKIP);
 
   ob_start();
-  include "{$view_root}/{$view}.html.php";
+  include $view_root.DIRECTORY_SEPARATOR.$view.'.html.php';
   content(trim(ob_get_clean()));
 
   if ($layout !== false) {
@@ -743,9 +743,7 @@ function render($view, $locals = null, $layout = null) {
       $layout = ($layout == null) ? 'layout' : $layout;
     }
 
-    $layout = "{$view_root}/{$layout}.html.php";
-
-    header('Content-type: text/html; charset=utf-8');
+    $layout = $view_root.DIRECTORY_SEPARATOR.$layout.'.html.php';
 
     ob_start();
     require $layout;
