@@ -394,8 +394,17 @@ $html = partial('users/profile', array('user' => $user));
 ## Related Libraries
 * [disptach-mongo](http://github.com/noodlehaus/dispatch-mongo) - wrapper for commonly used mongodb functions for dispatch
 * [disptach-elastic](http://github.com/noodlehaus/dispatch-elastic) - wrapper for commonly used elasticsearch operations for dispatch
+* [runphp](http://noodlehaus.github.io/runphp) - a PHP RESTful API library, and some
 
-## Credits
+## About the Author
+
+Dispatch is written by me, [Jesus A. Domingo]. If you think this library offers some things you don't need and you just want the
+routing-related stuff, you might want to check out [RunPHP] instead.
+
+[Jesus A. Domingo]: http://github.com/noodlehaus
+[RunPHP]: http://noodlehaus.github.io/runphp
+
+## Credits and Contributors
 
 The following projects served as both references and inspirations for Dispatch:
 
