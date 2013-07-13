@@ -1,0 +1,41 @@
+body {
+  font-family: 'droid sans';
+  margin: 0 auto;
+  padding: 20px;
+  width: 600px;
+  color: #333;
+  background: #dedede;
+}
+
+h1 {
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 1em;
+}
+
+h2 {
+  margin-top: 1.5em;
+}
+
+pre {
+  background: #111414;
+  padding: 5px;
+  border-radius: 4px;
+  overflow: auto;
+}
+
+a {
+  color: #a00;
+}
+
+hr {
+  border: 0;
+  width: 40px;
+  background: #000;
+  height: 1px;
+  margin: -10px auto 40px;
+}
+
+.tweet-it {
+  text-align: center;
+}
