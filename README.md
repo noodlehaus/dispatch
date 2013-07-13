@@ -1,6 +1,6 @@
 Dispatch PHP 5.3+ Micro-framework
 =================================
-Dispatch is a PHP micro-framework. It provides 29 short and easy functions that wrap commonly-used tasks in creating a web app. At the very least, Dispatch provides you with URL routing and view rendering.
+Dispatch is a PHP micro-framework. It provides functions that wrap commonly-used tasks in creating a web app. At the very least, Dispatch provides you with URL routing and view rendering.
 
 ## Requirements
 * PHP 5.3+
