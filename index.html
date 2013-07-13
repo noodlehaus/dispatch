@@ -30,6 +30,7 @@ Dispatch is a PHP micro-framework. It provides 29 short and easy functions that 
 * `mcrypt` extension if you want to use encrypted cookies and wish to use `encrypt()` and `decrypt()` functions
 * `apc` or `memcached` extension if you want to use `cache()` and `cache_invalidate()`
 
+
 ## Installation
 Dispatch can be installed by using `composer`. In your `composer.json` file, do the following:
 
@@ -61,6 +62,7 @@ Certain properties and behaviours of Dispatch can be configured via the followin
 * `config('cookies.secret')` encryption salt to be used by `encrypt()`, `decrypt()`, `set\_cookie()` and `get\_cookie()`
 * `config('cookies.flash')` cookie name to be used by `flash()` for setting messages
 
+
 ## URL Routing
 Dispatch supports the `GET`, `POST`, `PUT`, `DELETE`, and `HEAD` request methods. To create routes for these methods, you can either use their equivalent convenience functions or call `route()` directly.
 
@@ -82,6 +84,7 @@ route('GET', '/index', function () {
 // delete()
 // head()
 ```
+
 
 ## URL Rewriting and Stripping
 Setting `site.router` to a string will strip that string from the URI before it is routed. Two use cases for this are when you don't have access to URI rewriting on your server, and if your dispatch application resides in a subdirectory.
@@ -113,6 +116,7 @@ get('/users', function () {
 ?>
 ```
 
+
 ## Site URL and Site Path
 In your app, you usually have a need to get your site's domain and your application's entire path. This can be setup by assigning a value to `site.url` in your config. Doing this will let you fetch its parts by calling `site_url($path_only = false)`.
 
@@ -128,6 +132,7 @@ $complete = site_url();
 $path = site_url($path_only = true);
 ?>
 ```
+
 
 ## RESTful Objects
 If you have a class that supports all or some of the default REST actions, you can easily publish them using `restify()`. By default, `restify()` will create all REST routes for your class. You can selectively publish actions by passing them to the function. To make a class support `restify()`, you need to implement some or all of the following methods:
@@ -172,6 +177,7 @@ restify('/pages', new Pages(), array('index', 'show'));
 ?>
 ```
 
+
 ## DELETE and PUT Request Overrides
 Until browsers provide support for DELETE and PUT methods in their forms, you can instead use a `hidden` `input` field named `\_method` to override the request method for your form.
 
@@ -190,6 +196,7 @@ Until browsers provide support for DELETE and PUT methods in their forms, you ca
   <input type="submit" value="Remove">
 </form>
 ```
+
 
 ## PUT Requests and JSON Requests
 In cases where you're handling PUT requests or JSON posts and you need access to the raw http request body contents, you can use `request_body()` for this. The `request_body()` function will return an associative array containing the body's `content-type`, `content-length`, `content-parsed` and `content-raw`.
@@ -215,6 +222,7 @@ put('/users/:id', function ($id) {
 });
 ```
 
+
 ## Route Symbol Filters
 This is taken from ExpressJS. Route filters let you map functions against symbols in your routes. These functions then get executed when those symbols are matched.
 
@@ -236,6 +244,7 @@ get('/blogs/:blog_id', function ($blog_id) {
 ?>
 ```
 
+
 ## Before and After Callbacks
 Dispatch also lets you setup routines that can be called before or after requests are handled.
 
@@ -254,6 +263,7 @@ after(function () {
   // etc
 });
 ```
+
 
 ## Views and Partials
 Dispatch gives you two functions for displaying views or templates and for loading view segments or partials - `render()` and `partial()`. When you call these functions, Dispatch looks for the filenames you pass to it inside the path you set `views.root` to. The view files need to have the `.html.php` extensions. For partials, the filenames need to begin with the underscore (_).
@@ -276,6 +286,7 @@ render('users/profile.json', null, false);
 $html = partial('users/profile_links', array('data' => $data));
 ```
 
+
 ## $\_GET and $\_POST Values
 If you want to fetch a value from a request without regard to wether it comes from `$_GET` or `$_POST`, you can use the function `param($name)` to get this value. This is just like Rails' `params` hash, where the `$_POST` values take priority over the `$_GET` values.
 
@@ -289,6 +300,7 @@ $name = param('name', 'stranger');
 ?>
 ```
 
+
 ## $\_FILES Values
 Dispatch gives you the function `upload($name)` to fetch the information on a file upload field from the `$_FILES` superglobal. If the field is present, then the function will return a hash containing all file information about the upload. This function also works on array of files. Every file that passes through `upload($name)` is checked with `is_uploaded_file()`.
 
@@ -298,6 +310,7 @@ Dispatch gives you the function `upload($name)` to fetch the information on a fi
 $file = upload('photo');
 ?>
 ```
+
 
 ## Configurations
 You can make use of ini files for configuration by doing something like `config('source', 'myconfig.ini')`.
@@ -315,6 +328,7 @@ config('views.root', __DIR__.'/myviews');
 $secret = config('cookies.secret');
 ?>
 ```
+
 
 ## Caching with APC and Memcached
 If you have either APC or Memcached loaded into PHP, you can enable the caching functions
@@ -351,6 +365,7 @@ cache.connection[] = hostname1:11211:40
 cache.connection[] = hostname2:11211:40
 cache.connection[] = hostname3:11211:20
 ```
+
 
 ## Utility Functions
 There are a lot of other useful routines in the library. Documentation is still lacking but they're very small and easy to figure out. Read the source for now.
@@ -414,11 +429,23 @@ $html = partial('users/profile', array('user' => $user));
 ?>
 ```
 
+
 ## Related Libraries
 * [disptach-mongo](http://github.com/noodlehaus/dispatch-mongo) - wrapper for commonly used mongodb functions for dispatch
 * [disptach-elastic](http://github.com/noodlehaus/dispatch-elastic) - wrapper for commonly used elasticsearch operations for dispatch
+* [runphp](http://noodlehaus.github.io/runphp) - a PHP RESTful API library, and some
 
-## Credits
+
+## About the Author
+
+Dispatch is written by me, [Jesus A. Domingo]. If you think this library offers some things you don't need and you just want the
+routing-related stuff, you might want to check out [RunPHP] instead.
+
+[Jesus A. Domingo]: http://github.com/noodlehaus
+[RunPHP]: http://noodlehaus.github.io/runphp
+
+
+## Credits and Contributors
 
 The following projects served as both references and inspirations for Dispatch:
 
@@ -432,7 +459,9 @@ Thanks to the following contributors for helping improve this tool :)
 * Martin Angelov [martingalv](https://github.com/martinaglv)
 * Lars [larsbo](https://github.com/larsbo)
 
+
 ## LICENSE
+
 MIT <http://noodlehaus.mit-license.org/>
 </script>
 <script src="javascripts/jquery.js"></script>
