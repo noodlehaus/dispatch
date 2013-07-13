@@ -419,4 +419,4 @@ Thanks to the following contributors for helping improve this tool :)
 * Lars [larsbo](https://github.com/larsbo)
 
 ## LICENSE
-MIT http://noodlehaus.mit-license.org/
+MIT <http://noodlehaus.mit-license.org/>
