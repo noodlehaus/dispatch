@@ -127,13 +127,33 @@ $path = site_url($path_only = true);
 ## RESTful Objects
 If you have a class that supports all or some of the default REST actions, you can easily publish them using `restify()`. By default, `restify()` will create all REST routes for your class. You can selectively publish actions by passing them to the function. To make a class support `restify()`, you need to implement some or all of the following methods:
 
-* `onIndex` - for the resource list
-* `onNew` - for the resource creation form
-* `onCreate` - for the creation action
-* `onShow($id)` - for viewing a resource
-* `onEdit($id)` - for the resource edit form
-* `onUpdate($id)` - for the resource edit action
-* `onDelete($id)` - for the resource delete action
+```php
+<?php
+class RestfulClass {
+
+  // for the resource list
+  public function onIndex() {}
+
+  // for the creation form (view)
+  public function onNew() {}
+
+  // for the creation action
+  public function onCreate() {}
+
+  // for showing a resource (requires $id)
+  public function onShow($id) {}
+
+  // for the edit form (view, requires $id)
+  public function onEdit($id) {}
+
+  // for the edit update action (requires $id)
+  public function onUpdate($id) {}
+
+  // for deleting a resource (requires $id)
+  public function onDelete($id) {}
+}
+?>
+```
 
 Note that the routes published by `restify()` uses the symbol `:id` to identify the resource.
 
@@ -168,7 +188,7 @@ restify('/pages', new Pages(), array('index', 'show'));
 ```
 
 ## DELETE and PUT Request Overrides
-Until browsers provide support for DELETE and PUT methods in their forms, you can instead use a `hidden` `input` field named `\_method` to override the request method for your form.
+Until browsers provide support for DELETE and PUT methods in their forms, you can instead use a `hidden` `input` field named `_method` to override the request method for your form.
 
 ```html
 <!-- sample PUT request -->
@@ -192,6 +212,7 @@ In cases where you're handling PUT requests or JSON posts and you need access to
 The `request_body()` function accepts an optional parameter, which should be a `callable` that takes three arguments - content type, length and raw data. This callable will be treated as the parser for the data and whatever it returns will be used by `request_body()` as the value for `content-parsed`.
 
 ```php
+<?php
 put('/users/:id', function ($id) {
   $data = request_body();
   // or
@@ -208,6 +229,7 @@ put('/users/:id', function ($id) {
   )
   */
 });
+?>
 ```
 
 ## Route Symbol Filters
