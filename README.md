@@ -30,13 +30,31 @@ Note that Dispatch functions are all loaded into the global namespace.
 
 Certain properties and behaviours of Dispatch can be configured via the following `config()` entries:
 
-* `config('source', 'inifile.ini')` makes the contents of `inifile.ini` accessible via `config()` calls
-* `config('site.url')` optional setting for specifying your application's full URL (host and path)
-* `config('site.router')` if present, will be stripped from the request URI. useful if you don't have mod_rewrite
-* `config('views.root')` is used by `render()` and `partial()`, defaults to `./views`
-* `config('views.layout')` is used by `render()`, defaults to `layout`
-* `config('cookies.secret')` encryption salt to be used by `encrypt()`, `decrypt()`, `set\_cookie()` and `get\_cookie()`
-* `config('cookies.flash')` cookie name to be used by `flash()` for setting messages
+```php
+<?php
+// load contents of ini file into config
+config('source', 'inifile.ini');
+
+// optional, specify your app's full URL (used by site_url())
+config('site.url', 'http://somedomain.com/someapp/path');
+
+// specify the routing file to be taken off of the request URI
+// this is useful if you're on apache and don't have mod_rewrite
+config('site.router', 'index.php');
+
+// specify where to find your views
+config('views.root', '../views');
+
+// specify your default layout file (found within views)
+config('views.layout', 'layout');
+
+// salt to use for encrypting your cookies
+config('cookies.secret', 'some-secret-token');
+
+// cookie name to use for flash messages
+config('cookies.flash', '_F');
+?>
+```
 
 ## URL Routing
 Dispatch supports the `GET`, `POST`, `PUT`, `DELETE`, and `HEAD` request methods. To create routes for these methods, you can either use their equivalent convenience functions or call `route()` directly.
