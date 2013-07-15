@@ -76,6 +76,7 @@ route('GET', '/index', function () {
 // put()
 // delete()
 // head()
+?>
 ```
 
 ## URL Rewriting and Stripping
@@ -158,6 +159,7 @@ class RestfulClass {
 Note that the routes published by `restify()` uses the symbol `:id` to identify the resource.
 
 ```php
+<?php
 // resource to publish
 class Users {
   public function onIndex() {}
@@ -270,6 +272,7 @@ after(function () {
   // close connections
   // etc
 });
+?>
 ```
 
 ## Views and Partials
@@ -291,6 +294,7 @@ render('users/profile.json', null, false);
 // partial files have filenames prefixed with the underscore (_). you don't need to
 // put in the underscore when loading them
 $html = partial('users/profile_links', array('data' => $data));
+?>
 ```
 
 ## $\_GET and $\_POST Values
@@ -353,6 +357,7 @@ $data = cache('users', function () {
 
 // invalidate our cached keys (users, products, news)
 cache_invalidate('users', 'products', 'news');
+?>
 ```
 
 Note that if you're using `memcached` as cache, you also need to define the connection
