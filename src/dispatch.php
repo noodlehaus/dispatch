@@ -753,6 +753,8 @@ function render($view, $locals = null, $layout = null) {
   } else {
     echo content();
   }
+
+  exit;
 }
 
 /**
