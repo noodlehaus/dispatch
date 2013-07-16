@@ -642,7 +642,7 @@ function redirect(/* $code_or_path, $path_or_cond, $cond */) {
       list($code, $path, $cond) = $argv;
       break;
     case 2:
-      if (is_string($argv[0]) ? $argv[0] : $argv[1]) {
+      if (is_string($argv[0])) {
         $code = 302;
         $path = $argv[0];
         $cond = $argv[1];
