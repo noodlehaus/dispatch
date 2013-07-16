@@ -8,36 +8,37 @@ if (!defined('PHP_VERSION_ID') || PHP_VERSION_ID < 50300)
   error(500, 'dispatch requires at least PHP 5.3 to run.');
 
 /**
- * A convenience function over header() for printing out
- * HTTP error messages. If used in CLI mode, it die()s with
- * the code and the message, instead.
+ * Function for setting http error code handlers and for
+ * triggering them. Execution stops after an error callback
+ * handler finishes.
  *
  * @param int $code http status code to use
- * @param string $message string to display as content.
+ * @param callable optional, callback for the error
  *
  * @return void
  */
-function error($code, $callback_or_text = null) {
+function error($code, $callback = null) {
 
-  static $error_callbacks = array();
+  static $error_callbacks = [];
 
   $code = (string) $code;
 
-  if (is_callable($callback_or_text)) {
-    $error_callbacks[$code][] = $callback_or_text;
+  if (is_callable($callback)) {
+    $error_callbacks[$code][] = $callback;
   } else {
 
-    if (isset($error_callbacks[$code])) {
-      @header("HTTP/1.1 {$code} Page Error", true, $code);
-      foreach ($error_callbacks[$code] as $callback)
-        call_user_func($callback);
-      exit;
-    }
+    $message = (is_string($callback) ? $callback : 'Page error');
 
-    if ($callback_or_text && is_string($callback_or_text)) {
-      @header("HTTP/1.1 {$code} {$callback_or_text}", true, $code);
-      die("{$code} - {$callback_or_text}\n");
-    }
+    if (PHP_SAPI !== 'cli')
+      @header("HTTP/1.1 {$code} {$message}", true, (int) $code);
+
+    if (isset($error_callbacks[$code]))
+      foreach ($error_callbacks[$code] as $cb)
+        call_user_func($cb, $code);
+
+    echo "{$code} - {$message}\n";
+
+    exit;
   }
 }
 
