@@ -4,8 +4,8 @@
  * @license MIT
  */
 
-if (!defined('PHP_VERSION_ID') || PHP_VERSION_ID < 50300)
-  error(500, 'dispatch requires at least PHP 5.3 to run.');
+if (!defined('PHP_VERSION_ID') || PHP_VERSION_ID < 50400)
+  error(500, 'dispatch requires at least PHP 5.4 to run.');
 
 /**
  * Function for setting http error code handlers and for
@@ -23,11 +23,12 @@ function error($code, $callback = null) {
 
   $code = (string) $code;
 
+  // if $callback is callable, then it's a handler to be mapped
   if (is_callable($callback)) {
     $error_callbacks[$code][] = $callback;
   } else {
 
-    $message = (is_string($callback) ? $callback : 'Page error');
+    $message = (is_string($callback) ? $callback : 'Page Error');
 
     if (PHP_SAPI !== 'cli')
       @header("HTTP/1.1 {$code} {$message}", true, (int) $code);
@@ -35,8 +36,8 @@ function error($code, $callback = null) {
     if (isset($error_callbacks[$code]))
       foreach ($error_callbacks[$code] as $cb)
         call_user_func($cb, $code);
-
-    echo "{$code} - {$message}\n";
+    else
+      echo "{$code} - {$message}\n";
 
     exit;
   }
@@ -55,7 +56,7 @@ function error($code, $callback = null) {
  */
 function config($key, $value = null) {
 
-  static $_config = array();
+  static $_config = [];
 
   if ($key === 'source' && file_exists($value))
     $_config = array_merge($_config, parse_ini_file($value, true));
@@ -75,7 +76,7 @@ function config($key, $value = null) {
  * @param boolean $path_only defaults to false, true means return only the path
  * @return string value pointed to by 'site.url' in config.ini.
  */
-function site_url($path_only = false) {
+function site($path_only = false) {
 
   if (!config('site.url'))
     return null;
@@ -84,291 +85,6 @@ function site_url($path_only = false) {
     return rtrim(parse_url(config('site.url'), PHP_URL_PATH), '/');
 
   return rtrim(config('site.url'), '/').'/';
-}
-
-if (extension_loaded('mcrypt')) {
-
-  /**
-   * Cookie-safe and URL-safe version of base64_encode()
-   *
-   * @param string $str string to encode
-   *
-   * @return string encoded string
-   */
-  function to_b64($str) {
-    $str = base64_encode($str);
-    $str = preg_replace('/\//', '_', $str);
-    $str = preg_replace('/\+/', '.', $str);
-    $str = preg_replace('/\=/', '-', $str);
-    return trim($str, '-');
-  }
-
-  /**
-   * Decodes a to_b64() encoded string.
-   *
-   * @param string $str encoded string
-   *
-   * @return string decoded string
-   */
-  function from_b64($str) {
-    $str = preg_replace('/\_/', '/', $str);
-    $str = preg_replace('/\./', '+', $str);
-    $str = preg_replace('/\-/', '=', $str);
-    $str = base64_decode($str);
-    return $str;
-  }
-
-  /**
-   * Encryption function that uses the mcrypt extension.
-   *
-   * @param string $decoded string to encrypt
-   * @param int $algo one of the MCRYPT_ciphername constants
-   * @param int $mode one of the MCRYPT_MODE_modename constants
-   *
-   * @return string encrypted string + iv code
-   */
-  function encrypt($decoded, $algo = MCRYPT_RIJNDAEL_256, $mode = MCRYPT_MODE_CBC) {
-
-    if (($secret = config('cookies.secret')) == null)
-      error(500, "config('cookies.secret') is not set.");
-
-    $secret  = mb_substr($secret, 0, mcrypt_get_key_size($algo, $mode));
-    $iv_size = mcrypt_get_iv_size($algo, $mode);
-    $iv_code = mcrypt_create_iv($iv_size, MCRYPT_DEV_URANDOM);
-    $encrypted = to_b64(mcrypt_encrypt($algo, $secret, $decoded, $mode, $iv_code));
-
-    return sprintf('%s|%s', $encrypted, to_b64($iv_code));
-  }
-
-  /**
-   * Decrypts a string encrypted by encrypt().
-   *
-   * @param string $encoded encrypted string
-   * @param int $algo one of the MCRYPT_ciphername constants
-   * @param int $mode one of the MCRYPT_MODE_modename constants
-   *
-   * @return string decrypted string
-   */
-  function decrypt($encoded, $algo = MCRYPT_RIJNDAEL_256, $mode = MCRYPT_MODE_CBC) {
-
-    if (($secret = config('cookies.secret')) == null)
-      error(500, "config('cookies.secret') is not set.");
-
-    $secret  = mb_substr($secret, 0, mcrypt_get_key_size($algo, $mode));
-    list($enc_str, $iv_code) = explode('|', $encoded);
-    $enc_str = from_b64($enc_str);
-    $iv_code = from_b64($iv_code);
-    $enc_str = mcrypt_decrypt($algo, $secret, $enc_str, $mode, $iv_code);
-
-    return rtrim($enc_str, "\0");
-  }
-
-}
-
-/**
- * Wraps around setcookie() so it can encrypt the values if mcrypt is loaded.
- *
- * @param string $name name of the cookie
- * @param string $value value of the cookie
- * @param int $expire optional, how long the cookie lives
- * @param string $path path for the cookie
- *
- * @return void
- */
-function set_cookie($name, $value, $expire = 31536000, $path = '/') {
-  $value = (function_exists('encrypt') ? encrypt($value) : $value);
-  setcookie($name, $value, time() + $expire, $path);
-}
-
-/**
- * Wraps $_COOKIE access to automatically decrypt() values if mcrypt
- * is detected.
- *
- * @param string $name name of the cookie to get
- *
- * @return string cookie value
- */
-function get_cookie($name) {
-
-  $value = from($_COOKIE, $name);
-
-  if ($value)
-    $value = (function_exists('decrypt') ? decrypt($value) : $value);
-
-  return $value;
-}
-
-/**
- * Wraps around setcookie() to allow removal of multiple cookies
- *
- * @param string $v,... cookies to unset
- *
- * @return void
- */
-function delete_cookie() {
-  $cookies = func_get_args();
-  foreach ($cookies as $ck)
-    setcookie($ck, '', -10, '/');
-}
-
-/**
- * Function that declares the caching functions depending on the back-end
- * module used.
- *
- * @param string $module either apc or memcached
- *
- * @return void
- */
-function cache_enable($module) {
-
-  if ($module != 'apc' && $module != 'memcached')
-    error(500, 'cache_enable() only supports apc or memcached');
-
-  if (!extension_loaded('apc') && !extension_loaded('memcached'))
-    error(500, 'cache_enable() requires either apc or memcached extensions');
-
-  if ($module === 'memcached') {
-
-    /**
-     * Initializer for memcached.
-     *
-     * @return object Memcached instance
-     */
-    function _memcached() {
-
-      static $memcached = null;
-
-      if (!$memcached) {
-
-        $connections = config('cache.connection');
-
-        if (!$connections)
-          error(500, '[cache.driver] set to memcached but [cache.connection] entries missing');
-
-        // cast it so we just have a generic array handler
-        if (!is_array($connections))
-          $connections = (array) $connections;
-
-        // our memcached servers
-        $servers = array();
-
-        // go through each cache.connection[] entry and require
-        // at least a host and port for each one
-        foreach ($connections as $str) {
-          $parts = explode(':', $str);
-          if (count($parts) < 2)
-            error(500, '[cache.connection] format is <host>:<port>[:<weight>]');
-          $servers[] = $parts;
-        }
-
-        $memcached = new Memcached();
-        $memcached->addservers($servers);
-      }
-
-      return $memcached;
-    }
-
-    /**
-     * Stores the value returned by $func into apc against $key if $func is passed,
-     * for $ttl seconds. If $func is not passed, the value mapped to $key is returned.
-     *
-     * @param string $key cache entry to fetch or store into
-     * @param callable $func function whose return value is stored against $key
-     * @param int $ttl optional, time-to-live for $key, in seconds
-     *
-     * @return mixed data cached against $key
-     */
-    function cache($key, $func, $ttl = 0) {
-
-      $store = _memcached();
-      $value = $store->get($key);
-
-      if ($store->getResultCode() === Memcached::RES_NOTFOUND) {
-        $value = call_user_func($func);
-        if (!$value !== null)
-          $store->set($key, $value, $ttl);
-      }
-
-      return $value;
-    }
-
-    /**
-     * Invalidates a key or list of keys from the cache.
-     *
-     * @param string $v,... key or keys to invalidate from the cache.
-     *
-     * @return void
-     */
-    function cache_invalidate() {
-      _memcached()->deleteMulti(func_get_args());
-    }
-
-  // apc
-  } else {
-
-    /**
-     * Stores the value returned by $func into apc against $key if $func is passed,
-     * for $ttl seconds. If $func is not passed, the value mapped to $key is returned.
-     *
-     * @param string $key cache entry to fetch or store into
-     * @param callable $func function whose return value is stored against $key
-     * @param int $ttl optional, time-to-live for $key, in seconds
-     *
-     * @return mixed data cached against $key
-     */
-    function cache($key, $func, $ttl = 0) {
-
-      if (($data = apc_fetch($key)) === false) {
-        $data = call_user_func($func);
-        if ($data !== null)
-          apc_add($key, $data, $ttl);
-      }
-
-      return $data;
-    }
-
-    /**
-     * Invalidates a key or list of keys from the cache.
-     *
-     * @param string $v,... key or keys to invalidate from the cache.
-     *
-     * @return void
-     */
-    function cache_invalidate() {
-      foreach (func_get_args() as $key)
-        apc_delete($key);
-    }
-  }
-}
-
-/**
- * Form helper that stores form field warnings into
- * a hash that can be fetched later. If no arguments are
- * passed, it returns the number of warnings it accumulated.
- * Passing just the $name will return all warnings for that
- * field. Passing both $name and $message will map $message
- * as an error for $name. Passing '*' as the only argument
- * will return hash of all the errors.
- *
- * @param string $name optional, name of field
- * @param string $message optional, message to map against $name
- *
- * @return mixed count of errors or hash of errors, or single error
- */
-function warn($name = null, $message = null) {
-
-  static $warnings = array();
-
-  if ($name == '*')
-    return $warnings;
-
-  if (!$name)
-    return count(array_keys($warnings));
-
-  if (!$message)
-    return isset($warnings[$name]) ? $warnings[$name] : null ;
-
-  $warnings[$name] = $message;
 }
 
 /**
@@ -387,7 +103,7 @@ function warn($name = null, $message = null) {
  */
 function flash($key, $msg = null, $now = false) {
 
-  static $x = array();
+  static $x = [];
 
   $f = config('cookies.flash');
 
@@ -397,7 +113,7 @@ function flash($key, $msg = null, $now = false) {
   if ($c = get_cookie($f))
     $c = json_decode($c, true);
   else
-    $c = array();
+    $c = [];
 
   if ($msg == null) {
 
@@ -415,9 +131,7 @@ function flash($key, $msg = null, $now = false) {
     set_cookie($f, json_encode($c));
   }
 
-  $x[$key] = $msg;
-
-  return $msg;
+  return ($x[$key] = $msg);
 }
 
 /**
@@ -427,7 +141,7 @@ function flash($key, $msg = null, $now = false) {
  *
  * @return string url encoded string
  */
-function _u($str) {
+function u($str) {
   return urlencode($str);
 }
 
@@ -440,69 +154,8 @@ function _u($str) {
  *
  * @return string encoded string
  */
-function _h($str, $flags = ENT_QUOTES, $enc = 'UTF-8') {
+function h($str, $flags = ENT_QUOTES, $enc = 'UTF-8') {
   return htmlentities($str, $flags, $enc);
-}
-
-/**
- * Utility for getting values from arrays, ie. $_GET, $_POST.
- * If $name is not set within $source, $default will be returned
- * instead.
- *
- * @param array $source array to get data from
- * @param string $name key to lookup in $source
- * @param mixed $default optional, value to use for unset keys
- *
- * @return mixed whatever $name maps to, or $default
- */
-function from($source, $name, $default = null) {
-
-  if (!is_array($name))
-    return isset($source[$name]) ? $source[$name] : $default ;
-
-  $data = array();
-
-  foreach ($name as $k)
-    $data[$k] = isset($source[$k]) ? $source[$k] : $default ;
-
-  return $data;
-}
-
-/**
- * File upload wrapper. Returns a hash containing file
- * upload info. Skips invalid uploads based on
- * is_uploaded_file() check.
- *
- * @param string $name input file field name to check.
- *
- * @param array info of file if found.
- */
-function upload($name) {
-
-  if (!isset($_FILES[$name]))
-    return null;
-
-  $result = null;
-
-  // if file field is an array
-  if (is_array($_FILES[$name])) {
-    $result = array();
-    foreach ($_FILES[$name] as $k1 => $v1) {
-      // let's skip invalid file paths
-      if (!is_uploaded_file($v1['tmp_name']))
-        continue;
-      foreach ($v1 as $k2 => $v2)
-        $result[$k2][$k1] = $v2;
-    }
-    $result = (!count($result) ? null : $result);
-  } else {
-    // only if file path is valid
-    if (is_uploaded_file($_FILES[$name]['tmp_name']))
-      $result = $_FILES[$name];
-  }
-
-  // null if no file or invalid, hash if valid
-  return $result;
 }
 
 /**
@@ -519,6 +172,22 @@ function param($name, $default = null) {
   if (!$source)
     $source = array_merge($_GET, $_POST);
   return (isset($source[$name]) ? $source[$name] : $default);
+}
+
+/**
+ * Wraps around $_COOKIE and setcookie().
+ *
+ * @param string $name name of the cookie to get or set
+ * @param string $value optional. value to set for the cookie
+ * @param integer $expire default 0. expiration in seconds.
+ * @param string $path default '/'. path for the cookie.
+ *
+ * @return string value if only the name param is passed.
+ */
+function cookie($name, $value = null, $expire = 0, $path = '/') {
+  if (func_num_args() === 1)
+    return $_COOKIE[$name];
+  setcookie($name, $value, $expire, $path);
 }
 
 /**
@@ -543,22 +212,57 @@ function request_body($parser = null) {
 
   // if no parser was passed, try to do smart parsing
   if (!is_callable($parser)) {
-
     if ($content_type[0] == 'application/json')
       $content = json_decode($content_raw);
     else if ($content_type[0] == 'application/x-www-form-urlencoded')
       parse_str($content_raw, $content);
-
   } else {
     $content = $parser($content_type, $content_length, $content_raw);
   }
 
-  return array(
-    'content-length' => $content_length,
-    'content-type' => $content_type[0],
-    'content-parsed' => $content,
-    'content-raw' => $content_raw
-  );
+  return [
+    'type' => $content_type[0],
+    'length' => $content_length,
+    'parsed' => $content,
+    'raw' => $content_raw
+  ];
+}
+
+/**
+ * File upload wrapper. Returns a hash containing file
+ * upload info. Skips invalid uploads based on
+ * is_uploaded_file() check.
+ *
+ * @param string $name input file field name to check.
+ *
+ * @param array info of file if found.
+ */
+function upload($name) {
+
+  if (!isset($_FILES[$name]))
+    return null;
+
+  $result = null;
+
+  // if file field is an array
+  if (is_array($_FILES[$name])) {
+    $result = [];
+    foreach ($_FILES[$name] as $k1 => $v1) {
+      // let's skip invalid file paths
+      if (!is_uploaded_file($v1['tmp_name']))
+        continue;
+      foreach ($v1 as $k2 => $v2)
+        $result[$k2][$k1] = $v2;
+    }
+    $result = (!count($result) ? null : $result);
+  } else {
+    // only if file path is valid
+    if (is_uploaded_file($_FILES[$name]['tmp_name']))
+      $result = $_FILES[$name];
+  }
+
+  // null if no file or invalid, hash if valid
+  return $result;
 }
 
 /**
@@ -572,36 +276,14 @@ function request_body($parser = null) {
  *
  * @return mixed value mapped to $name
  */
-function stash($name, $value = null) {
+function scope($name, $value = null) {
 
-  static $_stash = array();
+  static $_stash = [];
 
   if ($value === null)
     return isset($_stash[$name]) ? $_stash[$name] : null;
 
-  $_stash[$name] = $value;
-
-  return $value;
-}
-
-/**
- * Utility for checking the request method. If $verb is passed,
- * that $verb is checked against the current request method. If
- * $verb wasn't passed, it returns the request method.
- *
- * @param string $verb optional, verb to check against REQUEST_METHOD
- *
- * @return bool|string if $verb is passed, bool for if it matches, else, REQUEST_METHOD
- */
-function method($verb = null) {
-
-  if ($verb === null)
-    return $_SERVER['REQUEST_METHOD'];
-
-  if (strtoupper($verb) === $_SERVER['REQUEST_METHOD'])
-    return true;
-
-  return false;
+  return ($_stash[$name] = $value);
 }
 
 /**
@@ -609,7 +291,7 @@ function method($verb = null) {
  *
  * @return string client's ip address.
  */
-function client_ip() {
+function ip() {
 
   if (isset($_SERVER['HTTP_CLIENT_IP']))
     return $_SERVER['HTTP_CLIENT_IP'];
@@ -628,44 +310,10 @@ function client_ip() {
  *
  * @return void
  */
-function redirect(/* $code_or_path, $path_or_cond, $cond */) {
-
-  $argv = func_get_args();
-  $argc = count($argv);
-
-  $path = null;
-  $code = 302;
-  $cond = true;
-
-  switch ($argc) {
-    case 3:
-      list($code, $path, $cond) = $argv;
-      break;
-    case 2:
-      if (is_string($argv[0])) {
-        $code = 302;
-        $path = $argv[0];
-        $cond = $argv[1];
-      } else {
-        $code = $argv[0];
-        $path = $argv[1];
-      }
-      break;
-    case 1:
-      if (!is_string($argv[0]))
-        error(500, 'bad call to redirect()');
-      $path = $argv[0];
-      break;
-    default:
-      error(500, 'bad call to redirect()');
-  }
-
-  $cond = (is_callable($cond) ? !!call_user_func($cond) : !!$cond);
-
-  if (!$cond)
+function redirect($path, $code = 302, $condition = true) {
+  if (!$condition)
     return;
-
-  header('Location: '.$path, true, $code);
+  @header("Location: {$path}", true, $code);
   exit;
 }
 
@@ -680,11 +328,11 @@ function redirect(/* $code_or_path, $path_or_cond, $cond */) {
  */
 function partial($view, $locals = null) {
 
-  if (is_array($locals) && count($locals))
-    extract($locals, EXTR_SKIP);
-
   if (($view_root = config('views.root')) == null)
     error(500, "config('views.root') is not set.");
+
+  if (is_array($locals) && count($locals))
+    extract($locals, EXTR_SKIP);
 
   $path = basename($view);
   $view = preg_replace('/'.$path.'$/', "_{$path}", $view);
@@ -712,7 +360,7 @@ function partial($view, $locals = null) {
  * @return string content
  */
 function content($value = null) {
-  return stash('$content$', $value);
+  return scope('$content$', $value);
 }
 
 /**
@@ -758,16 +406,37 @@ function render($view, $locals = null, $layout = null) {
 }
 
 /**
- * Utility function for spitting out JSON content.
+ * Spit headers that force cache volatility.
  *
- * @param mixed $obj value to serialize as JSON
- * @param int $code optional, http code to use in the response.
+ * @param string $content_type optional, defaults to text/html.
  *
  * @return void
  */
-function json($obj, $code = 200) {
-  header('Content-type: application/json', true, $code);
-  echo json_encode($obj);
+function nocache() {
+  header('Expires: Tue, 13 Mar 1979 18:00:00 GMT');
+  header('Last-Modified: '.gmdate('D, d M Y H:i:s').' GMT');
+  header('Cache-Control: no-store, no-cache, must-revalidate');
+  header('Cache-Control: post-check=0, pre-check=0', false);
+  header('Pragma: no-cache');
+}
+
+/**
+ * Dump a JSON response along with the appropriate headers.
+ *
+ * @param mixed $obj object to serialize into JSON
+ * @param string $func for JSONP output, this is the callback name
+ *
+ * @return void
+ */
+function json_out($obj, $func = null) {
+  nocache();
+  if (!$func) {
+    header('Content-type: application/json');
+    echo json_encode($obj);
+  } else {
+    header('Content-type: application/javascript');
+    echo "{$func}(".json_encode($obj).")";
+  }
   exit;
 }
 
@@ -783,7 +452,7 @@ function json($obj, $code = 200) {
  */
 function filter($symbol, $callback = null) {
 
-  static $filter_callbacks = array();
+  static $filter_callbacks = [];
 
   if (is_callable($callback)) {
     $filter_callbacks[$symbol][] = $callback;
@@ -809,7 +478,7 @@ function filter($symbol, $callback = null) {
  */
 function before($callback = null) {
 
-  static $before_callbacks = array();
+  static $before_callbacks = [];
 
   if ($callback === null) {
     foreach ($before_callbacks as $callback)
@@ -829,7 +498,7 @@ function before($callback = null) {
  */
 function after($callback = null) {
 
-  static $after_callbacks = array();
+  static $after_callbacks = [];
 
   if ($callback === null) {
     foreach ($after_callbacks as $callback)
@@ -856,7 +525,7 @@ function after($callback = null) {
 function route($method, $path, $callback = null) {
 
   // callback map by request type
-  static $route_map = array();
+  static $route_map = [];
 
   // support for 'GET /uri/path' format of routes
   if (is_callable($path)) {
@@ -865,15 +534,13 @@ function route($method, $path, $callback = null) {
   }
 
   $method = strtoupper($method);
+  $path = trim($path, '/');
 
-  if (!in_array($method, array('GET', 'POST', 'PUT', 'DELETE', 'HEAD')))
+  if (!in_array($method, ['HEAD', 'GET', 'POST', 'PUT', 'DELETE']))
     error(400, 'Method not supported');
 
   // a callback was passed, so we create a route defiition
-  if ($callback !== null) {
-
-    // normalize slashes
-    $path = '/'.trim($path, '/');
+  if (is_callable($callback)) {
 
     // create the regex from the path
     $regex = preg_replace_callback('@:\w+@', function ($matches) {
@@ -881,16 +548,16 @@ function route($method, $path, $callback = null) {
     }, $path);
 
     // create a route entry for this path
-    $route_map[$method][$path] = array(
+    $route_map[$method][$path] = [
       'regex' => '@^'.$regex.'$@i',
       'callback' => $callback
-    );
+    ];
 
   } else {
 
     // do we have a method override?
-    if (isset($_REQUEST['_method']))
-      $method = strtoupper($_REQUEST['_method']);
+    if (param('_method'))
+      $method = strtoupper(param('_method'));
 
     // callback is null, so this is a route invokation. look up the callback.
     foreach ($route_map[$method] as $pattern => $info) {
@@ -987,52 +654,6 @@ function post($path, $cb) {
 }
 
 /**
- * Convenience tool for mounting a class or mapping
- * as a RESTful service.
- *
- * @param string $root path where the resource will be mounted
- * @param object $resource resource instance to mount
- * @param array $actions optional list of actions to publish for the resource
- *
- * @return void
- */
-function restify($root, $resource, $actions = null) {
-
-  if (!is_object($resource))
-    error(500, 'call to restify() requires a resource instance as 2nd argument');
-
-  $action_map = array(
-    'index' => array('GET', '(/(index/?)?)?'),
-    'new' => array('GET', '/new/?'),
-    'edit' => array('GET', '/:id/edit/?'),
-    'show' => array('GET', '/:id(/(show/?)?)?'),
-    'create' => array('POST', '(/(create/?)?)?'),
-    'update' => array('PUT', '/:id/?'),
-    'delete' => array('DELETE', '/:id/?')
-  );
-
-  $root = trim($root, '/');
-
-  if ($actions && is_array($actions)) {
-    $actions = array_uintersect(
-      array_keys($action_map),
-      $actions,
-      'strcasecmp'
-    );
-  } else {
-    $actions = array_keys($action_map);
-  }
-
-  foreach ($actions as $action) {
-    route(
-      $action_map[$action][0],
-      $root.$action_map[$action][1],
-      array($resource, 'on'.ucfirst($action))
-    );
-  }
-}
-
-/**
  * Entry point for the library.
  *
  * @param string $method optional, for testing in the cli
@@ -1043,12 +664,12 @@ function restify($root, $resource, $actions = null) {
 function dispatch($method = null, $path = null) {
 
   // see if we were invoked with params
-  $method = ($method ? $method : method());
+  $method = ($method ? $method : $_SERVER['REQUEST_METHOD']);
 
   // normalize routing base, if site is in sub-dir
-  $path = ($path ? $path : $_SERVER['REQUEST_URI']);
+  $path = parse_url($path ? $path : $_SERVER['REQUEST_URI'], PHP_URL_PATH);
   $root = config('site.router');
-  $base = site_url(true);
+  $base = site(true);
 
   // strip base from path
   if ($base !== null)
@@ -1057,9 +678,6 @@ function dispatch($method = null, $path = null) {
   // if we have a routing file (no mod_rewrite), strip it from the URI
   if ($root)
     $path = preg_replace('@^/?'.preg_quote(trim($root, '/')).'@i', '', $path);
-
-  // get just the route path, minus the query
-  $path = parse_url($path, PHP_URL_PATH);
 
   // setup shutdown func for after() callbacks
   register_shutdown_function(function () {
@@ -1070,6 +688,6 @@ function dispatch($method = null, $path = null) {
   before();
 
   // match it
-  route($method, '/'.trim($path, '/'));
+  route($method, $path);
 }
 ?>

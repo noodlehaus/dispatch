@@ -1,11 +1,9 @@
-Dispatch PHP 5.3+ Micro-framework
+Dispatch PHP 5.4+ Micro-framework
 =================================
-Dispatch is a PHP micro-framework. It provides functions that wrap commonly-used tasks in creating a web app. At the very least, Dispatch provides you with URL routing and view rendering.
+Dispatch is a PHP micro-framework that provides functions that wrap commonly-used tasks in creating web apps.
 
 ## Requirements
-* PHP 5.3+
-* `mcrypt` extension if you want to use encrypted cookies and wish to use `encrypt()` and `decrypt()` functions
-* `apc` or `memcached` extension if you want to use `cache()` and `cache_invalidate()`
+Dispatch requires at least PHP 5.4 to work. Honestly, 5.4 is required just because of the short array syntax used in the code.
 
 ## Installation
 Dispatch can be installed by using `composer`. In your `composer.json` file, do the following:
@@ -13,9 +11,9 @@ Dispatch can be installed by using `composer`. In your `composer.json` file, do 
 ```javascript
 {
   "require": {
-    "php": ">= 5.3.0",
+    "php": ">= 5.4.0",
     ...
-    "dispatch/dispatch": "*",
+    "dispatch/dispatch": "2.0.*",
   }
 }
 ```
@@ -47,9 +45,6 @@ config('views.root', '../views');
 
 // specify your default layout file (found within views)
 config('views.layout', 'layout');
-
-// salt to use for encrypting your cookies
-config('cookies.secret', 'some-secret-token');
 
 // cookie name to use for flash messages
 config('cookies.flash', '_F');
@@ -110,7 +105,7 @@ get('/users', function () {
 ```
 
 ## Site URL and Site Path
-In your app, you usually have a need to get your site's domain and your application's entire path. This can be setup by assigning a value to `site.url` in your config. Doing this will let you fetch its parts by calling `site_url($path_only = false)`.
+In your app, you usually have a need to get your site's domain and your application's entire path. This can be setup by assigning a value to `site.url` in your config. Doing this will let you fetch its parts by calling `site($pathonly = false)`.
 
 ```php
 <?php
@@ -118,79 +113,15 @@ In your app, you usually have a need to get your site's domain and your applicat
 config('site.url', 'http://somedomain.com/myapp');
 
 // get the entire url
-$complete = site_url();
+$complete = site();
 
 // get just the app path
-$path = site_url($path_only = true);
-?>
-```
-
-## RESTful Objects
-If you have a class that supports all or some of the default REST actions, you can easily publish them using `restify()`. By default, `restify()` will create all REST routes for your class. You can selectively publish actions by passing them to the function. To make a class support `restify()`, you need to implement some or all of the following methods:
-
-```php
-<?php
-class RestfulClass {
-
-  // for the resource list
-  public function onIndex() {}
-
-  // for the creation form (view)
-  public function onNew() {}
-
-  // for the creation action
-  public function onCreate() {}
-
-  // for showing a resource (requires $id)
-  public function onShow($id) {}
-
-  // for the edit form (view, requires $id)
-  public function onEdit($id) {}
-
-  // for the edit update action (requires $id)
-  public function onUpdate($id) {}
-
-  // for deleting a resource (requires $id)
-  public function onDelete($id) {}
-}
-?>
-```
-
-Note that the routes published by `restify()` uses the symbol `:id` to identify the resource.
-
-```php
-<?php
-// resource to publish
-class Users {
-  public function onIndex() {}
-  public function onNew() {}
-  public function onCreate() {}
-  public function onShow($id) {}
-  public function onEdit($id) {}
-  public function onUpdate($id) {}
-  public function onDelete($id) {}
-}
-
-// publish the instance, with all endpoints, under /users
-restify('/users', new Users());
-
-// resource with just some of the REST endpoints
-class Pages {
-  public function onIndex() {
-    echo "Pages::onIndex\n";
-  }
-  public function onShow($id) {
-    echo "Pages::onShow {$id}\n";
-  }
-}
-
-// publish object under /pages, but with just the available actions
-restify('/pages', new Pages(), array('index', 'show'));
+$path = site(true);
 ?>
 ```
 
 ## DELETE and PUT Request Overrides
-Until browsers provide support for DELETE and PUT methods in their forms, you can instead use a `hidden` `input` field named `_method` to override the request method for your form.
+Until browsers provide support for DELETE and PUT methods in their forms, you can instead use a `hidden` `input` field named `_method` to override the request method for your form.<!--_-->
 
 ```html
 <!-- sample PUT request -->
@@ -209,9 +140,9 @@ Until browsers provide support for DELETE and PUT methods in their forms, you ca
 ```
 
 ## PUT Requests and JSON Requests
-In cases where you're handling PUT requests or JSON posts and you need access to the raw http request body contents, you can use `request_body()` for this. The `request_body()` function will return an associative array containing the body's `content-type`, `content-length`, `content-parsed` and `content-raw`.
+In cases where you're handling PUT requests or JSON posts and you need access to the raw http request body contents, you can use `request_body()` for this. The `request_body()` function will return an associative array containing the body's `type`, `length`, `parsed` and `raw`.
 
-The `request_body()` function accepts an optional parameter, which should be a `callable` that takes three arguments - content type, length and raw data. This callable will be treated as the parser for the data and whatever it returns will be used by `request_body()` as the value for `content-parsed`.
+The `request_body()` function accepts an optional parameter, which should be a `callable` that takes three arguments - content type, length and raw data. This callable will be treated as the parser for the data and whatever it returns will be used by `request_body()` as the value for `parsed`.
 
 ```php
 <?php
@@ -224,10 +155,10 @@ put('/users/:id', function ($id) {
   /**
   $data will be a hash of this structure
   array(
-    'content-type' => 'content/type-here',
-    'content-length' => 123,
-    'content-parsed' => 'some data',
-    'content-raw' => 'raw data'
+    'type' => 'content/type-here',
+    'length' => 123,
+    'parsed' => 'some data',
+    'raw' => 'raw data'
   )
   */
 });
@@ -311,7 +242,7 @@ $name = param('name', 'stranger');
 ```
 
 ## $\_FILES Values
-Dispatch gives you the function `upload($name)` to fetch the information on a file upload field from the `$_FILES` superglobal. If the field is present, then the function will return a hash containing all file information about the upload. This function also works on array of files. Every file that passes through `upload($name)` is checked with `is_uploaded_file()`.
+Dispatch gives you the function `upload($name)` to fetch the information on a file upload field from the `$_FILES` superglobal. If the field is present, then the function will return a hash containing all file information about the upload. This function also works on array of files. Every file that passes through `upload($name)` is checked with `is_uploaded_file()`.<!--_-->
 
 ```php
 <?php
@@ -332,46 +263,9 @@ config('source', 'my-settings.ini');
 // set a different folder for the views
 config('views.root', __DIR__.'/myviews');
 
-// get the encryption secret
-$secret = config('cookies.secret');
+// get a config value
+$secret = config('some.setting');
 ?>
-```
-
-## Caching with APC and Memcached
-If you have either APC or Memcached loaded into PHP, you can enable the caching functions
-by making a call to `cache_enable()` and passing either `apc` or `memcached` to specify
-which backend library to use.
-
-Using the cache lets you then make calls to `cache()` and `cache_invalidate()`.
-
-```php
-<?php
-// fetch something from the cache (ttl param is 60)
-$data = cache('users', function () {
-  // this function is called as a loader if apc
-  // doesn't have 'users' in the cache, whatever
-  // it returns gets stored into apc and mapped to
-  // the 'users' key
-  return array('sheryl', 'addie', 'jaydee');
-}, 60);
-
-// invalidate our cached keys (users, products, news)
-cache_invalidate('users', 'products', 'news');
-?>
-```
-
-Note that if you're using `memcached` as cache, you also need to define the connection
-string to be used via `config('cache.connection')`. This setting can be a single string
-or an array of strings, with the format `hostname:port:weight`.
-
-```ini
-; for a single server
-cache.connection = localhost:11211
-
-; for multiple servers
-cache.connection[] = hostname1:11211:40
-cache.connection[] = hostname2:11211:40
-cache.connection[] = hostname3:11211:20
 ```
 
 ## Utility Functions
@@ -379,45 +273,29 @@ There are a lot of other useful routines in the library. Documentation is still 
 
 ```php
 <?php
-// store a config and get it
+// store a config
 config('views.root', './views');
-config('views.root'); // returns './views'
 
-// stash a var and get it (useful for moving stuff between scopes)
-stash('user', $user);
-stash('user'); // returns stored $user var
+// get a config value
+$root = config('views.root');
+
+// store a value that can be fetched later
+scope('user', $user);
+
+// fetch a stored value
+scope('user');
+
+// simple redirect
+redirect('/index');
 
 // redirect with a status code
-redirect(302, '/index');
+redirect('/index', 302);
 
 // redirect if a condition is met
-redirect(403, '/users', !$authenticated);
-
-// redirect only if func is satisfied
-redirect('/admin', function () use ($auth) { return !!$auth; });
-
-// redirect only if func is satisfied, and with a diff code
-redirect(301, '/admin', function () use ($auth) { return !!$auth; });
-
-// send a http error code and print out a message
-error(403, 'Forbidden');
-
-// get the current HTTP method or check the current method
-method(); // GET, POST, PUT, DELETE
-method('POST'); // true if POST request, false otherwise
+redirect('/signin', 302, !authenticated());
 
 // client's IP
-client_ip();
-
-// get a value from $_POST, returns null if not set
-$name = from($_POST, 'name');
-
-// create an associative array using the passed keys,
-// pulling the values from $_POST
-$user = from($_POST, array('username', 'email', 'password'));
-
-// try to get a value from $_GET, use a default value if not set
-$user = from($_GET, 'username', 'Sranger');
+$ip = client_ip();
 
 // set a flash message
 flash('error', 'Invalid username');
@@ -426,10 +304,10 @@ flash('error', 'Invalid username');
 $error = flash('error');
 
 // escape a string
-_h('Marley & Me');
+h('Marley & Me');
 
 // url encode
-_u('http://noodlehaus.github.com/dispatch');
+u('http://noodlehaus.github.com/dispatch');
 
 // load a partial using some file and locals
 $html = partial('users/profile', array('user' => $user));

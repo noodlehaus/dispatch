@@ -12,16 +12,4 @@ views.root = views
 views.layout = layout
 
 ; session vars
-cookies.secret = mary-had-a-little-lamb
 cookies.flash = _F
-
-; cache defaults to apc if available (apc, memcached)
-cache.driver = memcached
-
-; if memcached, you can set the host string (no protocol)
-cache.connection = localhost:11211
-
-; or several host strings (host:port:weight)
-; cache.connection[] = server1:11211:33
-; cache.connection[] = server2:11211:33
-; cache.connection[] = server3:11211:34
