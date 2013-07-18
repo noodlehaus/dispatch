@@ -34,20 +34,17 @@ assert(u('/') === '%2F');
 // test h()
 assert(h('&') === '&amp;');
 
-// testing render and partial
-config('views.root', './views');
-
 // fake request URI and METHOD
 $REQUEST_URI = '/index';
 $REQUEST_METHOD = 'GET';
 
 // testing routes and symbols
-get('/index', function () {
+route('GET /index', function () {
   global $REQUEST_URI;
   assert($REQUEST_URI === '/index');
 });
 
-get('/index/:name', function ($name) {
+route('GET /index/:name', function ($name) {
   global $REQUEST_URI;
   assert($REQUEST_URI === "/index/{$name}");
   scope('name', 'sheryl');
@@ -78,14 +75,14 @@ route('GET /sample-route', function () {
 dispatch('GET', '/sample-route');
 assert(scope('sample-route') === true);
 
-// test site.router stripping
-config('site.router', 'index.php');
+// test dispatch.router
+config('dispatch.router', 'index.php');
 scope('sample-route', false);
 dispatch('GET', '/index.php/sample-route');
 assert(scope('sample-route') === true);
 
-// test site.url path stripping
-config('site.url', 'http://localhost/myapp/');
+// test dispatch.url path stripping
+config('dispatch.url', 'http://localhost/myapp/');
 scope('sample-route', false);
 dispatch('GET', '/myapp/index.php/sample-route');
 assert(scope('sample-route') === true);
