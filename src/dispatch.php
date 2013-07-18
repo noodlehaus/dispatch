@@ -23,7 +23,6 @@ function error($code, $callback = null) {
 
   $code = (string) $code;
 
-  // if $callback is callable, then it's a handler to be mapped
   if (is_callable($callback)) {
     $error_callbacks[$code][] = $callback;
   } else {
@@ -37,7 +36,7 @@ function error($code, $callback = null) {
       foreach ($error_callbacks[$code] as $cb)
         call_user_func($cb, $code);
     else
-      echo "{$code} - {$message}\n";
+      echo "{$code} {$message}\n";
 
     exit;
   }
@@ -69,22 +68,22 @@ function config($key, $value = null) {
 }
 
 /**
- * Returns the string contained by 'site.url' in config.ini.
+ * Returns the string contained by 'dispatch.url' in config.ini.
  * This includes the hostname and path. If called with $path_only set to
  * true, it will return only the path section of the URL.
  *
  * @param boolean $path_only defaults to false, true means return only the path
- * @return string value pointed to by 'site.url' in config.ini.
+ * @return string value pointed to by 'dispatch.url' in config.ini.
  */
 function site($path_only = false) {
 
-  if (!config('site.url'))
+  if (!config('dispatch.url'))
     return null;
 
   if ($path_only)
-    return rtrim(parse_url(config('site.url'), PHP_URL_PATH), '/');
+    return rtrim(parse_url(config('dispatch.url'), PHP_URL_PATH), '/');
 
-  return rtrim(config('site.url'), '/').'/';
+  return rtrim(config('dispatch.url'), '/').'/';
 }
 
 /**
@@ -105,10 +104,10 @@ function flash($key, $msg = null, $now = false) {
 
   static $x = [];
 
-  $f = config('cookies.flash');
+  $f = config('dispatch.flash_cookie');
 
   if (!$f)
-    error(500, "config('cookies.flash') is not set.");
+    error(500, "config('dispatch.flash_cookie') is not set.");
 
   if ($c = get_cookie($f))
     $c = json_decode($c, true);
@@ -328,8 +327,8 @@ function redirect($path, $code = 302, $condition = true) {
  */
 function partial($view, $locals = null) {
 
-  if (($view_root = config('views.root')) == null)
-    error(500, "config('views.root') is not set.");
+  if (($view_root = config('dispatch.views')) == null)
+    error(500, "config('dispatch.views') is not set.");
 
   if (is_array($locals) && count($locals))
     extract($locals, EXTR_SKIP);
@@ -375,8 +374,8 @@ function content($value = null) {
  */
 function render($view, $locals = null, $layout = null) {
 
-  if (($view_root = config('views.root')) == null)
-    error(500, "config('views.root') is not set.");
+  if (($view_root = config('dispatch.views')) == null)
+    error(500, "config('dispatch.views') is not set.");
 
   if (is_array($locals) && count($locals))
     extract($locals, EXTR_SKIP);
@@ -388,7 +387,7 @@ function render($view, $locals = null, $layout = null) {
   if ($layout !== false) {
 
     if ($layout == null) {
-      $layout = config('views.layout');
+      $layout = config('dispatch.layout');
       $layout = ($layout == null) ? 'layout' : $layout;
     }
 
@@ -589,71 +588,6 @@ function route($method, $path, $callback = null) {
 }
 
 /**
- * Utility for mapping $cb (callable) to HEAD requests on
- * $path.
- *
- * @param string $path route to create a handler for
- * @param callable $cb handler to map against HEADs on $path
- *
- * @return void
- */
-function head($path, $cb) {
-  route('HEAD', $path, $cb);
-}
-
-/**
- * Utility for mapping $cb (callable) to DELETE requests on
- * $path.
- *
- * @param string $path route to create a handler for
- * @param callable $cb handler to map against DELETEs on $path
- *
- * @return void
- */
-function delete($path, $cb) {
-  route('DELETE', $path, $cb);
-}
-
-/**
- * Utility for mapping $cb (callable) to PUT requests on
- * $path.
- *
- * @param string $path route to create a handler for
- * @param callable $cb handler to map against PUTs on $path
- *
- * @return void
- */
-function put($path, $cb) {
-  route('PUT', $path, $cb);
-}
-
-/**
- * Utility for mapping $cb (callable) for GET requests on
- * $path.
- *
- * @param string $path route to create a handler for
- * @param callable $cb handler to map against GETs on $path
- *
- * @return void
- */
-function get($path, $cb) {
-  route('GET', $path, $cb);
-}
-
-/**
- * Utility for mapping $cb (callable) for POST requests on
- * $path.
- *
- * @param string $path route to create a handler for
- * @param callable $cb handler to map against POSTs on $path
- *
- * @return void
- */
-function post($path, $cb) {
-  route('POST', $path, $cb);
-}
-
-/**
  * Entry point for the library.
  *
  * @param string $method optional, for testing in the cli
@@ -668,7 +602,7 @@ function dispatch($method = null, $path = null) {
 
   // normalize routing base, if site is in sub-dir
   $path = parse_url($path ? $path : $_SERVER['REQUEST_URI'], PHP_URL_PATH);
-  $root = config('site.router');
+  $root = config('dispatch.router');
   $base = site(true);
 
   // strip base from path
