@@ -1,7 +1,7 @@
 Dispatch PHP 5.4+ Micro-framework
 =================================
-Dispatch is a micro-framework that only gives your routing, views rendering,
-and some other convenience functions.
+Dispatch is another PHP micro-framework. It's very small (23 functions at
+the moment) and very straightforward to use. No classes, no namespaces.
 
 ## Requirements
 Dispatch requires at least PHP 5.4 to work. Honestly, 5.4 is required just
@@ -72,7 +72,9 @@ route('GET', '/index', function () {
 
 ## Site Path and URL Rewriting
 If your app lives in a subfolder on your domain, you can include this path when
-defining your site's full URL via `dispatch.url`.
+defining your site's full URL via `dispatch.url`. With this setting, you can also
+access your site's URL via `site($pathonly = false)`. If you specify `$pathonly`
+to be `true`, then you get just the path for your site's URL.
 
 ```php
 <?php
@@ -85,6 +87,12 @@ route('GET /users', function () {
 
 // requested URI = http://somehost.com/mysite/users
 // response = "listing users..."
+
+// get your full URL
+$url = site();
+
+// get just /mysite
+$path = site(true);
 ?>
 ```
 
@@ -265,7 +273,78 @@ loaded via `partial($path, $locals = [])`.
 ```php
 <?php
 // underscore on the filename is added automatically by partial()
-$html = partial('users/profile_links', array('data' => $data));
+$html = partial('users/profile_page', array('data' => $data));
+?>
+```
+
+## JSON and JSONP Responses
+If you want to output JSON or JSONP responses, you can do it via `json_out($obj, $func = null)`.
+If called with just one argument, then `$obj` will be json encoded and sent over. If
+the second argument, `$func`, is provided, then the response will be in JSONP format, where
+`$func` is used as the callback function around the json object.
+
+```php
+<?php
+// object to dump
+$obj = ['name' => 'noodlehaus', 'age' => 34];
+
+// non-cacheable json response
+json_out($obj);
+
+...
+
+// jsonp callback name
+$fxn = 'parseResponse';
+
+// non-cacheable jsonp response
+jsonp_out($fxn, $obj);
+?>
+```
+
+## No-Cache
+If you want to output non-cacheable content, you can do this by calling `nocache()` before
+outputting any content.
+
+```php
+<?php
+// output nocache headers
+nocache();
+
+echo "comes fresh, everytime!";
+?>
+```
+
+## Cookies
+Dispatch provides a convenience function for getting and setting cookies,
+`cookie($name, $value = null, $expire = 0, $path = '/')`. If called with just one
+argument, `$name`, then it will return the value for that cookie. Otherwise,
+it behaves just like PHP's `setcookie()`.
+
+```php
+<?php
+// set a cookie
+cookie('user_id', 'user-12345');
+
+// get a cookie
+$user_id = cookie('user_id');
+?>
+```
+
+## Cross-Request Messages (Flash)
+Dispatch has support for cross-request (flash) messages. This is done via calls to
+`flash($name, $message = null, $now = false)`. If called with just one argument, `$name`,
+then the message mapped to that name is returned. The third argument, `$now` dictates
+if the message is to be made available to this request only.
+
+```php
+<?php
+// set an error message to show after a redirect
+flash('error', 'You did something wrong!');
+redirect('/some-page');
+
+// .. then on your other page ..
+
+$message = flash('error');
 ?>
 ```
 
@@ -316,43 +395,29 @@ $secret = config('some.setting');
 ```
 
 ## Utility Functions
-There are a lot of other useful routines in the library. Documentation is still lacking but
-they're very small and easy to figure out. Read the source for now.
+Some utility functions are also provided - for getting the client's IP,
+for making a string HTML-safe, for making a string URL-safe, and for
+setting/fetching values cross-scope.
 
 ```php
 <?php
+// get the client's ip
+$ip = ip();
+
 // store a value that can be fetched later
 scope('user', $user);
 
 // fetch a stored value
 scope('user');
 
-// simple redirect
-redirect('/index');
-
-// redirect with a status code
-redirect('/index', 302);
-
-// redirect if a condition is met
-redirect('/signin', 302, !authenticated());
-
 // client's IP
 $ip = client_ip();
 
-// set a flash message
-flash('error', 'Invalid username');
-
-// in a subsequent request, get the flash message
-$error = flash('error');
-
-// escape a string
+// escape a string's entities
 h('Marley & Me');
 
-// url encode
+// make a string url-safe
 u('http://noodlehaus.github.com/dispatch');
-
-// load a partial using some file and locals
-$html = partial('users/profile', array('user' => $user));
 ?>
 ```
 
