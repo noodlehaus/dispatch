@@ -39,12 +39,12 @@ $REQUEST_URI = '/index';
 $REQUEST_METHOD = 'GET';
 
 // testing routes and symbols
-route('GET /index', function () {
+on('GET', '/index', function () {
   global $REQUEST_URI;
   assert($REQUEST_URI === '/index');
 });
 
-route('GET /index/:name', function ($name) {
+on('GET', '/index/:name', function ($name) {
   global $REQUEST_URI;
   assert($REQUEST_URI === "/index/{$name}");
   scope('name', 'sheryl');
@@ -68,7 +68,7 @@ assert(scope('kid') === 'addie');
 $TOKEN = '';
 
 // test new routing format
-route('GET /sample-route', function () {
+on('GET', '/sample-route', function () {
   scope('sample-route', true);
 });
 
@@ -80,12 +80,17 @@ config('dispatch.router', 'index.php');
 scope('sample-route', false);
 dispatch('GET', '/index.php/sample-route');
 assert(scope('sample-route') === true);
-
 // test dispatch.url path stripping
 config('dispatch.url', 'http://localhost/myapp/');
 scope('sample-route', false);
 dispatch('GET', '/myapp/index.php/sample-route');
 assert(scope('sample-route') === true);
+
+// test params()
+on('GET', '/aloha/:p1', function ($name) {
+  assert(params('p1') === 'jaydee');
+});
+dispatch('GET', '/aloha/jaydee');
 
 // if we got here, then good
 echo "core-tests done!\n";

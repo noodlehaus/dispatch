@@ -54,18 +54,25 @@ config('dispatch.router', 'index.php');
 ```
 
 ## Routing
-Dispatch supports the `GET`, `POST`, `PUT`, `DELETE`, and `HEAD` request methods.
+Create routes via calls to `on($method, $path, $callback)`. For now, the only supported methods are
+`GET`, `POST`, `PUT`, `DELETE`, `HEAD` and `PATCH`. The `$method` parameter can be a single method, an
+array of methods, or `\*` (for all methods).
 
 ```php
 <?php
 // get route for index
-route('GET /index', function () {
+on('GET', '/index', function () {
   echo "hello, world!\n";
 });
 
-// this is the same as above
-route('GET', '/index', function () {
+// support the route for multiple methods
+on(['GET', 'POST'], '/greet', function () {
   echo "hello, world!\n";
+});
+
+// handle all supported methods for a route (get, post, put, delete, head, patch)
+on('*', '/multi', function () {
+  echo "it works!\n";
 });
 ?>
 ```
@@ -81,7 +88,7 @@ to be `true`, then you get just the path for your site's URL.
 // our app lives in /mysite
 config('dispatch.url', 'http://somehost.com/mysite');
 
-route('GET /users', function () {
+on('GET', '/users', function () {
   echo "listing users...";
 });
 
@@ -105,7 +112,7 @@ routing file to take off from request URIs via `dispatch.router`.
 // strip index.php from all route requests
 config('dispatch.router', 'index.php');
 
-route('GET /users', function () {
+on('GET', '/users', function () {
   echo "listing users...";
 });
 
@@ -166,7 +173,7 @@ be used by `request_body()` as the value for `parsed`.
 
 ```php
 <?php
-route('PUT /users/:id', function ($id) {
+on('PUT', '/users/:id', function ($id) {
   $data = request_body();
   // or
   $data = request_body(function ($type, $length, $raw) {
@@ -199,7 +206,7 @@ filter('blog_id', function ($blog_id) {
 });
 
 // here, we have :blog_id in the route, so our preloader gets run
-route('GET /blogs/:blog_id', function ($blog_id) {
+on('GET', '/blogs/:blog_id', function ($blog_id) {
 	// pick up what we got from the stash
 	$blog = stash('blog');
 	render('blogs/show', array('blog' => $blog);
@@ -348,18 +355,19 @@ $message = flash('error');
 ?>
 ```
 
-## $\_GET and $\_POST Values
-If you want to fetch a value from a request without regard to wether it comes from `$_GET` or
-`$_POST`, you can use the function `param($name)` to get this value. This is just like Rails'
-`params` hash, where the `$_POST` values take priority over the `$_GET` values.
+## $\_GET, $\_POST Values and Route Symbols
+If you want to fetch a value from a request without regard to wether it comes from `$_GET`,
+`$_POST`, or the route symbols, you can use the function `params($name)` to get this value.
+This is just like Rails' `params` hash, where the `$_POST` values take priority over the
+`$_GET` values.
 
 ```php
 <?php
-// get 'name' from either $_GET or $_POST
-$name = param('name');
+// get 'name' from $_GET, $_POST or the route symbols
+$name = params('name');
 
 // get 'name', set a default value if not found
-$name = param('name', 'stranger');
+$name = params('name', 'stranger');
 ?>
 ```
 

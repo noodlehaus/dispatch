@@ -158,19 +158,30 @@ function h($str, $flags = ENT_QUOTES, $enc = 'UTF-8') {
 }
 
 /**
- * Helper for getting values from $_GET and $_POST. Simply
- * merges the two arrays with $_POST getting priority.
+ * Helper for getting values from $_GET, $_POST and route
+ * symbols. If called with no arguments, it returns all param
+ * values.
  *
- * @param string $name parameter to get the value for
+ * @param string $name optional. parameter to get the value for
  * @param mixed $default optional. default value for param
  *
  * @return mixed param value.
  */
-function param($name, $default = null) {
+function params($name = null, $default = null) {
+
   static $source = null;
+
   if (!$source)
     $source = array_merge($_GET, $_POST);
-  return (isset($source[$name]) ? $source[$name] : $default);
+
+  if (is_string($name))
+    return (isset($source[$name]) ? $source[$name] : $default);
+  else if ($name == null)
+    return $source;
+
+  // used by on() for initialization
+  if (is_array($name))
+    $source = array_merge($source, $name);
 }
 
 /**
@@ -521,45 +532,56 @@ function after($callback = null) {
  *
  * @return void
  */
-function route($method, $path, $callback = null) {
+function on($method, $path, $callback = null) {
 
   // callback map by request type
-  static $route_map = [];
+  static $routes = [];
 
-  // support for 'GET /uri/path' format of routes
-  if (is_callable($path)) {
-    $callback = $path;
-    list($method, $path) = preg_split('@\s+@', $method, 2);
-  }
-
-  $method = strtoupper($method);
+  // we don't want slashes in both ends
   $path = trim($path, '/');
-
-  if (!in_array($method, ['HEAD', 'GET', 'POST', 'PUT', 'DELETE']))
-    error(400, 'Method not supported');
 
   // a callback was passed, so we create a route defiition
   if (is_callable($callback)) {
 
-    // create the regex from the path
+    // create the regex for this route
     $regex = preg_replace_callback('@:\w+@', function ($matches) {
       return '(?<'.str_replace(':', '', $matches[0]).'>[a-z0-9-_\.]+)';
     }, $path);
 
-    // create a route entry for this path
-    $route_map[$method][$path] = [
-      'regex' => '@^'.$regex.'$@i',
-      'callback' => $callback
-    ];
+    // create the list of methods to map to
+    $method = (array) $method;
+
+    // wildcard method means for all supported methods
+    if (in_array('*', $method)) {
+      $method = ['HEAD', 'GET', 'POST', 'PUT', 'DELETE', 'PATCH'];
+    } else {
+      array_walk($method, function (&$m) { $m = strtoupper($m); });
+      $method = array_intersect(['HEAD', 'GET', 'POST', 'PUT', 'DELETE', 'PATCH'], $method);
+    }
+
+    // create a route entry for this path on every method
+    foreach ($method as $m)
+      $routes[$m][$path] = ['regex' => '@^'.$regex.'$@i', 'callback' => $callback];
 
   } else {
 
+    // not a string? invalid
+    if (!is_string($method))
+      error(400, 'Invalid method');
+
+    // then normalize
+    $method = strtoupper($method);
+
     // do we have a method override?
-    if (param('_method'))
-      $method = strtoupper(param('_method'));
+    if (params('_method'))
+      $method = strtoupper(params('_method'));
+
+    // for invokation, only support strings
+    if (!in_array($method, ['HEAD', 'GET', 'POST', 'PUT', 'DELETE', 'PATCH']))
+      error(400, 'Method not supported');
 
     // callback is null, so this is a route invokation. look up the callback.
-    foreach ($route_map[$method] as $pattern => $info) {
+    foreach ($routes[$method] as $pattern => $info) {
 
       // skip non-matching routes
       if (!preg_match($info['regex'], $path, $values))
@@ -571,9 +593,11 @@ function route($method, $path, $callback = null) {
       $symbols = $symbols[1];
       $values = array_intersect_key($values, array_flip($symbols));
 
-      // call filters if we have symbols
-      if (count($symbols))
+      // if we have symbols, init params and run filters
+      if (count($symbols)) {
+        params($values);
         filter($values);
+      }
 
       // invoke callback
       call_user_func_array($info['callback'], array_values($values));
@@ -622,6 +646,6 @@ function dispatch($method = null, $path = null) {
   before();
 
   // match it
-  route($method, $path);
+  on($method, $path);
 }
 ?>
