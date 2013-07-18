@@ -1,5 +1,5 @@
-Dispatch PHP 5.4+ Micro-framework
-=================================
+Dispatch 2.0.0
+==============
 Dispatch is another PHP micro-framework. It's very small (23 functions at
 the moment) and very straightforward to use. No classes, no namespaces.
 
