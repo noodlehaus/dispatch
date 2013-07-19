@@ -452,7 +452,7 @@ function json_out($obj, $func = null) {
     echo json_encode($obj);
   } else {
     header('Content-type: application/javascript');
-    echo "{$func}(".json_encode($obj).")";
+    echo ";{$func}(".json_encode($obj).");";
   }
   exit;
 }
