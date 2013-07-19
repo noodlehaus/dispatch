@@ -17,7 +17,7 @@ To install using `composer`, have the following lines in your `composer.json` fi
   "require": {
     "php": ">= 5.4.0",
     ...
-    "dispatch/dispatch": "2.0.*",
+    "dispatch/dispatch": "2.*",
   }
 }
 ```
