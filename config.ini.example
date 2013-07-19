@@ -1,15 +1,15 @@
 ; Define your site's base URL
-site.url = http://localhost/myapp/
+dispatch.url = http://localhost/myapp/
 
 ; If present, this path will be stripped from the
 ; request URI before they are routed. This is useful
 ; if you don't have mod_rewrite enabled and use request
 ; paths of the format /index.php/controller/action.
-site.router = index.php
+dispatch.router = index.php
 
 ; rendering vars
-views.root = views
-views.layout = layout
+dispatch.views = views
+dispatch.layout = layout
 
-; session vars
-cookies.flash = _F
+; flash messaging cookie
+dispatch.flash_cookie = _F
