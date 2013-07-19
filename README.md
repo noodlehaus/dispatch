@@ -56,7 +56,7 @@ config('dispatch.router', 'index.php');
 ## Routing
 Create routes via calls to `on($method, $path, $callback)`. For now, the only supported methods are
 `GET`, `POST`, `PUT`, `DELETE`, `HEAD` and `PATCH`. The `$method` parameter can be a single method, an
-array of methods, or `\*` (for all methods).
+array of methods, or `*` (for all methods).
 
 ```php
 <?php
@@ -432,30 +432,32 @@ u('http://noodlehaus.github.com/dispatch');
 ## Function Catalog
 Below's the list of functions provided by Dispatch.
 
-```shell
-function error($code, $callback = null)
-function config($key, $value = null)
-function site($path_only = false)
-function flash($key, $msg = null, $now = false)
-function u($str)
-function h($str, $flags = ENT_QUOTES, $enc = 'UTF-8')
-function params($name = null, $default = null)
-function cookie($name, $value = null, $expire = 0, $path = '/')
-function request_body($parser = null)
-function upload($name)
-function scope($name, $value = null)
-function ip()
-function redirect($path, $code = 302, $condition = true)
-function partial($view, $locals = null)
-function content($value = null)
-function render($view, $locals = null, $layout = null)
-function nocache()
-function json_out($obj, $func = null)
-function filter($symbol, $callback = null)
-function before($callback = null)
-function after($callback = null)
-function on($method, $path, $callback = null)
-function dispatch($method = null, $path = null)
+```php
+<?php
+function error($code, $callback = null);
+function config($key, $value = null);
+function site($path_only = false);
+function flash($key, $msg = null, $now = false);
+function u($str);
+function h($str, $flags = ENT_QUOTES, $enc = 'UTF-8');
+function params($name = null, $default = null);
+function cookie($name, $value = null, $expire = 0, $path = '/');
+function request_body($parser = null);
+function upload($name);
+function scope($name, $value = null);
+function ip();
+function redirect($path, $code = 302, $condition = true);
+function partial($view, $locals = null);
+function content($value = null);
+function render($view, $locals = null, $layout = null);
+function nocache();
+function json_out($obj, $func = null);
+function filter($symbol, $callback = null);
+function before($callback = null);
+function after($callback = null);
+function on($method, $path, $callback = null);
+function dispatch($method = null, $path = null);
+?>
 ```
 
 ## About the Author
