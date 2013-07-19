@@ -899,6 +899,10 @@ function route($method, $path, $callback = null) {
     if (isset($_REQUEST['_method']))
       $method = strtoupper($_REQUEST['_method']);
 
+    // empty routes, quick fix
+    if (empty($route_map[$method]))
+      error(404, 'Page not found');
+
     // callback is null, so this is a route invokation. look up the callback.
     foreach ($route_map[$method] as $pattern => $info) {
 
