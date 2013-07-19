@@ -196,8 +196,8 @@ function params($name = null, $default = null) {
  */
 function cookie($name, $value = null, $expire = 31536000, $path = '/') {
   if (func_num_args() === 1)
-    return $_COOKIE[$name];
-  setcookie($name, $value, $expire, $path);
+    return (isset($_COOKIE[$name]) ? $_COOKIE[$name] : null);
+  setcookie($name, $value, time() + $expire, $path);
 }
 
 /**
