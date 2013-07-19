@@ -1,3 +1,5 @@
+*NOTE*: If you're looking for Dispatch 1.0.x, switch to the [*1.x branch*](https://github.com/noodlehaus/dispatch/tree/1.x)
+
 Dispatch 2.0.0
 ==============
 Dispatch is another PHP micro-framework. It's very small (23 functions at
