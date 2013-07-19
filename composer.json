@@ -17,5 +17,10 @@
     "files": [
       "src/dispatch.php"
     ]
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-master": "2.1.x-dev"
+    }
   }
 }
