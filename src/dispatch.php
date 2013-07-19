@@ -485,16 +485,23 @@ function upload($name) {
   $result = null;
 
   // if file field is an array
-  if (is_array($_FILES[$name])) {
-    $result = array();
-    foreach ($_FILES[$name] as $k1 => $v1) {
-      // let's skip invalid file paths
-      if (!is_uploaded_file($v1['tmp_name']))
-        continue;
+  if (is_array($_FILES[$name]['name'])) {
+
+    $result = [];
+
+    // consolidate file info
+    foreach ($_FILES[$name] as $k1 => $v1)
       foreach ($v1 as $k2 => $v2)
         $result[$k2][$k1] = $v2;
-    }
-    $result = (!count($result) ? null : $result);
+
+    // remove invalid uploads
+    foreach ($result as $i => $f)
+      if (!is_uploaded_file($f['tmp_name']))
+        unset($result[$i]);
+
+    // if no entries, null, else, return it
+    $result = (!count($result) ? null : array_values($result));
+
   } else {
     // only if file path is valid
     if (is_uploaded_file($_FILES[$name]['tmp_name']))
