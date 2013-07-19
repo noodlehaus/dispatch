@@ -20,21 +20,18 @@
 <script id="markdown" type="text/markdown">
 Dispatch 2
 ==========
-
 <hr class="break">
+**NOTE**: If you're looking for Dispatch 1.x, switch to the
+[**1.x branch**](https://github.com/noodlehaus/dispatch/tree/1.x).
 
-**NOTE**: If you're looking for Dispatch 1.x, switch to the [**1.x branch**](https://github.com/noodlehaus/dispatch/tree/1.x).
-
-Dispatch is another PHP micro-framework. It's very small (23 functions at
+Dispatch is another PHP micro-framework. It's very small (22 functions at
 the moment) and very straightforward to use. No classes, no namespaces.
 
 ## Requirements
-Dispatch requires at least PHP 5.4 to work. Honestly, 5.4 is required just
-because of the short array syntax used in the code.
+Dispatch requires at least **PHP 5.4** to work.
 
 ## Installation
-Dispatch can be installed by using `composer`. In your `composer.json` file,
-do the following:
+To install using `composer`, have the following lines in your `composer.json` file.
 
 ```javascript
 {
@@ -46,18 +43,16 @@ do the following:
 }
 ```
 
-After adding the appropriate `require` entries, do a `composer install` or
-`composer update` to install the package.
+Then do a `composer install` or `composer update` to install the package.
 
-If you don't use `composer`, you can download and include
-`dispatch.php` directly in your application.
+If you don't use `composer`, just download and include `dispatch.php` directly in
+your application.
 
 Note that Dispatch functions are all loaded into the global namespace.
 
 ## Configuration Variables
 
-Certain properties and behaviors of Dispatch can be configured via the
-following `config()` entries:
+Some settings are needed by Dispatch, and they can be set via `config()`.
 
 ```php
 <?php
@@ -79,7 +74,7 @@ config('dispatch.router', 'index.php');
 ```
 
 ## Routing
-Create routes via calls to `on($method, $path, $callback)`. For now, the only supported methods are
+Application routes are created via calls to `on($method, $path, $callback)`. Supported methods are
 `GET`, `POST`, `PUT`, `DELETE`, `HEAD` and `PATCH`. The `$method` parameter can be a single method, an
 array of methods, or `*` (for all methods).
 
@@ -103,10 +98,9 @@ on('*', '/multi', function () {
 ```
 
 ## Site Path and URL Rewriting
-If your app lives in a subfolder on your domain, you can include this path when
-defining your site's full URL via `dispatch.url`. With this setting, you can also
-access your site's URL via `site($pathonly = false)`. If you specify `$pathonly`
-to be `true`, then you get just the path for your site's URL.
+If your app resides in a subfolder, include this path in your `dispatch.url` setting, so Dispatch
+knows which parts of the `REQUEST_URI` need to be removed. This URL or your app path can then be
+accessed via `site($path_only = false)`.
 
 ```php
 <?php
@@ -128,9 +122,9 @@ $path = site(true);
 ?>
 ```
 
-If you don't have access to url rewriting on your server, and you're using a PHP
-file as your router (ie. /index.php/controller/action), you can specify the
-routing file to take off from request URIs via `dispatch.router`.
+If you don't have access to URL rewrites, and are using a file router (ie. /index.php/controller/action),
+you need to specify this via `dispatch.router`. The string you set this to gets stripped off of the
+`REQUEST_URI` before Dispatch routes the request.
 
 ```php
 <?php
@@ -147,7 +141,7 @@ on('GET', '/users', function () {
 ```
 
 ## HTTP Redirects
-Redirects are done by calling `redirect($path, $code = 302, $condition = true)`. The third
+Redirects are done via `redirect($path, $code = 302, $condition = true)`. The third
 parameter, `$condition`, is useful if you want your redirects to happen depending on
 the result of an expression.
 
@@ -165,9 +159,9 @@ redirect('/denied', 302, !authenticated());
 ```
 
 ## Request Method Overrides
-Until browsers provide support for DELETE and PUT methods in their forms,
-you can instead use a hidden `input` field named `_method` to override
-the request method for your form.
+Until browsers provide support for DELETE and PUT methods in forms,
+you can instead use a hidden input field named `_method` to override
+the request method for the form.
 
 ```html
 <!-- sample PUT request -->
@@ -187,39 +181,22 @@ the request method for your form.
 
 ## Request Body in PUTs or JSON POSTs
 In cases where you're handling PUT requests or JSON posts and you need access
-to the raw http request body contents, you can use `request_body()` for this.
-The `request_body()` function will return an associative array containing the
-body's `type`, `length`, `parsed` and `raw`.
+to the raw http request body contents, you can use `request_body()`.
 
-The `request_body()` function accepts an optional parameter, which should be a
-`callable` that takes three arguments - content type, length and raw data. This
-callable will be treated as the parser for the data and whatever it returns will
-be used by `request_body()` as the value for `parsed`.
+For content of type `application/json` and `application/x-www-form-urlencoded`,
+the content are automatically parsed and returned as arrays.
 
 ```php
 <?php
 on('PUT', '/users/:id', function ($id) {
   $data = request_body();
-  // or
-  $data = request_body(function ($type, $length, $raw) {
-    return json_decode($raw);
-  });
-  /**
-  $data will be a hash of this structure
-  array(
-    'type' => 'content/type-here',
-    'length' => 123,
-    'parsed' => 'some data',
-    'raw' => 'raw data'
-  )
-  */
 });
 ?>
 ```
 
 ## Route Symbol Filters
-This is taken from ExpressJS. Route filters let you map functions against symbols
-in your routes. These functions then get executed when those symbols are matched.
+Route filters let you map functions against symbols in your routes. These functions get executed when
+those symbols are found in the request's matching route.
 
 ```php
 <?php
@@ -240,7 +217,8 @@ on('GET', '/blogs/:blog_id', function ($blog_id) {
 ```
 
 ## Before and After Callbacks
-Dispatch also lets you setup routines that can be called before or after requests are handled.
+To setup routines to be run before and after a request, use `before($callable)` and `after($callable)`
+respectively.
 
 ```php
 <?php
@@ -310,10 +288,7 @@ $html = partial('users/profile_page', array('data' => $data));
 ```
 
 ## JSON and JSONP Responses
-If you want to output JSON or JSONP responses, you can do it via `json_out($obj, $func = null)`.
-If called with just one argument, then `$obj` will be json encoded and sent over. If
-the second argument, `$func`, is provided, then the response will be in JSONP format, where
-`$func` is used as the callback function around the json object.
+JSON and JSONP responses are done via `json_out($obj, $func = null)`.
 
 ```php
 <?php
@@ -347,10 +322,7 @@ echo "comes fresh, everytime!";
 ```
 
 ## Cookies
-Dispatch provides a convenience function for getting and setting cookies,
-`cookie($name, $value = null, $expire = 0, $path = '/')`. If called with just one
-argument, `$name`, then it will return the value for that cookie. Otherwise,
-it behaves just like PHP's `setcookie()`.
+Get and set cookie values via `cookie($name, $value = null, $expire = 0, $path = '/')`.
 
 ```php
 <?php
@@ -363,10 +335,7 @@ $user_id = cookie('user_id');
 ```
 
 ## Cross-Request Messages (Flash)
-Dispatch has support for cross-request (flash) messages. This is done via calls to
-`flash($name, $message = null, $now = false)`. If called with just one argument, `$name`,
-then the message mapped to that name is returned. The third argument, `$now` dictates
-if the message is to be made available to this request only.
+Cross-request messages, or flash messages, can be done via `flash($name, $message = null, $now = false)`.
 
 ```php
 <?php
@@ -381,10 +350,8 @@ $message = flash('error');
 ```
 
 ## $\_GET, $\_POST Values and Route Symbols
-If you want to fetch a value from a request without regard to wether it comes from `$_GET`,
-`$_POST`, or the route symbols, you can use the function `params($name)` to get this value.
-This is just like Rails' `params` hash, where the `$_POST` values take priority over the
-`$_GET` values.
+To fetch a value from a request without regard to wether it comes from `$_GET`,
+`$_POST`, or the route symbols, use `params($name)`. This is just like Rails' `params` hash.
 
 ```php
 <?php
@@ -397,10 +364,9 @@ $name = params('name', 'stranger');
 ```
 
 ## $\_FILES Values
-Dispatch gives you the function `upload($name)` to fetch the information on a file upload
-field from the `$_FILES` superglobal. If the field is present, then the function will return
-a hash containing all file information about the upload. This function also works on array
-of files. Every file that passes through `upload($name)` is checked with `is_uploaded_file()`.
+During file uploads, to get consolidated info on the file, call `upload($name)`, where `$name`
+is the name of the file input field. If the file input field is an array, info is grouped
+conveniently by file and returned as an array.
 
 ```php
 <?php
@@ -411,8 +377,6 @@ $file = upload('photo');
 
 ## Loading INI Files
 You can make use of ini files for configuration by calling `config('source', 'myconfig.ini')`.
-This lets you put configuration settings in ini files instead of making `config()` calls
-in your code.
 
 ```php
 <?php
@@ -459,29 +423,28 @@ Below's the list of functions provided by Dispatch.
 
 ```php
 <?php
-function error($code, $callback = null);
-function config($key, $value = null);
-function site($path_only = false);
-function flash($key, $msg = null, $now = false);
-function u($str);
-function h($str, $flags = ENT_QUOTES, $enc = 'UTF-8');
-function params($name = null, $default = null);
-function cookie($name, $value = null, $expire = 0, $path = '/');
-function request_body($parser = null);
-function upload($name);
-function scope($name, $value = null);
-function ip();
-function redirect($path, $code = 302, $condition = true);
-function partial($view, $locals = null);
-function content($value = null);
-function render($view, $locals = null, $layout = null);
-function nocache();
-function json_out($obj, $func = null);
-function filter($symbol, $callback = null);
-function before($callback = null);
-function after($callback = null);
-function on($method, $path, $callback = null);
-function dispatch($method = null, $path = null);
+function error($code, $callback = null)
+function config($key, $value = null)
+function site($path_only = false)
+function flash($key, $msg = null, $now = false)
+function u($str)
+function h($str, $flags = ENT_QUOTES, $enc = 'UTF-8')
+function params($name = null, $default = null)
+function cookie($name, $value = null, $expire = 0, $path = '/')
+function request_body()
+function upload($name)
+function scope($name, $value = null)
+function ip()
+function redirect($path, $code = 302, $condition = true)
+function partial($view, $locals = null)
+function render($view, $locals = null, $layout = null)
+function nocache()
+function json_out($obj, $func = null)
+function filter($symbol, $callback = null)
+function before($callback = null)
+function after($callback = null)
+function on($method, $path, $callback = null)
+function dispatch($method = null, $path = null)
 ?>
 ```
 
