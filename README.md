@@ -182,14 +182,14 @@ those symbols are found in the request's matching route.
 // preload blog entry whenever a matching route has :blog_id in it
 filter('blog_id', function ($blog_id) {
 	$blog = Blog::findOne($blog_id);
-	// stash() lets you store stuff for later use (NOT a cache)
-	stash('blog', $blog);
+	// scope() lets you store stuff for later use (NOT a cache)
+	scope('blog', $blog);
 });
 
 // here, we have :blog_id in the route, so our preloader gets run
 on('GET', '/blogs/:blog_id', function ($blog_id) {
 	// pick up what we got from the stash
-	$blog = stash('blog');
+	$blog = scope('blog');
 	render('blogs/show', array('blog' => $blog);
 });
 ?>
