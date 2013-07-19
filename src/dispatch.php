@@ -542,7 +542,14 @@ function after($callback = null) {
 function on($method, $path, $callback = null) {
 
   // callback map by request type
-  static $routes = [];
+  static $routes = [
+    'HEAD' => [],
+    'GET' => [],
+    'POST' => [],
+    'PUT' => [],
+    'PATCH' => [],
+    'DELETE' => []
+  ];
 
   // we don't want slashes in both ends
   $path = trim($path, '/');
@@ -560,10 +567,10 @@ function on($method, $path, $callback = null) {
 
     // wildcard method means for all supported methods
     if (in_array('*', $method)) {
-      $method = ['HEAD', 'GET', 'POST', 'PUT', 'DELETE', 'PATCH'];
+      $method = array_keys($routes);
     } else {
       array_walk($method, function (&$m) { $m = strtoupper($m); });
-      $method = array_intersect(['HEAD', 'GET', 'POST', 'PUT', 'DELETE', 'PATCH'], $method);
+      $method = array_intersect(array_keys($routes), $method);
     }
 
     // create a route entry for this path on every method
@@ -584,7 +591,7 @@ function on($method, $path, $callback = null) {
       $method = strtoupper(params('_method'));
 
     // for invokation, only support strings
-    if (!in_array($method, ['HEAD', 'GET', 'POST', 'PUT', 'DELETE', 'PATCH']))
+    if (!in_array($method, array_keys($routes)))
       error(400, 'Method not supported');
 
     // callback is null, so this is a route invokation. look up the callback.
