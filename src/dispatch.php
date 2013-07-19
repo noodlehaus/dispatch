@@ -109,7 +109,7 @@ function flash($key, $msg = null, $now = false) {
   if (!$f)
     error(500, "config('dispatch.flash_cookie') is not set.");
 
-  if ($c = get_cookie($f))
+  if ($c = cookie($f))
     $c = json_decode($c, true);
   else
     $c = [];
@@ -119,7 +119,7 @@ function flash($key, $msg = null, $now = false) {
     if (isset($c[$key])) {
       $x[$key] = $c[$key];
       unset($c[$key]);
-      set_cookie($f, json_encode($c));
+      cookie($f, json_encode($c));
     }
 
     return (isset($x[$key]) ? $x[$key] : null);
@@ -127,7 +127,7 @@ function flash($key, $msg = null, $now = false) {
 
   if (!$now) {
     $c[$key] = $msg;
-    set_cookie($f, json_encode($c));
+    cookie($f, json_encode($c));
   }
 
   return ($x[$key] = $msg);
@@ -189,12 +189,12 @@ function params($name = null, $default = null) {
  *
  * @param string $name name of the cookie to get or set
  * @param string $value optional. value to set for the cookie
- * @param integer $expire default 0. expiration in seconds.
+ * @param integer $expire default 1 year. expiration in seconds.
  * @param string $path default '/'. path for the cookie.
  *
  * @return string value if only the name param is passed.
  */
-function cookie($name, $value = null, $expire = 0, $path = '/') {
+function cookie($name, $value = null, $expire = 31536000, $path = '/') {
   if (func_num_args() === 1)
     return $_COOKIE[$name];
   setcookie($name, $value, $expire, $path);
