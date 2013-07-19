@@ -283,7 +283,7 @@ json_out($obj);
 $fxn = 'parseResponse';
 
 // non-cacheable jsonp response
-jsonp_out($fxn, $obj);
+json_out($obj, $fxn);
 ?>
 ```
 
