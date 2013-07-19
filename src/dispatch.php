@@ -201,41 +201,26 @@ function cookie($name, $value = null, $expire = 31536000, $path = '/') {
 }
 
 /**
- * Function that returns the request body along with content type
- * and content length info in a hash, if they're available.
+ * Convenience function for reading in the request body. JSON
+ * and form-urlencoded content are automatically parsed and returned
+ * as arrays.
  *
- * @param callable $parser optional function that will be used to parse the
- *    content. this callback will be sent 3 parameters -- content-type,
- *    content-length and actual content.
- * @return array hash containing content-length, content-type and content
+ * @return mixed raw string or decoded JSON object
  */
-function request_body($parser = null) {
+function request_body() {
 
   $content_type = isset($_SERVER['HTTP_CONTENT_TYPE']) ?
     $_SERVER['HTTP_CONTENT_TYPE'] :
     $_SERVER['CONTENT_TYPE'];
 
-  preg_match('@^[^;]+@', $content_type, $content_type);
+  $content = file_get_contents('php://input');
 
-  $content_raw = file_get_contents('php://input');
-  $content_length = strlen($content_raw);
+  if ($content_type[0] == 'application/json')
+    $content = json_decode($content);
+  else if ($content_type[0] == 'application/x-www-form-urlencoded')
+    parse_str($content, $content);
 
-  // if no parser was passed, try to do smart parsing
-  if (!is_callable($parser)) {
-    if ($content_type[0] == 'application/json')
-      $content = json_decode($content_raw);
-    else if ($content_type[0] == 'application/x-www-form-urlencoded')
-      parse_str($content_raw, $content);
-  } else {
-    $content = $parser($content_type, $content_length, $content_raw);
-  }
-
-  return [
-    'type' => $content_type[0],
-    'length' => $content_length,
-    'parsed' => $content,
-    'raw' => $content_raw
-  ];
+  return $content;
 }
 
 /**
