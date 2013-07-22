@@ -1,26 +1,32 @@
 body {
   font-family: 'droid sans';
+  font-size: 14px;
+  line-height: 1.3;
   margin: 0 auto;
   padding: 20px;
   width: 600px;
   color: #222;
-  background: #f8f8f8;
+  background: #fff;
 }
 
 h1 {
   text-transform: uppercase;
-  text-align: center;
   margin-bottom: 1em;
 }
 
 h2 {
-  margin-top: 1.5em;
+  margin-top: 1.25em;
+}
+
+h1,
+h2,
+h3 {
+  color: #900;
 }
 
 pre {
   background: #111414;
-  padding: 5px;
-  border-radius: 4px;
+  padding: 8px;
   overflow: auto;
 }
 
