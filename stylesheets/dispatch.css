@@ -30,6 +30,10 @@ pre {
   overflow: auto;
 }
 
+pre code {
+  font-size: .857em;
+}
+
 a {
   color: #a00;
 }
