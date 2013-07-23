@@ -544,7 +544,7 @@ function on($method, $path, $callback = null) {
 
     // create the regex for this route
     $regex = preg_replace_callback('@:\w+@', function ($matches) {
-      return '(?<'.str_replace(':', '', $matches[0]).'>[a-z0-9-_\.]+)';
+      return '(?<'.str_replace(':', '', $matches[0]).'>[^/]+)';
     }, $path);
 
     // create the list of methods to map to
@@ -591,6 +591,11 @@ function on($method, $path, $callback = null) {
       preg_match_all('@:([\w]+)@', $pattern, $symbols, PREG_PATTERN_ORDER);
       $symbols = $symbols[1];
       $values = array_intersect_key($values, array_flip($symbols));
+
+      // decode values
+      array_walk($values, function (&$val, $key) {
+        $val = urldecode($val);
+      });
 
       // if we have symbols, init params and run filters
       if (count($symbols)) {
