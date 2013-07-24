@@ -9,6 +9,9 @@ the moment) and very straightforward to use. No classes, no namespaces.
 ## Requirements
 Dispatch requires at least **PHP 5.4** to work.
 
+## Code
+Get the code on GitHub: <http://github.com/noodlehaus/dispatch>.
+
 ## Installation
 To install using `composer`, have the following lines in your `composer.json` file.
 
