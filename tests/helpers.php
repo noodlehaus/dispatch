@@ -17,48 +17,36 @@ function start_http($host, $port, $router) {
   sleep(1);
 }
 
-function do_post($url, array $post = [], array $options = []) {
+function curly($method, $url, $data = [], $opts = []) {
 
-  $defaults = array(
-    CURLOPT_POST => 1,
-    CURLOPT_HEADER => 1,
+  $defs = [
     CURLOPT_URL => $url,
+    CURLOPT_HEADER => 1,
     CURLOPT_FRESH_CONNECT => 1,
     CURLOPT_RETURNTRANSFER => 1,
     CURLOPT_FORBID_REUSE => 1,
     CURLOPT_COOKIEJAR => 'cookiejar.txt',
     CURLOPT_COOKIEFILE => 'cookiejar.txt',
-    CURLOPT_TIMEOUT => 4,
-    CURLOPT_POSTFIELDS => http_build_query($post)
-  );
-
-  $ch = curl_init();
-  curl_setopt_array($ch, ($options + $defaults));
-  if (!$result = curl_exec($ch)) {
-    trigger_error(curl_error($ch));
-  }
-  curl_close($ch);
-  return $result;
-}
-
-function do_get($url, array $get = [], array $options = []) {
-
-  $defaults = array(
-    CURLOPT_URL => $url.(strpos($url, '?') === FALSE ? '?' : '').http_build_query($get),
-    CURLOPT_HEADER => 1,
-    CURLOPT_RETURNTRANSFER => TRUE,
-    CURLOPT_COOKIEJAR => 'cookiejar.txt',
-    CURLOPT_COOKIEFILE => 'cookiejar.txt',
     CURLOPT_TIMEOUT => 4
-  );
+  ];
+
+  if (in_array($method, ['POST', 'DELETE', 'PUT', 'HEAD'])) {
+    $defs[CURLOPT_POSTFIELDS] = http_build_query($data);
+    if ($method === 'POST')
+      $defs[CURLOPT_POST] = 1;
+    else
+    $defs[CURLOPT_CUSTOMREQUEST] = $method;
+  }
 
   $ch = curl_init();
-  curl_setopt_array($ch, ($options + $defaults));
-  if (!$result = curl_exec($ch)) {
+  curl_setopt_array($ch, $defs);
+
+  if (!($res = curl_exec($ch)))
     trigger_error(curl_error($ch));
-  }
+
   curl_close($ch);
-  return $result;
+
+  return $res;
 }
 
 function test($title, $cb) {
