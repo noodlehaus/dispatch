@@ -24,6 +24,14 @@ on('POST', '/index', function () {
   echo "POST route test";
 });
 
+on('PUT', '/index', function () {
+  echo "PUT route test";
+});
+
+on('DELETE', '/index/:id', function ($id) {
+  echo "DELETE route test";
+});
+
 on('GET', '/redirect/302', function () {
   redirect('/index');
 });
