@@ -24,7 +24,7 @@ test('site path setting and getting', function () {
 });
 
 test('url encoding', function () {
-  $s = 'name=jaydee&age=34';
+  $s = 'name=noodlehaus&project=dispatch';
   assert(u($s) === urlencode($s));
 });
 
@@ -71,6 +71,13 @@ test('PUT handler', function () {
 test('DELETE handler', function () {
   $res = curly('DELETE', URL.'/index/1');
   assert(preg_match('/DELETE route test/i', $res));
+});
+
+test('json output', function () {
+  $res = curly('GET', URL.'/json');
+  $val = '{"name":"noodlehaus","project":"dispatch"}';
+  assert(preg_match('/application\/json/', $res));
+  assert(preg_match('/'.preg_quote($val).'/', $res));
 });
 
 test('302 redirect (default)', function () {
