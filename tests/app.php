@@ -32,6 +32,13 @@ on('DELETE', '/index/:id', function ($id) {
   echo "DELETE route test";
 });
 
+on('GET', '/json', function () {
+  json_out([
+    'name' => 'noodlehaus',
+    'project' => 'dispatch'
+  ]);
+});
+
 on('GET', '/redirect/302', function () {
   redirect('/index');
 });
