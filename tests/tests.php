@@ -80,6 +80,13 @@ test('json output', function () {
   assert(preg_match('/'.preg_quote($val).'/', $res));
 });
 
+test('jsonp output', function () {
+  $res = curly('GET', URL.'/jsonp');
+  $val = 'callback({"name":"noodlehaus","project":"dispatch"})';
+  assert(preg_match('/application\/javascript/', $res));
+  assert(preg_match('/'.preg_quote($val).'/', $res));
+});
+
 test('302 redirect (default)', function () {
   $res = curly('GET', URL.'/redirect/302');
   assert(preg_match('/302 found/i', $res));
@@ -115,5 +122,16 @@ test('flash messages', function () {
   curly('GET', URL.'/flash-set');
   $res = curly('GET', URL.'/flash-get');
   assert(preg_match('/message=success/i', $res));
+});
+
+test('partials', function () {
+  $res = curly('GET', URL.'/partial/dispatch');
+  assert(preg_match('/dispatch is awesome/', $res));
+});
+
+test('template rendering', function () {
+  $res = curly('GET', URL.'/template/dispatch');
+  assert(preg_match('/<!doctype html>/i', $res));
+  assert(preg_match('/dispatch is awesome/', $res));
 });
 ?>

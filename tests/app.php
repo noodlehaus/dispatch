@@ -39,6 +39,13 @@ on('GET', '/json', function () {
   ]);
 });
 
+on('GET', '/jsonp', function () {
+  json_out([
+    'name' => 'noodlehaus',
+    'project' => 'dispatch'
+  ], 'callback');
+});
+
 on('GET', '/redirect/302', function () {
   redirect('/index');
 });
@@ -78,6 +85,14 @@ on('GET', '/flash-set', function () {
 
 on('GET', '/flash-get', function () {
   echo 'message='.flash('message');
+});
+
+on('GET', '/partial/:name', function ($name) {
+  echo partial('partial', ['name' => $name]);
+});
+
+on('GET', '/template/:name', function ($name) {
+  render('template', ['name' => $name]);
 });
 
 dispatch();
