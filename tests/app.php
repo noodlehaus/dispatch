@@ -95,5 +95,17 @@ on('GET', '/template/:name', function ($name) {
   render('template', ['name' => $name]);
 });
 
+on('GET', '/session/setup', function () {
+  session('name', 'i am dispatch');
+  session('type', 'php framework');
+});
+
+on('GET', '/session/check', function () {
+  session('type', null);
+  if (session('type'))
+    echo "type is still set";
+  echo session('name');
+});
+
 dispatch();
 ?>

@@ -185,6 +185,35 @@ function params($name = null, $default = null) {
 }
 
 /**
+ * Wraps around $_SESSION
+ *
+ * @param string $name name of session variable to set
+ * @param mixed $value value for the variable. Set this to null to
+ *   unset the variable from the session.
+ *
+ * @return mixed value for the session variable
+ */
+function session($name, $value = null) {
+
+  static $status = -1;
+
+  if ($status < 0) {
+    if (($status = session_status()) === PHP_SESSION_DISABLED)
+      error(500, 'call to session() failed, sessions are disabled');
+    else if ($status === PHP_SESSION_NONE)
+      session_start();
+  }
+
+  if (func_num_args() === 1)
+    return (isset($_SESSION[$name]) ? $_SESSION[$name] : null);
+
+  if ($value === null)
+    unset($_SESSION[$name]);
+  else
+    $_SESSION[$name] = $value;
+}
+
+/**
  * Wraps around $_COOKIE and setcookie().
  *
  * @param string $name name of the cookie to get or set

@@ -112,6 +112,13 @@ test('cookie setting', function () {
   assert(preg_match('/cookie=123/i', $res));
 });
 
+test('session setting', function () {
+  curly('GET', URL.'/session/setup');
+  $res = curly('GET', URL.'/session/check');
+  assert(preg_match('/i am dispatch/i', $res));
+  assert(!preg_match('/type is still set/i', $res));
+});
+
 test('params fetching', function () {
   $res = curly('GET', URL.'/params?one=1&two=2');
   assert(preg_match('/one=1/', $res));
