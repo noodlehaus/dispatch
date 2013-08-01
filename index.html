@@ -364,7 +364,7 @@ echo "comes fresh, everytime!";
 ?>
 ```
 
-## Cookies
+## Cookies and Sessions
 Get and set cookie values via `cookie($name, $value = null, $expire = 0, $path = '/')`.
 
 ```php
@@ -374,6 +374,24 @@ cookie('user_id', 'user-12345');
 
 // get a cookie
 $user_id = cookie('user_id');
+?>
+```
+
+For getting and setting session values, use `session($name, $value = null)`. Calls to `session()` will
+fail and raise an error if you have sessions disabled in your `php.ini`.
+
+If sessions are enabled, `session_start()` is called automatically for you.
+
+```php
+<?php
+// set a session value
+session('authenticated', false);
+
+// get a session value
+$authenticated = session('authenticated');
+
+// remove a session variable
+session('authenticated', null);
 ?>
 ```
 
