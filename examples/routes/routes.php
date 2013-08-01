@@ -21,5 +21,10 @@ on('HEAD', '/index', function () {
   echo "HEAD /index invoked";
 });
 
+// match any request method
+on('*', '/anything', function () {
+  echo $_SERVER['REQUEST_METHOD'];
+});
+
 dispatch();
 ?>
