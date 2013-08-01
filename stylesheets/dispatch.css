@@ -10,8 +10,9 @@ body {
 }
 
 h1 {
+  font-size: 2.5em;
   text-transform: uppercase;
-  margin-bottom: 1em;
+  margin-bottom: .5em;
 }
 
 h2 {
@@ -44,6 +45,10 @@ hr {
   background: #000;
   height: 1px;
   margin: -10px auto 40px;
+}
+
+.gh-buttons {
+  margin-bottom: 2em;
 }
 
 .tweet-it {
