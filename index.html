@@ -46,6 +46,17 @@ your application.
 
 Note that Dispatch functions are all loaded into the global namespace.
 
+If you have access to `mod_rewrite`, make sure to redirect all your PHP requests to
+your app.
+
+```
+<IfModule mod_rewrite.c>
+  RewriteEngine on
+  # in this case, our app bootstrap file is index.php
+  RewriteRule !\.(js|html|ico|gif|jpg|png|css)$ index.php
+</IfModule>
+```
+
 ## Configuration Variables
 
 Some settings are needed by Dispatch, and they can be set via `config()`.
