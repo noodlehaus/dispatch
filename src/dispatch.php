@@ -61,10 +61,8 @@ function config($key, $value = null) {
     $_config = array_merge($_config, parse_ini_file($value, true));
   else if ($value === null)
     return (isset($_config[$key]) ? $_config[$key] : null);
-  else
-    return ($_config[$key] = $value);
 
-  return $value;
+  return ($_config[$key] = $value);
 }
 
 /**
@@ -179,7 +177,7 @@ function params($name = null, $default = null) {
   else if ($name == null)
     return $source;
 
-  // used by on() for initialization
+  // used by on() for merging in route symbols
   if (is_array($name))
     $source = array_merge($source, $name);
 }
