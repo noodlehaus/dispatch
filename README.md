@@ -235,31 +235,45 @@ error(500, "Something broke!");
 ?>
 ```
 
-## Views and Partials
-Dispatch expects views and partials to have extensions of `.html.php`.
+## Layout, Views and Partials
+For Dispatch to work with layouts, views and partials, you need three settings:
 
-To dump a view, make a call to `render($path, $locals = [], $layout = null)`.
-If the third argument, `$layout` is set to `false`, then no layout file will be used.
-Anything else, it's treated as a filename inside your views folder.
+* `dispatch.views` - where to find all the views
+* `dispatch.layout` - the layout file to use (without .html.php) from the views path
+* your layout, views and partials should end with `.html.php`
 
-Note that execution stops after `render()` completes.
+The layout file you specify needs to contain a call to `content()`. This will plug in
+the contents of your view into your layout file.
+
+```php
+<!DOCTYPE html>
+<html>
+<head><title>My Layout File</title></head>
+<body>
+
+<!-- this call will plug in the contents of your view -->
+<?= content() ?>
+
+</body>
+</html>
+```
+
+With these set, you can then call `render()` in the following ways:
 
 ```php
 <?php
-// configure our views folder
-config('dispatch.views', '../views');
+// render a view with locals using the configured layout file
+render('index', ['name' => 'joe']);
 
-// render a template, using some local variables
-render('users/profile', array('name' => 'jaydee', 'age' => 35));
+// render a view using a different layout file (mobile-layout.html.php)
+render('index', ['name' => 'bob'], 'mobile-layout');
 
-// .. or ..
-
-// render a template, using some local variables
-render('users/profile', array('name' => 'jaydee', 'age' => 35), 'custom-layout');
+// render a view without using a layout file
+render('index', ['name' => 'bob'], false);
 ?>
 ```
 
-For partials, these files are expected to begin with the `_` character, and can be
+For partials, the files are expected to begin with the `_` character, and can be
 loaded via `partial($path, $locals = [])`.
 
 ```php
