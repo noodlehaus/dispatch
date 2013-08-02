@@ -12,6 +12,51 @@ Dispatch requires at least **PHP 5.4** to work.
 ## Code
 Get the code on GitHub: <http://github.com/noodlehaus/dispatch>.
 
+## Hello World!
+
+Here's the mandatory "Hello World" app to show how Dispatch works.
+
+File 1: `views/layout.html.php` (this is our layout file)
+```php
+<!DOCTYPE html>
+<html>
+<head><title>Hello World by Dispatch</title></head>
+<body>
+<div>
+  <!-- this call plugs in the data accumulated by calls to render() -->
+  <?= content() ?>
+</div>
+<p>This application was created with Dispatch.</p>
+</body>
+</html>
+```
+
+File 2: `views/index.html.php` (the home page view to be plugged into our layout)
+```php
+<!-- we just print out a greeting to whetever's passed to us -->
+<h1>Hello there, <?= h($name) ?>!</h1>
+```
+
+File 3: `public/index.php` (this is our bootstrap file, the app entry point)
+```php
+<?php
+include './path/to/dispatch.php';
+
+config('dispatch.views', 'path/to/views');
+config('dispatch.layout', 'layout');
+config('dispatch.flash_cookie', '_F'); // this is only needed if you call flash()
+
+// our route
+on('GET', '/index(/:name)?', function ($name = "World") {
+  // render the index template, using some locals
+  render('index', ['name' => $name]);
+});
+
+// serve requests
+dispatch();
+?>
+```
+
 ## Installation
 To install using `composer`, have the following lines in your `composer.json` file.
 
