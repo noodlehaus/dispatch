@@ -16,7 +16,7 @@ Get the code on GitHub: <http://github.com/noodlehaus/dispatch>.
 
 Here's the mandatory "Hello World" app to show how Dispatch works.
 
-File 1: `views/layout.html.php` (this is our layout file)
+File 1 - `views/layout.html.php` (this is our layout file)
 ```php
 <!DOCTYPE html>
 <html>
@@ -31,13 +31,13 @@ File 1: `views/layout.html.php` (this is our layout file)
 </html>
 ```
 
-File 2: `views/index.html.php` (the home page view to be plugged into our layout)
+File 2 - `views/index.html.php` (the home page view to be plugged into our layout)
 ```php
-<!-- we just print out a greeting to whetever's passed to us -->
+<!-- we just print out a greeting to whatever is passed to us -->
 <h1>Hello there, <?= h($name) ?>!</h1>
 ```
 
-File 3: `public/index.php` (this is our bootstrap file, the app entry point)
+File 3 - `public/index.php` (this is our bootstrap file, the app entry point)
 ```php
 <?php
 include './path/to/dispatch.php';
