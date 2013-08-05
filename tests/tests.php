@@ -141,4 +141,6 @@ test('template rendering', function () {
   assert(preg_match('/<!doctype html>/i', $res));
   assert(preg_match('/dispatch is awesome/', $res));
 });
+
+test_summary();
 ?>
