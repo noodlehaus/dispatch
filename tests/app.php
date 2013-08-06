@@ -7,6 +7,16 @@ config('dispatch.views', './views');
 config('dispatch.layout', 'layout');
 config('dispatch.url', 'http://localhost:1234/');
 
+// before routine
+before(function ($method, $path) {
+  echo "BEFORE METHOD: {$method}, BEFORE PATH: {$path}".PHP_EOL;
+});
+
+// after routine
+after(function ($method, $path) {
+  echo "AFTER METHOD: {$method}, AFTER PATH: {$path}".PHP_EOL;
+});
+
 // routines for testing
 error(404, function () {
   echo "file not found";

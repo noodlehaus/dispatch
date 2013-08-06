@@ -43,6 +43,18 @@ test('cross-scope values', function () {
  * remote tests
  */
 
+test('before routines', function () {
+  $res = curly('GET', URL.'/index');
+  assert(preg_match('/BEFORE METHOD: GET/', $res));
+  assert(preg_match('/BEFORE PATH: \/index/', $res));
+});
+
+test('after routines', function () {
+  $res = curly('GET', URL.'/index');
+  assert(preg_match('/AFTER METHOD: GET/', $res));
+  assert(preg_match('/AFTER PATH: \/index/', $res));
+});
+
 test('error triggers', function () {
   $res = curly('GET', URL.'/error');
   assert(preg_match('/500 page error/i', $res));

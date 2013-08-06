@@ -505,15 +505,15 @@ function filter($symbol, $callback = null) {
  *
  * @return void
  */
-function before($callback = null) {
+function before($method_or_cb = null, $path = null) {
 
   static $before_callbacks = [];
 
-  if ($callback === null) {
+  if (!is_callable($method_or_cb)) {
     foreach ($before_callbacks as $callback)
-      call_user_func($callback);
+      call_user_func_array($callback, [$method_or_cb, $path]);
   } else {
-    $before_callbacks[] = $callback;
+    $before_callbacks[] = $method_or_cb;
   }
 }
 
@@ -525,15 +525,15 @@ function before($callback = null) {
  *
  * @return void
  */
-function after($callback = null) {
+function after($method_or_cb = null, $path = null) {
 
   static $after_callbacks = [];
 
-  if ($callback === null) {
+  if (!is_callable($method_or_cb)) {
     foreach ($after_callbacks as $callback)
-      call_user_func($callback);
+      call_user_func_array($callback, [$method_or_cb, $path]);
   } else {
-    $after_callbacks[] = $callback;
+    $after_callbacks[] = $method_or_cb;
   }
 }
 
@@ -669,12 +669,12 @@ function dispatch($method = null, $path = null) {
     $path = preg_replace('@^/?'.preg_quote(trim($root, '/')).'@i', '', $path);
 
   // setup shutdown func for after() callbacks
-  register_shutdown_function(function () {
-    after();
+  register_shutdown_function(function () use ($method, $path) {
+    after($method, $path);
   });
 
   // call all before() callbacks
-  before();
+  before($method, $path);
 
   // match it
   on($method, $path);
