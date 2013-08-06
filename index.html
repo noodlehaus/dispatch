@@ -249,17 +249,17 @@ on('GET', '/blogs/:blog_id', function ($blog_id) {
 
 ## Before and After Callbacks
 To setup routines to be run before and after a request, use `before($callable)` and `after($callable)`
-respectively.
+respectively. The callback routines will receive two arguments - the `REQUEST_METHOD`, and the `REQUEST_URI`.
 
 ```php
 <?php
 // setup a function to be called before each request
-before(function () {
+before(function ($method, $path) {
   // setup stuff
 });
 
 // setup a function to be called after each request
-after(function () {
+after(function ($method, $path) {
   // clean up stuff
 });
 ?>
