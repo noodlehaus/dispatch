@@ -193,13 +193,23 @@ function params($name = null, $default = null) {
  */
 function session($name, $value = null) {
 
-  static $status = -1;
+  static $session_active = false;
 
-  if ($status < 0) {
-    if (($status = session_status()) === PHP_SESSION_DISABLED)
-      error(500, 'call to session() failed, sessions are disabled');
-    else if ($status === PHP_SESSION_NONE)
+  // ref: stackoverflow.com/questions/3788369/how-to-tell-if-a-session-is-active/7656468#7656468
+  if ($session_active === false) {
+
+    if (($current = ini_get('session.use_trans_sid')) === false)
+      error(500, 'Calls to session() requires [session.use_trans_sid] to be set');
+
+    $test = "mix{$current}{$current}";
+
+    $prev = @ini_set('session.use_trans_sid', $test);
+    $peek = @ini_set('session.use_trans_sid', $current);
+
+    if ($peek !== $current && $peek !== false)
       session_start();
+
+    $session_active = true;
   }
 
   if (func_num_args() === 1)
