@@ -19,7 +19,7 @@ if (!defined('PHP_VERSION_ID') || PHP_VERSION_ID < 50400)
  */
 function error($code, $callback = null) {
 
-  static $error_callbacks = [];
+  static $error_callbacks = array();
 
   $code = (string) $code;
 
@@ -55,7 +55,7 @@ function error($code, $callback = null) {
  */
 function config($key, $value = null) {
 
-  static $_config = [];
+  static $_config = array();
 
   if ($key === 'source' && file_exists($value))
     $_config = array_merge($_config, parse_ini_file($value, true));
@@ -100,7 +100,7 @@ function site($path_only = false) {
  */
 function flash($key, $msg = null, $now = false) {
 
-  static $x = [];
+  static $x = array();
 
   $f = config('dispatch.flash_cookie');
 
@@ -110,7 +110,7 @@ function flash($key, $msg = null, $now = false) {
   if ($c = cookie($f))
     $c = json_decode($c, true);
   else
-    $c = [];
+    $c = array();
 
   if ($msg == null) {
 
@@ -269,7 +269,7 @@ function upload($name) {
   // if file field is an array
   if (is_array($_FILES[$name]['name'])) {
 
-    $result = [];
+    $result = array();
 
     // consolidate file info
     foreach ($_FILES[$name] as $k1 => $v1)
@@ -307,7 +307,7 @@ function upload($name) {
  */
 function scope($name, $value = null) {
 
-  static $_stash = [];
+  static $_stash = array();
 
   if ($value === null)
     return isset($_stash[$name]) ? $_stash[$name] : null;
@@ -481,7 +481,7 @@ function json_out($obj, $func = null) {
  */
 function filter($symbol, $callback = null) {
 
-  static $filter_callbacks = [];
+  static $filter_callbacks = array();
 
   if (is_callable($callback)) {
     $filter_callbacks[$symbol][] = $callback;
@@ -507,11 +507,11 @@ function filter($symbol, $callback = null) {
  */
 function before($method_or_cb = null, $path = null) {
 
-  static $before_callbacks = [];
+  static $before_callbacks = array();
 
   if (!is_callable($method_or_cb)) {
     foreach ($before_callbacks as $callback)
-      call_user_func_array($callback, [$method_or_cb, $path]);
+      call_user_func_array($callback, array($method_or_cb, $path));
   } else {
     $before_callbacks[] = $method_or_cb;
   }
@@ -527,11 +527,11 @@ function before($method_or_cb = null, $path = null) {
  */
 function after($method_or_cb = null, $path = null) {
 
-  static $after_callbacks = [];
+  static $after_callbacks = array();
 
   if (!is_callable($method_or_cb)) {
     foreach ($after_callbacks as $callback)
-      call_user_func_array($callback, [$method_or_cb, $path]);
+      call_user_func_array($callback, array($method_or_cb, $path));
   } else {
     $after_callbacks[] = $method_or_cb;
   }
@@ -554,14 +554,14 @@ function after($method_or_cb = null, $path = null) {
 function on($method, $path, $callback = null) {
 
   // callback map by request type
-  static $routes = [
-    'HEAD' => [],
-    'GET' => [],
-    'POST' => [],
-    'PUT' => [],
-    'PATCH' => [],
-    'DELETE' => []
-  ];
+  static $routes = array(
+    'HEAD' => array(),
+    'GET' => array(),
+    'POST' => array(),
+    'PUT' => array(),
+    'PATCH' => array(),
+    'DELETE' => array()
+  );
 
   // we don't want slashes in both ends
   $path = trim($path, '/');
@@ -587,7 +587,7 @@ function on($method, $path, $callback = null) {
 
     // create a route entry for this path on every method
     foreach ($method as $m)
-      $routes[$m][$path] = ['regex' => '@^'.$regex.'$@i', 'callback' => $callback];
+      $routes[$m][$path] = array('regex' => '@^'.$regex.'$@i', 'callback' => $callback);
 
   } else {
 
