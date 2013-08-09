@@ -1,5 +1,5 @@
-Dispatch 2
-==========
+Dispatch
+========
 **NOTE**: If you're looking for Dispatch 1.x, switch to the
 [**1.x branch**](https://github.com/noodlehaus/dispatch/tree/1.x).
 
