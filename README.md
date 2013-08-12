@@ -52,10 +52,10 @@ Some settings are needed by Dispatch, and they can be set via `config()`.
 // REQUIRED, base path for your views
 config('dispatch.views', '../views');
 
-// REQUIRED, default layout to use (omit .html.php extension)
+// OPTIONAL, layout file to use (defaults to 'layout')
 config('dispatch.layout', 'layout');
 
-// REQUIRED, cookie name to use for flash messages
+// OPTIONAL, cookie for flash messages (defaults to '_F')
 config('dispatch.flash_cookie', '_F');
 
 // OPTIONAL, specify your app's full URL
@@ -63,6 +63,15 @@ config('dispatch.url', 'http://somedomain.com/someapp/path');
 
 // OPTIONAL, routing file to be taken off of the request URI
 config('dispatch.router', 'index.php');
+
+// you can also just pass a hash of settings in one call
+config([
+  'dispatch.views' => '../views',
+  'dispatch.layout' => 'layout',
+  'dispatch.flash_cookie' => '_F',
+  'dispatch.url' => 'http://somedomain.com/somapp/path',
+  'dispatch.router' => 'index.php'
+]);
 ?>
 ```
 

@@ -57,12 +57,18 @@ function config($key, $value = null) {
 
   static $_config = array();
 
-  if ($key === 'source' && file_exists($value))
-    $_config = array_merge($_config, parse_ini_file($value, true));
-  else if ($value === null)
-    return (isset($_config[$key]) ? $_config[$key] : null);
+  if (is_string($key)) {
 
-  return ($_config[$key] = $value);
+    if ($key !== 'source') {
+      return ($value === null ? $_config[$key] : ($_config[$key] = $value));
+    } else {
+      !file_exists($value) && error(500, "File passed to config('source') not found");
+      $_config = array_merge($_config, parse_ini_file($value, true));
+    }
+
+  } else if (is_array($key) && array_diff_key($key, array_keys(array_keys($key)))) {
+    $_config = array_merge($_config, $key);
+  }
 }
 
 /**
@@ -103,9 +109,7 @@ function flash($key, $msg = null, $now = false) {
   static $x = array();
 
   $f = config('dispatch.flash_cookie');
-
-  if (!$f)
-    error(500, "config('dispatch.flash_cookie') is not set.");
+  $f = (!$f ? '_F' : $f);
 
   if ($c = cookie($f))
     $c = json_decode($c, true);
@@ -414,8 +418,8 @@ function content($value = null) {
  */
 function render($view, $locals = null, $layout = null) {
 
-  if (($view_root = config('dispatch.views')) == null)
-    error(500, "config('dispatch.views') is not set.");
+  $view_root = config('dispatch.views');
+  $view_root = (!$view_root ? 'layout' : $view_root);
 
   if (is_array($locals) && count($locals))
     extract($locals, EXTR_SKIP);
