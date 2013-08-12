@@ -101,6 +101,15 @@ config('dispatch.url', 'http://somedomain.com/someapp/path');
 
 // OPTIONAL, routing file to be taken off of the request URI
 config('dispatch.router', 'index.php');
+
+// you can also just pass a hash of settings in one call
+config([
+  'dispatch.views' => '../views',
+  'dispatch.layout' => 'layout',
+  'dispatch.flash_cookie' => '_F',
+  'dispatch.url' => 'http://somedomain.com/somapp/path',
+  'dispatch.router' => 'index.php'
+]);
 ?>
 ```
 
