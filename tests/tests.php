@@ -17,6 +17,15 @@ test('config setting and getting', function () {
   assert(config('false') === false);
 });
 
+test('config setting using an array', function () {
+  config([
+    'name' => 'noodlehaus',
+    'project' => 'dispatch'
+  ]);
+  assert(config('name') === 'noodlehaus');
+  assert(config('project') === 'dispatch');
+});
+
 test('site path setting and getting', function () {
   config('dispatch.url', 'http://localhost:8888/mysite/');
   assert(site() === 'http://localhost:8888/mysite/');
