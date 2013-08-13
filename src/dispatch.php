@@ -60,7 +60,12 @@ function config($key, $value = null) {
   if (is_string($key)) {
 
     if ($key !== 'source') {
-      return ($value === null ? $_config[$key] : ($_config[$key] = $value));
+
+      if ($value === null)
+        return (isset($_config[$key]) ? $_config[$key] : null);
+
+      return ($_config[$key] = $value);
+
     } else {
       !file_exists($value) && error(500, "File passed to config('source') not found");
       $_config = array_merge($_config, parse_ini_file($value, true));

@@ -15,6 +15,7 @@ test('config setting and getting', function () {
   config('false', false);
   assert(config('one') === 1);
   assert(config('false') === false);
+  assert(config('invalid') === null);
 });
 
 test('config setting using an array', function () {
