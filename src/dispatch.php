@@ -160,8 +160,9 @@ function u($str) {
  *
  * @return string encoded string
  */
-function h($str, $flags = ENT_QUOTES, $enc = 'UTF-8') {
-  return htmlentities($str, $flags, $enc);
+function h($str, $flags = -1, $enc = 'UTF-8', $denc = true) {
+  $flags = ($flags < 0 ? ENT_COMPAT|ENT_HTML401 : $flags);
+  return htmlentities($str, $flags, $enc, $denc);
 }
 
 /**
@@ -582,7 +583,7 @@ function on($method, $path, $callback = null) {
     'DELETE' => array()
   );
 
-  // we don't want slashes in both ends
+  // we don't want slashes on ends
   $path = trim($path, '/');
 
   // a callback was passed, so we create a route defiition
@@ -597,11 +598,11 @@ function on($method, $path, $callback = null) {
     $method = (array) $method;
 
     // wildcard method means for all supported methods
-    if (in_array('*', $method)) {
-      $method = array_keys($routes);
-    } else {
+    if (!in_array('*', $method)) {
       array_walk($method, function (&$m) { $m = strtoupper($m); });
       $method = array_intersect(array_keys($routes), $method);
+    } else {
+      $method = array_keys($routes);
     }
 
     // create a route entry for this path on every method
@@ -616,10 +617,6 @@ function on($method, $path, $callback = null) {
 
     // then normalize
     $method = strtoupper($method);
-
-    // do we have a method override?
-    if (params('_method'))
-      $method = strtoupper(params('_method'));
 
     // for invokation, only support strings
     if (!in_array($method, array_keys($routes)))
@@ -691,6 +688,9 @@ function dispatch($method = null, $path = null) {
   register_shutdown_function(function () use ($method, $path) {
     after($method, $path);
   });
+
+  // check for method override
+  $method = (($method = params('_method')) ? $method : $_SERVER['REQUEST_METHOD']);
 
   // call all before() callbacks
   before($method, $path);
