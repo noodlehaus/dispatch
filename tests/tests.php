@@ -76,23 +76,29 @@ test('custom error handler', function () {
 });
 
 test('GET handler', function () {
-  $res = curly('GET', URL.'/index');
-  assert(preg_match('/GET route test/', $res));
+  $res = curly('GET', URL.'/index?name=dispatch');
+  assert(preg_match('/GET received dispatch and dispatch/', $res));
 });
 
 test('POST handler', function () {
-  $res = curly('POST', URL.'/index');
-  assert(preg_match('/POST route test/i', $res));
+  $res = curly('POST', URL.'/index', ['name' => 'dispatch']);
+  assert(preg_match('/POST received dispatch and dispatch/i', $res));
 });
 
 test('PUT handler', function () {
-  $res = curly('PUT', URL.'/index');
-  assert(preg_match('/PUT route test/i', $res));
+  $res = curly('PUT', URL.'/index', ['name' => 'dispatch']);
+  assert(preg_match('/PUT received dispatch/i', $res));
 });
 
 test('DELETE handler', function () {
   $res = curly('DELETE', URL.'/index/1');
   assert(preg_match('/DELETE route test/i', $res));
+});
+
+test('POST file upload', function () {
+  $att = curl_file_create(__DIR__.'/upload.txt');
+  $res = curly('POST', URL.'/upload', ['attachment' => $att]);
+  assert(preg_match('/received upload\.txt/', $res));
 });
 
 test('json output', function () {
