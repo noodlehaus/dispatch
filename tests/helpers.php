@@ -31,11 +31,15 @@ function curly($method, $url, $data = [], $opts = []) {
   ];
 
   if (in_array($method, ['POST', 'DELETE', 'PUT', 'HEAD'])) {
-    $defs[CURLOPT_POSTFIELDS] = http_build_query($data);
-    if ($method === 'POST')
-      $defs[CURLOPT_POST] = 1;
-    else
-    $defs[CURLOPT_CUSTOMREQUEST] = $method;
+    if ($method === 'POST') {
+      $defs[CURLOPT_POST] = true;
+    } else {
+      $defs[CURLOPT_CUSTOMREQUEST] = $method;
+      $data = http_build_query($data);
+      if ($method === 'PUT')
+        $defs[CURLOPT_HTTPHEADER] = ['Content-Length: '.strlen($data)];
+    }
+    $defs[CURLOPT_POSTFIELDS] = $data;
   }
 
   $ch = curl_init();
