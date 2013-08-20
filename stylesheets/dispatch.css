@@ -7,6 +7,7 @@ body {
   width: 600px;
   color: #222;
   background: #fff;
+  -webkit-font-smoothing: antialiased;
 }
 
 h1 {
