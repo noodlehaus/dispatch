@@ -4,9 +4,6 @@
  * @license MIT
  */
 
-if (!defined('PHP_VERSION_ID') || PHP_VERSION_ID < 50400)
-  error(500, 'dispatch requires at least PHP 5.4 to run.');
-
 /**
  * Function for setting http error code handlers and for
  * triggering them. Execution stops after an error callback
