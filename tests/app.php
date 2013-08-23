@@ -130,5 +130,20 @@ on('POST', '/upload', function () {
     echo "failed upload";
 });
 
+resource('books', function () {
+  on('GET', '/list', function () {
+    echo "book list";
+  });
+  resource('chapters', function () {
+    on('GET', '/list', function () {
+      echo "chapter list";
+    });
+  });
+});
+
+on('GET', '/list', function () {
+  echo "different list";
+});
+
 dispatch();
 ?>

@@ -555,6 +555,33 @@ function after($method_or_cb = null, $path = null) {
 }
 
 /**
+ * Group all routes created within $cb under the $name resource.
+ * This is useful for creating restful resources.
+ *
+ * @param string $name required. subpath where succeding routes will be created
+ * @param callable $cb required. routine that contains on() calls for the subroutes
+ *
+ * @return void
+ */
+function resource($name = null, $cb = null) {
+
+  static $paths = array();
+
+  // this is used by the system to get the current route
+  if (($nargs = func_num_args()) == 0)
+    return implode('/', $paths);
+
+  // outside of sys calls, always require 2 params
+  if ($nargs < 2)
+    error(500, 'Invalid call to resource()');
+
+  // push, routine, pop so we can nest
+  array_push($paths, trim($name, '/'));
+  call_user_func($cb);
+  array_pop($paths);
+}
+
+/**
  * Maps a callback or invokes a callback for requests
  * on $pattern. If $callback is not set, $pattern
  * is matched against all routes for $method, and the
@@ -583,8 +610,12 @@ function on($method, $path, $callback = null) {
   // we don't want slashes on ends
   $path = trim($path, '/');
 
-  // a callback was passed, so we create a route defiition
+  // a callback was passed, so we create a route definition
   if (is_callable($callback)) {
+
+    // if we're inside a resouce, use the path
+    if (strlen($pref = resource()))
+      $path = trim("{$pref}/{$path}", '/');
 
     // create the regex for this route
     $regex = preg_replace_callback('@:\w+@', function ($matches) {

@@ -27,7 +27,8 @@ function curly($method, $url, $data = [], $opts = []) {
     CURLOPT_FORBID_REUSE => 1,
     CURLOPT_COOKIEJAR => 'cookiejar.txt',
     CURLOPT_COOKIEFILE => 'cookiejar.txt',
-    CURLOPT_TIMEOUT => 4
+    CURLOPT_TIMEOUT => 4,
+    CURLOPT_FRESH_CONNECT => 1
   ];
 
   if (in_array($method, ['POST', 'DELETE', 'PUT', 'HEAD'])) {
@@ -76,8 +77,10 @@ function test_stack($name = null) {
 function test($title, $cb) {
   test_stack($title);
   test_count(1, 0);
-  call_user_func($cb);
-  echo "\e[1;32mPASSED\e[0m: {$title}".PHP_EOL;
+  try {
+    call_user_func($cb);
+    echo "\e[1;32mPASSED\e[0m: {$title}".PHP_EOL;
+  } catch (Exception $ex) {}
 }
 
 assert_options(ASSERT_BAIL, 0);
@@ -90,5 +93,6 @@ assert_options(ASSERT_CALLBACK, function ($script, $line, $message) {
   echo "FAILED: {$task}".PHP_EOL;
   echo "\e[0m";
   test_count(0, 1);
+  throw new Exception();
 });
 ?>
