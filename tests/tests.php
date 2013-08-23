@@ -54,13 +54,13 @@ test('cross-scope values', function () {
  */
 
 test('before routines', function () {
-  $res = curly('GET', URL.'/index');
+  $res = curly('GET', URL.'/index?name=dispatch');
   assert(preg_match('/BEFORE METHOD: GET/', $res));
   assert(preg_match('/BEFORE PATH: \/index/', $res));
 });
 
 test('after routines', function () {
-  $res = curly('GET', URL.'/index');
+  $res = curly('GET', URL.'/index?name=dispatch');
   assert(preg_match('/AFTER METHOD: GET/', $res));
   assert(preg_match('/AFTER PATH: \/index/', $res));
 });
@@ -168,6 +168,15 @@ test('template rendering', function () {
   $res = curly('GET', URL.'/template/dispatch');
   assert(preg_match('/<!doctype html>/i', $res));
   assert(preg_match('/dispatch is awesome/', $res));
+});
+
+test('grouped routes', function () {
+  $res1 = curly('GET', URL.'/books/list');
+  $res2 = curly('GET', URL.'/books/chapters/list');
+  $res3 = curly('GET', URL.'/list');
+  assert(preg_match('/book list/', $res1));
+  assert(preg_match('/chapter list/', $res2));
+  assert(preg_match('/different list/', $res3));
 });
 
 test_summary();
