@@ -514,6 +514,7 @@ function json_out($obj, $func = null)
 function filter($symbol, $callback = null)
 function before($callback = null)
 function after($callback = null)
+function resource($name, $cb)
 function on($method, $path, $callback = null)
 function dispatch($method = null, $path = null)
 ?>
