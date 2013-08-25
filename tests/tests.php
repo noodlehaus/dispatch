@@ -96,7 +96,12 @@ test('DELETE handler', function () {
 });
 
 test('POST file upload', function () {
-  $att = curl_file_create(__DIR__.'/upload.txt');
+
+  if (PHP_VERSION_ID < 50500)
+    $att = '@'.__DIR__.'/upload.txt';
+  else
+    $att = curl_file_create(__DIR__.'/upload.txt');
+
   $res = curly('POST', URL.'/upload', ['attachment' => $att]);
   assert(preg_match('/received upload\.txt/', $res));
 });
