@@ -287,7 +287,7 @@ filter('blog_id', function ($blog_id) {
 on('GET', '/blogs/:blog_id', function ($blog_id) {
   // pick up what we got from the stash
   $blog = scope('blog');
-  render('blogs/show', array('blog' => $blog);
+  render('blogs/show', array('blog' => $blog));
 });
 ?>
 ```
