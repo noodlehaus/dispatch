@@ -198,24 +198,21 @@ redirect('/denied', 302, !authenticated());
 ```
 
 ## Request Method Overrides
-Until browsers provide support for DELETE and PUT methods in forms,
-you can instead use a hidden input field named `_method` to override
-the request method for the form.
+Method overrides set either via the `_method` form field or the
+'X-Http-Method-Override' header are supported. If either of these two are
+present in the request, their values are respected. Below is the particular
+code that describes how this is handled.
 
-```html
-<!-- sample PUT request -->
-<form method="POST" action="/users/1">
-  <input type="hidden" name="_method" value="PUT">
-  ...
-  <input type="submit" value="Update">
-</form>
-
-<!-- sample DELETE request -->
-<form method="POST" action="/users/1">
-  <input type="hidden" name="_method" value="DELETE">
-  ...
-  <input type="submit" value="Remove">
-</form>
+```php
+<?php
+  // check for method override
+  if (isset($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE']))
+    $method = $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'];
+  else if (params('_method'))
+    $method = params('_method');
+  else
+    $method = $_SERVER['REQUEST_METHOD'];
+?>
 ```
 
 ## Request Body in PUTs or JSON POSTs
