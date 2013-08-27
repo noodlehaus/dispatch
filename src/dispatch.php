@@ -718,7 +718,12 @@ function dispatch($method = null, $path = null) {
   });
 
   // check for method override
-  $method = (($method = params('_method')) ? $method : $_SERVER['REQUEST_METHOD']);
+  if (isset($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE']))
+    $method = $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'];
+  else if (params('_method'))
+    $method = params('_method');
+  else
+    $method = $_SERVER['REQUEST_METHOD'];
 
   // call all before() callbacks
   before($method, $path);
