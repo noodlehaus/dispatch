@@ -494,28 +494,39 @@ Below's the list of functions provided by Dispatch.
 
 ```php
 <?php
+// routing functions
+function on($method, $path, $callback)
+function resource($name, $cb)
 function error($code, $callback = null)
+function before($callback)
+function after($callback)
+function filter($symbol, $callback)
+function redirect($path, $code = 302, $condition = true)
+
+// views, templates and responses
+function render($view, $locals = null, $layout = null)
+function partial($view, $locals = null)
+function json_out($obj, $func = null)
+function nocache()
+
+// request data helpers
+function params($name = null, $default = null)
+function cookie($name, $value = null, $expire = 0, $path = '/')
+function scope($name, $value = null)
+function upload($name)
+function request_body()
+
+// configurations and settings
 function config($key, $value = null)
 function site($path_only = false)
+
+// misc helpers
 function flash($key, $msg = null, $now = false)
 function u($str)
 function h($str, $flags = ENT_QUOTES, $enc = 'UTF-8')
-function params($name = null, $default = null)
-function cookie($name, $value = null, $expire = 0, $path = '/')
-function request_body()
-function upload($name)
-function scope($name, $value = null)
 function ip()
-function redirect($path, $code = 302, $condition = true)
-function partial($view, $locals = null)
-function render($view, $locals = null, $layout = null)
-function nocache()
-function json_out($obj, $func = null)
-function filter($symbol, $callback)
-function before($callback)
-function after($callback)
-function resource($name, $cb)
-function on($method, $path, $callback)
+
+// entry point
 function dispatch($method = null, $path = null)
 ?>
 ```
