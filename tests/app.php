@@ -43,6 +43,10 @@ on('PUT', '/index', function () {
   echo "PUT received {$vars['name']}";
 });
 
+on('PUT', '/override', function () {
+  echo "PUT received via _method";
+});
+
 on('DELETE', '/index/:id', function ($id) {
   echo "DELETE route test";
 });
