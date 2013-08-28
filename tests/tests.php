@@ -106,6 +106,21 @@ test('POST file upload', function () {
   assert(preg_match('/received upload\.txt/', $res));
 });
 
+test('method override via _method', function () {
+  $res = curly('POST', URL.'/override', ['_method' => 'PUT']);
+  assert(preg_match('/PUT received via _method/i', $res));
+});
+
+test('method override via X-HTTP-Method-Override', function () {
+  $res = curly(
+    'POST',
+    URL.'/override',
+    ['data' => 'nothing'],
+    [CURLOPT_HTTPHEADER => ['X-HTTP-Method-Override: PUT']]
+  );
+  assert(preg_match('/PUT received via _method/i', $res));
+});
+
 test('json output', function () {
   $res = curly('GET', URL.'/json');
   $val = '{"name":"noodlehaus","project":"dispatch"}';

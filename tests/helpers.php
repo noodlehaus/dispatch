@@ -29,7 +29,7 @@ function curly($method, $url, $data = [], $opts = []) {
     CURLOPT_COOKIEFILE => 'cookiejar.txt',
     CURLOPT_TIMEOUT => 4,
     CURLOPT_FRESH_CONNECT => 1
-  ];
+  ] + $opts;
 
   if (in_array($method, ['POST', 'DELETE', 'PUT', 'HEAD'])) {
     if ($method === 'POST') {
