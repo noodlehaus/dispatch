@@ -717,13 +717,14 @@ function dispatch($method = null, $path = null) {
     after($method, $path);
   });
 
+  // if method was passed along to dispatch() call
+  $method = $method ? $method : $_SERVER['REQUEST_METHOD'];
+
   // check for method override
   if (isset($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE']))
     $method = $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'];
   else if (params('_method'))
     $method = params('_method');
-  else
-    $method = $_SERVER['REQUEST_METHOD'];
 
   // call all before() callbacks
   before($method, $path);
