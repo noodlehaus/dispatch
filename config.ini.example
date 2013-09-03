@@ -1,15 +1,22 @@
+; REQUIRED
+; views directory
+dispatch.views = views
+
+; OPTIONAL
+; layout file to use
+dispatch.layout = layout
+
+; OPTIONAL
+; flash messaging cookie
+dispatch.flash_cookie = _F
+
+; OPTIONAL
 ; Define your site's base URL
 dispatch.url = http://localhost/myapp/
 
-; If present, this path will be stripped from the
+; OPTIONAL
+; This path will be stripped from the
 ; request URI before they are routed. This is useful
 ; if you don't have mod_rewrite enabled and use request
 ; paths of the format /index.php/controller/action.
 dispatch.router = index.php
-
-; rendering vars
-dispatch.views = views
-dispatch.layout = layout
-
-; flash messaging cookie
-dispatch.flash_cookie = _F
