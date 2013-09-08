@@ -547,6 +547,7 @@ Thanks to the following contributors for helping improve this tool :)
 * Kafene [kafene](https://github.com/kafene)
 * Martin Angelov [martingalv](https://github.com/martinaglv)
 * Lars [larsbo](https://github.com/larsbo)
+* 4d47 [4d47](https://github.com/4d47)
 
 ## LICENSE
 MIT <http://noodlehaus.mit-license.org/>
