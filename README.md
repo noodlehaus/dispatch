@@ -527,6 +527,7 @@ function params($name = null, $default = null)
 function cookie($name, $value = null, $expire = 0, $path = '/')
 function scope($name, $value = null)
 function upload($name)
+function request_headers($name = null)
 function request_body()
 
 // configurations and settings
