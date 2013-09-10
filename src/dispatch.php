@@ -245,6 +245,39 @@ function cookie($name, $value = null, $expire = 31536000, $path = '/') {
 }
 
 /**
+ * Convenience wrapper for accessing http request headers.
+ *
+ * @param string $key name of http request header to fetch
+ *
+ * @return string value for the header, or null if header isn't there.
+ */
+function request_headers($key = null) {
+
+  static $headers = null;
+
+  // if first call, pull headers
+  if (!$headers) {
+    if (function_exists('getallheaders')) {
+      foreach (getallheaders() as $k => $v)
+        $headers[strtolower($k)] = $v;
+    } else {
+      // if we're not on apache
+      $headers = array();
+      foreach ($_SERVER as $k => $v)
+        if (substr($k, 0, 5) == 'HTTP_')
+          $headers[strtolower(str_replace('_', '-', substr($k, 5)))] = $v;
+    }
+  }
+
+  if ($key == null)
+    return $headers;
+
+  $key = strtolower($key);
+
+  return (isset($headers[$key]) ? $headers[$key] : null);
+}
+
+/**
  * Convenience function for reading in the request body. JSON
  * and form-urlencoded content are automatically parsed and returned
  * as arrays.
@@ -339,12 +372,11 @@ function scope($name, $value = null) {
  */
 function ip() {
 
-  if (isset($_SERVER['HTTP_CLIENT_IP']))
-    return $_SERVER['HTTP_CLIENT_IP'];
-  else if (isset($_SERVER['HTTP_X_FORWARDED_FOR']))
-    return $_SERVER['HTTP_X_FORWARDED_FOR'];
+  $client = request_headers('client-ip');
+  $client = $client ?: request_headers('x-forwarded-for');
+  $client = $client ?: $_SERVER['REMOTE_ADDR'];
 
-  return $_SERVER['REMOTE_ADDR'];
+  return $client;
 }
 
 /**
@@ -712,22 +744,20 @@ function dispatch($method = null, $path = null) {
   if ($root)
     $path = preg_replace('@^/?'.preg_quote(trim($root, '/')).'@i', '', $path);
 
+  // check for override
+  $override = request_headers('x-http-method-override');
+  $override = $override ? $override : params('_method');
+
+  // set correct method
+  $method = $override ? $override : ($method ? $method : $_SERVER['REQUEST_METHOD']);
+
+  // call all before() callbacks
+  before($method, $path);
+
   // setup shutdown func for after() callbacks
   register_shutdown_function(function () use ($method, $path) {
     after($method, $path);
   });
-
-  // if method was passed along to dispatch() call
-  $method = $method ? $method : $_SERVER['REQUEST_METHOD'];
-
-  // check for method override
-  if (isset($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE']))
-    $method = $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'];
-  else if (params('_method'))
-    $method = params('_method');
-
-  // call all before() callbacks
-  before($method, $path);
 
   // match it
   on($method, $path);
