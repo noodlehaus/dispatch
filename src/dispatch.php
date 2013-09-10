@@ -163,6 +163,19 @@ function h($str, $flags = -1, $enc = 'UTF-8', $denc = true) {
 }
 
 /**
+ * Convenience wrapper for DateTime
+ *
+ * @param string $format format of date and time.
+ * @param string $strtime date and time to format
+ *
+ * @return string date time string according to format
+ */
+function d($format = null, $strtime = null) {
+  date_default_timezone_set(config('dispatch.timezone') ?: date_default_timezone_get());
+  return date_format(date_create($strtime), $format ?: 'Y-m-d H:i:s');
+}
+
+/**
  * Helper for getting values from $_GET, $_POST and route
  * symbols. If called with no arguments, it returns all param
  * values.
