@@ -79,6 +79,9 @@ config([
   'dispatch.url' => 'http://somedomain.com/somapp/path',
   'dispatch.router' => 'index.php'
 ]);
+
+// calling this with null as the only argument resets the config
+config(null);
 ?>
 ```
 
