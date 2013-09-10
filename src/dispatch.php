@@ -144,7 +144,19 @@ function flash($key, $msg = null, $now = false) {
  *
  * @return string url encoded string
  */
+function url($str) {
+  return urlencode($str);
+}
+
+/**
+ * BC - marked for deprecation
+ */
 function u($str) {
+  trigger_error(
+    "The function u() has been marked for deprecation. ".
+    "Please use url() instead",
+    E_USER_DEPRECATED
+  );
   return urlencode($str);
 }
 
@@ -157,9 +169,21 @@ function u($str) {
  *
  * @return string encoded string
  */
-function h($str, $flags = -1, $enc = 'UTF-8', $denc = true) {
+function html($str, $flags = -1, $enc = 'UTF-8', $denc = true) {
   $flags = ($flags < 0 ? ENT_COMPAT|ENT_HTML401 : $flags);
   return htmlentities($str, $flags, $enc, $denc);
+}
+
+/**
+ * BC - marked for deprecation
+ */
+function h($str, $flags = -1, $enc = 'UTF-8', $denc = true) {
+  trigger_error(
+    "The function h() has been marked for deprecation. ".
+    "Please use html() instead",
+    E_USER_DEPRECATED
+  );
+  return html($str, $flags, $enc, $denc);
 }
 
 /**
