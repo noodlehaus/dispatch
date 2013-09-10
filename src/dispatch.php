@@ -168,7 +168,7 @@ function h($str, $flags = -1, $enc = 'UTF-8', $denc = true) {
  * @param string $format format of date and time.
  * @param string $strtime date and time to format
  *
- * @return string url encoded string
+ * @return string date time string according to format
  */
 function d($format = null, $strtime = null) {
   date_default_timezone_set(config('dispatch.timezone') ?: date_default_timezone_get());
