@@ -498,10 +498,10 @@ scope('user');
 $ip = client_ip();
 
 // escape a string's entities
-h('Marley & Me');
+html('Marley & Me');
 
 // make a string url-safe
-u('http://noodlehaus.github.com/dispatch');
+url('http://noodlehaus.github.com/dispatch');
 ?>
 ```
 
@@ -539,8 +539,8 @@ function site($path_only = false)
 
 // misc helpers
 function flash($key, $msg = null, $now = false)
-function u($str)
-function h($str, $flags = ENT_QUOTES, $enc = 'UTF-8')
+function url($str)
+function html($str, $flags = ENT_QUOTES, $enc = 'UTF-8')
 function ip()
 
 // entry point
