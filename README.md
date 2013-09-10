@@ -215,6 +215,22 @@ code that describes how this is handled.
 ?>
 ```
 
+## Request Headers
+Dispatch provides a  convenience function for accessing request headers via
+`request_headers($name = null)`. When called without parameters, it returns
+an associative array of all the request headers. If given a `$name` parameter,
+returns the value for that header or null if it doesn't exist.
+
+```php
+<?php
+// get all of it
+$headers = request_headers();
+
+// or just one
+$accept_encoding = request_headers('accept-encoding');
+?>
+```
+
 ## Request Body in PUTs or JSON POSTs
 In cases where you're handling PUT requests or JSON posts and you need access
 to the raw http request body contents, you can use `request_body()`.
