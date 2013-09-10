@@ -30,13 +30,13 @@ test('site()', function () {
   assert(site(true) === '/mysite');
 });
 
-test('u()', function () {
+test('url()', function () {
   $s = 'name=noodlehaus&project=dispatch';
-  assert(u($s) === urlencode($s));
+  assert(url($s) === urlencode($s));
 });
 
-test('h()', function () {
-  assert(h('&') === '&amp;');
+test('html()', function () {
+  assert(html('&') === '&amp;');
 });
 
 test('scope()', function () {

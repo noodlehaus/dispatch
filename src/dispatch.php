@@ -20,23 +20,25 @@ function error($code, $callback = null) {
 
   $code = (string) $code;
 
+  // this is a hook setup, save and return
   if (is_callable($callback)) {
     $error_callbacks[$code][] = $callback;
-  } else {
-
-    $message = (is_string($callback) ? $callback : 'Page Error');
-
-    if (PHP_SAPI !== 'cli')
-      @header("HTTP/1.1 {$code} {$message}", true, (int) $code);
-
-    if (isset($error_callbacks[$code]))
-      foreach ($error_callbacks[$code] as $cb)
-        call_user_func($cb, $code);
-    else
-      echo "{$code} {$message}\n";
-
-    exit;
+    return;
   }
+
+  // error trigger path, set headers, call hooks
+  $message = (is_string($callback) ? $callback : 'Page Error');
+
+  if (PHP_SAPI !== 'cli')
+    @header("HTTP/1.1 {$code} {$message}", true, (int) $code);
+
+  if (isset($error_callbacks[$code]))
+    foreach ($error_callbacks[$code] as $cb)
+      call_user_func($cb, $code);
+  else
+    echo "{$code} {$message}\n";
+
+  exit;
 }
 
 /**
@@ -45,32 +47,38 @@ function error($code, $callback = null) {
  * to config('source', 'inifile.ini') will aggregate the contents of the ini
  * file into config().
  *
- * @param string $key config setting to set or get
+ * @param string $key config setting to set or get. passing null resets the config
  * @param string $value optional, If present, sets $key to this $value.
  *
  * @return mixed|null value
  */
-function config($key, $value = null) {
+function config($key = null, $value = null) {
 
   static $_config = array();
 
-  if (is_string($key)) {
-
-    if ($key !== 'source') {
-
-      if ($value === null)
-        return (isset($_config[$key]) ? $_config[$key] : null);
-
-      return ($_config[$key] = $value);
-
-    } else {
-      !file_exists($value) && error(500, "File passed to config('source') not found");
-      $_config = array_merge($_config, parse_ini_file($value, true));
-    }
-
-  } else if (is_array($key) && array_diff_key($key, array_keys(array_keys($key)))) {
-    $_config = array_merge($_config, $key);
+  // forced reset call
+  if ($key === null) {
+    $_config = array();
+    return;
   }
+
+  // if key is source, load ini file and return
+  if ($key === 'source') {
+    !file_exists($value) && error(500, "File passed to config('source') not found");
+    $_config = array_merge($_config, parse_ini_file($value, true));
+    return;
+  }
+
+  // for all other string keys, set or get
+  if (is_string($key)) {
+    if ($value === null)
+      return (isset($_config[$key]) ? $_config[$key] : null);
+    return ($_config[$key] = $value);
+  }
+
+  // setting multiple settings
+  if (is_array($key) && array_diff_key($key, array_keys(array_keys($key))))
+    $_config = array_merge($_config, $key);
 }
 
 /**
@@ -205,7 +213,8 @@ function params($name = null, $default = null) {
 
   if (is_string($name))
     return (isset($source[$name]) ? $source[$name] : $default);
-  else if ($name == null)
+
+  if ($name == null)
     return $source;
 
   // used by on() for merging in route symbols
@@ -484,7 +493,7 @@ function render($view, $locals = null, $layout = null) {
     extract($locals, EXTR_SKIP);
 
   ob_start();
-  include $view_root.DIRECTORY_SEPARATOR.$view.'.html.php';
+  require $view_root.DIRECTORY_SEPARATOR.$view.'.html.php';
   content(trim(ob_get_clean()));
 
   if ($layout !== false) {
