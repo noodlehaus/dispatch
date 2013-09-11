@@ -573,6 +573,7 @@ Thanks to the following contributors for helping improve this tool :)
 * Martin Angelov [martingalv](https://github.com/martinaglv)
 * Lars [larsbo](https://github.com/larsbo)
 * 4d47 [4d47](https://github.com/4d47)
+* Bastian Widmer [dasrecht](https://github.com/dasrecht)
 
 ## LICENSE
 MIT <http://noodlehaus.mit-license.org/>
