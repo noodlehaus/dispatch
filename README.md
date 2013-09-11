@@ -92,7 +92,12 @@ array of methods, or `*` (for all methods).
 
 ```php
 <?php
-// get route for index
+// get route for /
+on('GET', '/', function () {
+  echo "hello, world!\n";
+});
+
+// get route for /index
 on('GET', '/index', function () {
   echo "hello, world!\n";
 });
