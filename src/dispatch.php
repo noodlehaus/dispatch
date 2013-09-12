@@ -700,7 +700,7 @@ function on($method, $path, $callback = null) {
 
     // create a route entry for this path on every method
     foreach ($method as $m)
-      $routes[$m][$path] = array('regex' => '@^'.$regex.'$@i', 'callback' => $callback);
+      $routes[$m][$path] = array('regex' => '@^'.$regex.'$@', 'callback' => $callback);
 
   } else {
 
