@@ -683,9 +683,7 @@ function on($method, $path, $callback = null) {
       $path = trim("{$pref}/{$path}", '/');
 
     // create the regex for this route
-    $regex = preg_replace_callback('@:\w+@', function ($matches) {
-      return '(?<'.str_replace(':', '', $matches[0]).'>[^/]+)';
-    }, $path);
+    $regex = preg_replace('@:(\w+)@', '(?<\1>[^/]+)', $path);
 
     // create the list of methods to map to
     $method = (array) $method;
@@ -724,7 +722,7 @@ function on($method, $path, $callback = null) {
 
       // construct the params for the callback
       array_shift($values);
-      preg_match_all('@:([\w]+)@', $pattern, $symbols, PREG_PATTERN_ORDER);
+      preg_match_all('@:([\w]+)@', $pattern, $symbols);
       $symbols = $symbols[1];
       $values = array_intersect_key($values, array_flip($symbols));
 
