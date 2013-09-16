@@ -103,6 +103,13 @@ test('upload()', function () {
   assert(preg_match('/received upload\.txt/', $res));
 });
 
+test('download()', function () {
+  $res = curly('GET', URL.'/download');
+  assert(preg_match('/filename=readme\.txt/', $res));
+  assert(preg_match('/maxage=31536000/', $res));
+  assert(preg_match('/ETag: '.md5('./README.md').'/', $res));
+});
+
 test('method override (_method, X-HTTP-Method-Override)', function () {
   $res = curly('POST', URL.'/override', ['_method' => 'PUT']);
   assert(preg_match('/PUT received via _method/i', $res));
