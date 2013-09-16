@@ -455,6 +455,19 @@ $name = params('name', 'stranger');
 ?>
 ```
 
+## File Downloads (Content-Disposition)
+You can push a file to the client using the `Content-Disposition` header via
+`download($path, $filename, $sec_expire = 0)`. `$path` points to the filesystem path
+of the file to push, `$filename` will be the filename to be used in the header, and
+`$sec_expire` will be the cache lifespan of the file in seconds.
+
+```php
+<?php
+// push a pdf that can be cached for 180 days
+download('/path/to/file/to/push.pdf', 'ebook.pdf', 60*60*24*180);
+?>
+```
+
 ## $\_FILES Values
 During file uploads, to get consolidated info on the file, call `upload($name)`, where `$name`
 is the name of the file input field. If the file input field is an array, info is grouped
@@ -535,6 +548,7 @@ function params($name = null, $default = null)
 function cookie($name, $value = null, $expire = 0, $path = '/')
 function scope($name, $value = null)
 function upload($name)
+function download($path, $filename, $sec_expire = 0)
 function request_headers($name = null)
 function request_body()
 
