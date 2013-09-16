@@ -134,11 +134,11 @@ on('POST', '/upload', function () {
     echo "failed upload";
 });
 
-resource('books', function () {
+prefix('books', function () {
   on('GET', '/list', function () {
     echo "book list";
   });
-  resource('chapters', function () {
+  prefix('chapters', function () {
     on('GET', '/list', function () {
       echo "chapter list";
     });

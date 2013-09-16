@@ -512,8 +512,6 @@ function render($view, $locals = null, $layout = null) {
   } else {
     echo content();
   }
-
-  exit;
 }
 
 /**
@@ -548,7 +546,6 @@ function json_out($obj, $func = null) {
     header('Content-type: application/javascript');
     echo ";{$func}(".json_encode($obj).");";
   }
-  exit;
 }
 
 /**
@@ -628,7 +625,7 @@ function after($method_or_cb = null, $path = null) {
  *
  * @return void
  */
-function resource($name = null, $cb = null) {
+function prefix($name = null, $cb = null) {
 
   static $paths = array();
 
@@ -644,6 +641,18 @@ function resource($name = null, $cb = null) {
   array_push($paths, trim($name, '/'));
   call_user_func($cb);
   array_pop($paths);
+}
+
+/**
+ * BC for prefix()
+ */
+function resource($name = null, $cb = null) {
+  trigger_error(
+    "The function resource() has been marked for deprecation. ".
+    "Please use prefix() instead",
+    E_USER_DEPRECATED
+  );
+  resource($name, $cb);
 }
 
 /**
@@ -713,6 +722,12 @@ function on($method, $path, $callback = null) {
     if (!in_array($method, array_keys($routes)))
       error(400, 'Method not supported');
 
+    // call our before filters
+    before($method, $path);
+
+    // flag for 404 check
+    $found = false;
+
     // callback is null, so this is a route invokation. look up the callback.
     foreach ($routes[$method] as $pattern => $info) {
 
@@ -740,12 +755,17 @@ function on($method, $path, $callback = null) {
       // invoke callback
       call_user_func_array($info['callback'], array_values($values));
 
-      // done
-      return;
+      // shouldn't do a 404 after the break
+      $found = true;
+
+      break;
     }
 
-    // we got a 404
-    error(404, 'Page not found');
+    // call our after filters
+    after($method, $path);
+
+    if (!$found)
+      error(404, 'Page not found');
   }
 }
 
@@ -782,15 +802,7 @@ function dispatch($method = null, $path = null) {
   // set correct method
   $method = $override ? $override : ($method ? $method : $_SERVER['REQUEST_METHOD']);
 
-  // call all before() callbacks
-  before($method, $path);
-
-  // setup shutdown func for after() callbacks
-  register_shutdown_function(function () use ($method, $path) {
-    after($method, $path);
-  });
-
-  // match it
+  // dispatch it
   on($method, $path);
 }
 ?>

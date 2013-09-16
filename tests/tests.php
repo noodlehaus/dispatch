@@ -53,13 +53,13 @@ test('scope()', function () {
 test('before()', function () {
   $res = curly('GET', URL.'/index?name=dispatch');
   assert(preg_match('/BEFORE METHOD: GET/', $res));
-  assert(preg_match('/BEFORE PATH: \/index/', $res));
+  assert(preg_match('/BEFORE PATH: index/', $res));
 });
 
 test('after()', function () {
   $res = curly('GET', URL.'/index?name=dispatch');
   assert(preg_match('/AFTER METHOD: GET/', $res));
-  assert(preg_match('/AFTER PATH: \/index/', $res));
+  assert(preg_match('/AFTER PATH: index/', $res));
 });
 
 test('error(code)', function () {
@@ -178,7 +178,7 @@ test('render()', function () {
   assert(preg_match('/dispatch is awesome/', $res));
 });
 
-test('resource()', function () {
+test('prefix()', function () {
   $res1 = curly('GET', URL.'/books/list');
   $res2 = curly('GET', URL.'/books/chapters/list');
   $res3 = curly('GET', URL.'/list');
