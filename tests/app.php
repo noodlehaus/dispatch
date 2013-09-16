@@ -134,6 +134,10 @@ on('POST', '/upload', function () {
     echo "failed upload";
 });
 
+on('GET', '/download', function () {
+  download('./README.md', 'readme.txt', 60*60*24*365);
+});
+
 prefix('books', function () {
   on('GET', '/list', function () {
     echo "book list";

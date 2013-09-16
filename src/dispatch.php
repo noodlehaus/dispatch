@@ -30,7 +30,11 @@ function error($code, $callback = null) {
   $message = (is_string($callback) ? $callback : 'Page Error');
 
   if (PHP_SAPI !== 'cli')
-    header("{$_SERVER['SERVER_PROTOCOL']} {$code} {$message}", true, (int) $code);
+    header(
+      "{$_SERVER['SERVER_PROTOCOL']} {$code} {$message}",
+      true,
+      (int) $code
+    );
 
   if (isset($error_callbacks[$code]))
     foreach ($error_callbacks[$code] as $cb)
@@ -47,7 +51,7 @@ function error($code, $callback = null) {
  * to config('source', 'inifile.ini') will aggregate the contents of the ini
  * file into config().
  *
- * @param string $key config setting to set or get. passing null resets the config
+ * @param string $key setting to set or get. passing null resets the config
  * @param string $value optional, If present, sets $key to this $value.
  *
  * @return mixed|null value
@@ -64,7 +68,8 @@ function config($key = null, $value = null) {
 
   // if key is source, load ini file and return
   if ($key === 'source') {
-    !file_exists($value) && error(500, "File passed to config('source') not found");
+    !file_exists($value) and
+      error(500, "File passed to config('source') not found");
     $_config = array_merge($_config, parse_ini_file($value, true));
     return;
   }
@@ -86,7 +91,7 @@ function config($key = null, $value = null) {
  * This includes the hostname and path. If called with $path_only set to
  * true, it will return only the path section of the URL.
  *
- * @param boolean $path_only defaults to false, true means return only the path
+ * @param boolean $path_only defaults to false, true returns only the path
  * @return string value pointed to by 'dispatch.url' in config.ini.
  */
 function site($path_only = false) {
@@ -235,11 +240,14 @@ function session($name, $value = null) {
 
   static $session_active = false;
 
-  // ref: stackoverflow.com/questions/3788369/how-to-tell-if-a-session-is-active/7656468#7656468
+  // stackoverflow.com: 3788369
   if ($session_active === false) {
 
     if (($current = ini_get('session.use_trans_sid')) === false)
-      error(500, 'Calls to session() requires [session.use_trans_sid] to be set');
+      error(
+        500,
+        'Calls to session() requires [session.use_trans_sid] to be set'
+      );
 
     $test = "mix{$current}{$current}";
 
@@ -331,6 +339,59 @@ function request_body() {
     parse_str($content, $content);
 
   return $content;
+}
+
+/**
+ * Creates a file download response for the specified path using the passed
+ * filename. If $sec_expires is specified, this duration will be used
+ * to specify the download's cache expiration header.
+ *
+ * @param string $path full path to the file to stream
+ * @param string $filename filename to use in the content-disposition header
+ * @param int $sec_expires optional, defaults to 0. in seconds.
+ *
+ * @return void
+ */
+function download($path, $filename, $sec_expires = 0) {
+
+  ($finf = finfo_open(FILEINFO_MIME)) or
+    error(500, "download() failed to open fileinfo database");
+
+  // get meta info
+  $mime = finfo_file($finf, $path);
+  $etag = md5($path);
+  $lmod = filemtime($path);
+  $size = filesize($path);
+
+  // close finfo
+  finfo_close($finf);
+
+  // cache headers
+  header('Pragma: public');
+  header('Last-Modified: '.gmdate('D, d M Y H:i:s', $lmod).' GMT');
+  header('ETag: '.$etag);
+
+  // if we want this to persist
+  if ($sec_expires > 0) {
+    header('Cache-Control: maxage='.$sec_expires);
+    header(
+      'Expires: '.gmdate('D, d M Y H:i:s',
+      time() + $sec_expires).' GMT'
+    );
+  }
+
+  // file info
+  header('Content-Disposition: attachment; filename='.urlencode($filename));
+  header('Content-Type: '.$mime);
+  header('Content-Length: '.$size);
+
+  // try to read and flush
+  while (!feof($fp = fopen($path, 'r'))) {
+    echo fread($fp, 65536);
+    flush();
+  }
+
+  fclose($fp);
 }
 
 /**
@@ -433,7 +494,7 @@ function redirect($path, $code = 302, $condition = true) {
  * $locals (optional).
  *
  * @param string $view path to partial
- * @param array $locals optional, hash to load as local variables in the partial's scope.
+ * @param array $locals optional, hash to load as scope variables
  *
  * @return string content of the partial.
  */
@@ -480,7 +541,7 @@ function content($value = null) {
  *
  * @param string $view path to the view file to render
  * @param array $locals optional, hash to load into $view's scope
- * @param string|bool path to the layout file to use, or if no layout is to be used.
+ * @param string|bool path to the layout file to use, false means no layout
  *
  * @return string contents of the view + layout
  */
@@ -619,8 +680,8 @@ function after($method_or_cb = null, $path = null) {
 /**
  * Group all routes created within $cb under the $name prefix.
  *
- * @param string $name required. subpath where succeding routes will be created
- * @param callable $cb required. routine that contains on() calls for the subroutes
+ * @param string $name required. string to prepend to routes created in $cb
+ * @param callable $cb required. function containing route calls
  *
  * @return void
  */
@@ -706,7 +767,10 @@ function on($method, $path, $callback = null) {
 
     // create a route entry for this path on every method
     foreach ($method as $m)
-      $routes[$m][$path] = array('regex' => '@^'.$regex.'$@', 'callback' => $callback);
+      $routes[$m][$path] = array(
+        'regex' => '@^'.$regex.'$@',
+        'callback' => $callback
+      );
 
   } else {
 
@@ -799,7 +863,11 @@ function dispatch($method = null, $path = null) {
   $override = $override ? $override : params('_method');
 
   // set correct method
-  $method = $override ? $override : ($method ? $method : $_SERVER['REQUEST_METHOD']);
+  $method = (
+    $override ?
+    $override :
+    ($method ? $method : $_SERVER['REQUEST_METHOD'])
+  );
 
   // dispatch it
   on($method, $path);
