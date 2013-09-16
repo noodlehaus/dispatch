@@ -30,7 +30,7 @@ function error($code, $callback = null) {
   $message = (is_string($callback) ? $callback : 'Page Error');
 
   if (PHP_SAPI !== 'cli')
-    @header("HTTP/1.1 {$code} {$message}", true, (int) $code);
+    header("{$_SERVER['SERVER_PROTOCOL']} {$code} {$message}", true, (int) $code);
 
   if (isset($error_callbacks[$code]))
     foreach ($error_callbacks[$code] as $cb)
@@ -617,8 +617,7 @@ function after($method_or_cb = null, $path = null) {
 }
 
 /**
- * Group all routes created within $cb under the $name resource.
- * This is useful for creating restful resources.
+ * Group all routes created within $cb under the $name prefix.
  *
  * @param string $name required. subpath where succeding routes will be created
  * @param callable $cb required. routine that contains on() calls for the subroutes
@@ -635,7 +634,7 @@ function prefix($name = null, $cb = null) {
 
   // outside of sys calls, always require 2 params
   if ($nargs < 2)
-    error(500, 'Invalid call to resource()');
+    error(500, 'Invalid call to prefix()');
 
   // push, routine, pop so we can nest
   array_push($paths, trim($name, '/'));
@@ -652,7 +651,7 @@ function resource($name = null, $cb = null) {
     "Please use prefix() instead",
     E_USER_DEPRECATED
   );
-  resource($name, $cb);
+  prefix($name, $cb);
 }
 
 /**
@@ -688,7 +687,7 @@ function on($method, $path, $callback = null) {
   if (is_callable($callback)) {
 
     // if we're inside a resouce, use the path
-    if (strlen($pref = resource()))
+    if (strlen($pref = prefix()))
       $path = trim("{$pref}/{$path}", '/');
 
     // create the regex for this route
