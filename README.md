@@ -1,12 +1,14 @@
-Dispatch
-========
-**NOTE**: If you're looking for Dispatch 1.x, switch to the
-[**1.x branch**](https://github.com/noodlehaus/dispatch/tree/1.x).
-
-**NOTE**: Some functions from Dispatch 1.x are not present in 2.x core anymore they have been moved to [dispatch-extras](https://github.com/noodlehaus/dispatch-extras)
+# Dispatch 2.x
 
 Dispatch is another PHP micro-framework. It's very small and very straightforward
 to use. No classes, no namespaces.
+
+## Note on Dispatch 1.x
+
+If you're looking for Dispatch 1.x, switch to the
+[**1.x branch**](https://github.com/noodlehaus/dispatch/tree/1.x). Some functions
+in Dispatch 1.x are no longer present in 2.x core and have been moved to
+[dispatch-extras](https://github.com/noodlehaus/dispatch-extras).
 
 ## Requirements
 Dispatch requires at least **PHP 5.4** to work.
