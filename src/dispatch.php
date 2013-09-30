@@ -332,6 +332,7 @@ function request_body() {
     $_SERVER['CONTENT_TYPE'];
 
   $content = file_get_contents('php://input');
+  $content_type = preg_split('/ ?; ?/', $content_type);
 
   if ($content_type[0] == 'application/json')
     $content = json_decode($content);
