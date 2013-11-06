@@ -4,7 +4,8 @@
  */
 function start_http($host, $port, $router) {
 
-  $cmd = 'php -S '.$host.':'.$port.' -t . '.$router.' >/dev/null 2>&1 & echo $!';
+  $dir = dirname($router);
+  $cmd = 'php -S '.$host.':'.$port.' -t '.$dir.' '.$router.' >/dev/null 2>&1 & echo $!';
   $out = [];
 
   exec($cmd, $out);
@@ -25,8 +26,8 @@ function curly($method, $url, $data = [], $opts = []) {
     CURLOPT_FRESH_CONNECT => 1,
     CURLOPT_RETURNTRANSFER => 1,
     CURLOPT_FORBID_REUSE => 1,
-    CURLOPT_COOKIEJAR => 'cookiejar.txt',
-    CURLOPT_COOKIEFILE => 'cookiejar.txt',
+    CURLOPT_COOKIEJAR => __DIR__.'/cookiejar.txt',
+    CURLOPT_COOKIEFILE => __DIR__.'/cookiejar.txt',
     CURLOPT_TIMEOUT => 4,
     CURLOPT_FRESH_CONNECT => 1
   ] + $opts;

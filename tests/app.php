@@ -1,9 +1,9 @@
 <?php
-include '../src/dispatch.php';
+include __DIR__.'/../src/dispatch.php';
 
 // settings
 config('dispatch.flash_cookie', '_F');
-config('dispatch.views', './views');
+config('dispatch.views', __DIR__.'/views');
 config('dispatch.layout', 'layout');
 config('dispatch.url', 'http://localhost:1234/');
 
@@ -39,7 +39,7 @@ on('POST', '/index', function () {
 });
 
 on('PUT', '/index', function () {
-  parse_str(request_body(), $vars);
+  $vars = request_body();
   echo "PUT received {$vars['name']}";
 });
 
