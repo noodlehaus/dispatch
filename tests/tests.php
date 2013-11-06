@@ -1,10 +1,10 @@
 <?php
-include '../src/dispatch.php';
-include './helpers.php';
+include __DIR__.'/../src/dispatch.php';
+include __DIR__.'/helpers.php';
 
 define('URL', 'http://localhost:1234');
 
-start_http('0.0.0.0', '1234', 'app.php');
+start_http('0.0.0.0', '1234', __DIR__.'/app.php');
 
 /*-------------
  * local tests
