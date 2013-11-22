@@ -213,8 +213,9 @@ function params($name = null, $default = null) {
 
   static $source = null;
 
+  // merge the params from REST requests.
   if (!$source)
-    $source = array_merge($_GET, $_POST);
+    $source = array_merge($_GET, $_POST, request_body());
 
   if (is_string($name))
     return (isset($source[$name]) ? $source[$name] : $default);
