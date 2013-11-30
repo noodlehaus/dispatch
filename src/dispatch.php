@@ -213,8 +213,9 @@ function params($name = null, $default = null) {
 
   static $source = null;
 
+  // merge the params from REST requests.
   if (!$source)
-    $source = array_merge($_GET, $_POST);
+    $source = array_merge($_GET, $_POST, in_array($_SERVER['REQUEST_METHOD'], array('GET', 'POST')) ? request_body() : array());
 
   if (is_string($name))
     return (isset($source[$name]) ? $source[$name] : $default);
@@ -832,7 +833,32 @@ function on($method, $path, $callback = null) {
       error(404, 'Page not found');
   }
 }
+/**
+ * helper function to get the pathinfo.
+ * move from function "dispatch"
+ */
+function path() {
+  
+  static $path;
+  
+  if (!$path) {
 
+    // normalize routing base, if site is in sub-dir
+    $path = parse_url($path ? $path : $_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    $root = config('dispatch.router');
+    $base = site(true);
+  
+    // strip base from path
+    if ($base !== null)
+      $path = preg_replace('@^'.preg_quote($base).'@', '', $path);
+  
+    // if we have a routing file (no mod_rewrite), strip it from the URI
+    if ($root)
+      $path = preg_replace('@^/?'.preg_quote(trim($root, '/')).'@i', '', $path);
+  }
+  
+  return $path;
+}
 /**
  * Entry point for the library.
  *
@@ -846,19 +872,8 @@ function dispatch($method = null, $path = null) {
   // see if we were invoked with params
   $method = ($method ? $method : $_SERVER['REQUEST_METHOD']);
 
-  // normalize routing base, if site is in sub-dir
-  $path = parse_url($path ? $path : $_SERVER['REQUEST_URI'], PHP_URL_PATH);
-  $root = config('dispatch.router');
-  $base = site(true);
-
-  // strip base from path
-  if ($base !== null)
-    $path = preg_replace('@^'.preg_quote($base).'@', '', $path);
-
-  // if we have a routing file (no mod_rewrite), strip it from the URI
-  if ($root)
-    $path = preg_replace('@^/?'.preg_quote(trim($root, '/')).'@i', '', $path);
-
+  // move the code to a function.
+  $path = path();
   // check for override
   $override = request_headers('x-http-method-override');
   $override = $override ? $override : params('_method');
