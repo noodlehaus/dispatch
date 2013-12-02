@@ -213,9 +213,16 @@ function params($name = null, $default = null) {
 
   static $source = null;
 
-  // merge the params from REST requests.
-  if (!$source)
-    $source = array_merge($_GET, $_POST, in_array($_SERVER['REQUEST_METHOD'], array('GET', 'POST')) ? request_body() : array());
+  // setup source on first call
+  if (!$source) {
+    
+    // by default, only get values from $_GET and $_POST
+    $source = array_merge($_GET, $_POST);
+
+    // if content-type is application/json, merge in values from request_body()
+    if (strtolower(request_headers('content-type')) == 'application/json')
+      $source = array_merge($source, request_body());
+  }
 
   if (is_string($name))
     return (isset($source[$name]) ? $source[$name] : $default);
@@ -328,6 +335,11 @@ function request_headers($key = null) {
  */
 function request_body() {
 
+  static $content = null;
+
+  if ($content)
+    return $content;
+
   $content_type = isset($_SERVER['HTTP_CONTENT_TYPE']) ?
     $_SERVER['HTTP_CONTENT_TYPE'] :
     $_SERVER['CONTENT_TYPE'];
@@ -336,7 +348,7 @@ function request_body() {
   $content_type = preg_split('/ ?; ?/', $content_type);
 
   if ($content_type[0] == 'application/json')
-    $content = json_decode($content);
+    $content = json_decode($content, true);
   else if ($content_type[0] == 'application/x-www-form-urlencoded')
     parse_str($content, $content);
 
