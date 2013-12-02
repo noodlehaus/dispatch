@@ -20,7 +20,7 @@ function start_http($host, $port, $router) {
 
 function curly($method, $url, $data = [], $opts = []) {
 
-  $defs = [
+  $opts += [
     CURLOPT_URL => $url,
     CURLOPT_HEADER => 1,
     CURLOPT_FRESH_CONNECT => 1,
@@ -30,22 +30,25 @@ function curly($method, $url, $data = [], $opts = []) {
     CURLOPT_COOKIEFILE => __DIR__.'/cookiejar.txt',
     CURLOPT_TIMEOUT => 4,
     CURLOPT_FRESH_CONNECT => 1
-  ] + $opts;
+  ];
+
+  if (!isset($opts[CURLOPT_HTTPHEADER]))
+    $opts[CURLOPT_HTTPHEADER] = [];
 
   if (in_array($method, ['POST', 'DELETE', 'PUT', 'HEAD'])) {
     if ($method === 'POST') {
-      $defs[CURLOPT_POST] = true;
+      $opts[CURLOPT_POST] = true;
     } else {
-      $defs[CURLOPT_CUSTOMREQUEST] = $method;
+      $opts[CURLOPT_CUSTOMREQUEST] = $method;
       $data = http_build_query($data);
       if ($method === 'PUT')
-        $defs[CURLOPT_HTTPHEADER] = ['Content-Length: '.strlen($data)];
+        $opts[CURLOPT_HTTPHEADER][] = 'Content-Length: '.strlen($data);
     }
-    $defs[CURLOPT_POSTFIELDS] = $data;
+    $opts[CURLOPT_POSTFIELDS] = $data;
   }
 
   $ch = curl_init();
-  curl_setopt_array($ch, $defs);
+  curl_setopt_array($ch, $opts);
 
   if (!($res = curl_exec($ch)))
     trigger_error(curl_error($ch));
