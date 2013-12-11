@@ -571,6 +571,13 @@ function dispatch($method = null, $path = null)
 ?>
 ```
 
+## Suggested Libraries
+
+Some extra functions can be added to Dispatch via the following libraries:
+
+* [dispatch-extras](http://github.com/noodlehaus/dispatch-extras) - encryption, caching
+* [dispatch-mustache](http://github.com/noodlehaus/dispatch-mustache) - use mustache templates for your views
+
 ## About the Author
 
 Dispatch is written by [Jesus A. Domingo].

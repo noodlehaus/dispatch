@@ -3,12 +3,12 @@
   "type": "library",
   "description": "a microframework/front-controller",
   "keywords": ["framework", "router", "microframework", "micro", "microphp"],
-  "homepage": "http://noodlehaus.github.com/dispatch/",
+  "homepage": "http://noodlehaus.github.io/dispatch/",
   "license": "MIT",
   "authors": [{
     "name": "Jesus A. Domingo",
     "role": "Developer",
-    "homepage": "http://github.com/noodlehaus"
+    "homepage": "http://noodlehaus.github.io/"
   }],
   "require": {
     "php": ">= 5.4.0"

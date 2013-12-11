@@ -559,12 +559,12 @@ function content($value = null) {
  *
  * @return string contents of the view + layout
  */
-function render($view, $locals = null, $layout = null) {
+function render($view, $locals = array(), $layout = null) {
 
   $view_root = config('dispatch.views');
   $view_root = (!$view_root ? 'layout' : $view_root);
 
-  if (is_array($locals) && count($locals))
+  if ($locals && is_array($locals))
     extract($locals, EXTR_SKIP);
 
   ob_start();
