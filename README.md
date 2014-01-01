@@ -1,14 +1,9 @@
-# Dispatch 2.x
+# Dispatch
+
+Current version is 3.0.0.
 
 Dispatch is another PHP micro-framework. It's very small and very straightforward
 to use. No classes, no namespaces.
-
-## Note on Dispatch 1.x
-
-If you're looking for Dispatch 1.x, switch to the
-[**1.x branch**](https://github.com/noodlehaus/dispatch/tree/1.x). Some functions
-in Dispatch 1.x are no longer present in 2.x core and have been moved to
-[dispatch-extras](https://github.com/noodlehaus/dispatch-extras).
 
 ## Requirements
 Dispatch requires at least **PHP 5.4** to work.
@@ -31,7 +26,7 @@ To install using `composer`, have the following lines in your `composer.json` fi
   "require": {
     "php": ">= 5.4.0",
     ...
-    "dispatch/dispatch": "2.*",
+    "dispatch/dispatch": "3.*",
   }
 }
 ```
@@ -121,13 +116,13 @@ on('*', '/multi', function () {
 ## Grouped Routes (Resources)
 When working on APIs, you tend to create routes that resemble resources. You can do this by
 including the resource name in your route, or by scoping your route creation with a
-`resource($path, $routine)` call, where `$path` contains the name of the resource, and
+`prefix($path, $routine)` call, where `$path` contains the name of the resource, and
 `$routine` is a callable that contains routing calls.
 
 ```php
 <?php
 // let's create a users resource
-resource('users', function () {
+prefix('users', function () {
 
   on('GET', '/index', function () {
     // show list of users
