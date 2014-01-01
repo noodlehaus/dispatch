@@ -1,1 +1,1 @@
-<?= h($name) ?> is awesome
+<?= html($name) ?> is awesome
