@@ -60,12 +60,6 @@ function config($key = null, $value = null) {
 
   static $_config = array();
 
-  // forced reset call
-  if ($key === null) {
-    $_config = array();
-    return;
-  }
-
   // if key is source, load ini file and return
   if ($key === 'source') {
     !file_exists($value) and
@@ -162,18 +156,6 @@ function url($str) {
 }
 
 /**
- * BC - marked for deprecation
- */
-function u($str) {
-  trigger_error(
-    "The function u() has been marked for deprecation. ".
-    "Please use url() instead",
-    E_USER_DEPRECATED
-  );
-  return urlencode($str);
-}
-
-/**
  * Convenience wrapper for htmlentities().
  *
  * @param string $str string to encode
@@ -185,18 +167,6 @@ function u($str) {
 function html($str, $flags = -1, $enc = 'UTF-8', $denc = true) {
   $flags = ($flags < 0 ? ENT_COMPAT|ENT_HTML401 : $flags);
   return htmlentities($str, $flags, $enc, $denc);
-}
-
-/**
- * BC - marked for deprecation
- */
-function h($str, $flags = -1, $enc = 'UTF-8', $denc = true) {
-  trigger_error(
-    "The function h() has been marked for deprecation. ".
-    "Please use html() instead",
-    E_USER_DEPRECATED
-  );
-  return html($str, $flags, $enc, $denc);
 }
 
 /**
@@ -718,18 +688,6 @@ function prefix($name = null, $cb = null) {
 }
 
 /**
- * BC for prefix()
- */
-function resource($name = null, $cb = null) {
-  trigger_error(
-    "The function resource() has been marked for deprecation. ".
-    "Please use prefix() instead",
-    E_USER_DEPRECATED
-  );
-  prefix($name, $cb);
-}
-
-/**
  * Maps a callback or invokes a callback for requests
  * on $pattern. If $callback is not set, $pattern
  * is matched against all routes for $method, and the
@@ -886,6 +844,7 @@ function dispatch($method = null, $path = null) {
 
   // move the code to a function.
   $path = path();
+  
   // check for override
   $override = request_headers('x-http-method-override');
   $override = $override ? $override : params('_method');
