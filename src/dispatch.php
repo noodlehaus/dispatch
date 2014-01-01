@@ -451,8 +451,8 @@ function scope($name, $value = null) {
 function ip() {
 
   $client = request_headers('client-ip');
-  $client = $client ?: request_headers('x-forwarded-for');
-  $client = $client ?: $_SERVER['REMOTE_ADDR'];
+  $client = $client ? $client : request_headers('x-forwarded-for');
+  $client = $client ? $client : $_SERVER['REMOTE_ADDR'];
 
   return $client;
 }
@@ -731,8 +731,10 @@ function on($method, $path, $callback = null) {
 
     // wildcard method means for all supported methods
     if (!in_array('*', $method)) {
-      array_walk($method, function (&$m) { $m = strtoupper($m); });
-      $method = array_intersect(array_keys($routes), $method);
+      $method = array_intersect(
+        array_keys($routes), 
+        array_map('strtoupper', $method)
+      );
     } else {
       $method = array_keys($routes);
     }
@@ -777,9 +779,7 @@ function on($method, $path, $callback = null) {
       $values = array_intersect_key($values, array_flip($symbols));
 
       // decode values
-      array_walk($values, function (&$val, $key) {
-        $val = urldecode($val);
-      });
+      $values = array_map('urldecode', $values);
 
       // if we have symbols, init params and run filters
       if (count($symbols)) {
