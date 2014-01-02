@@ -115,32 +115,41 @@ function site($path_only = false) {
  */
 function flash($key, $msg = null, $now = false) {
 
+  // flash message cache (query lifetime)
   static $x = array();
 
   $f = config('dispatch.flash_cookie');
   $f = (!$f ? '_F' : $f);
 
+  // get messages from cookie, if any, or from new hash
   if ($c = cookie($f))
     $c = json_decode($c, true);
   else
     $c = array();
 
+  // if this is a fetch request
   if ($msg == null) {
 
+    // if message exists, get it from the cookie
+    // and put it in our cache, then rewrite the cookie
     if (isset($c[$key])) {
       $x[$key] = $c[$key];
       unset($c[$key]);
       cookie($f, json_encode($c));
     }
 
+    // return whatever we get
     return (isset($x[$key]) ? $x[$key] : null);
   }
 
+  // this is a message setting call, so if this isn't
+  // a now-type message, we store it in our cookie
   if (!$now) {
     $c[$key] = $msg;
     cookie($f, json_encode($c));
   }
 
+  // return the new message
   return ($x[$key] = $msg);
 }
 
@@ -194,13 +203,15 @@ function params($name = null, $default = null) {
       $source = array_merge($source, request_body());
   }
 
+  // this is a value fetch call
   if (is_string($name))
     return (isset($source[$name]) ? $source[$name] : $default);
 
+  // no params means we return the hash
   if ($name == null)
     return $source;
 
-  // used by on() for merging in route symbols
+  // used by on() for merging in route symbols.
   if (is_array($name))
     $source = array_merge($source, $name);
 }
@@ -260,6 +271,7 @@ function session($name, $value = null) {
 function cookie($name, $value = null, $expire = 31536000, $path = '/') {
   if (func_num_args() === 1)
     return (isset($_COOKIE[$name]) ? $_COOKIE[$name] : null);
+  call_user_func_array('setcookie', func_get_args());
   setcookie($name, $value, time() + $expire, $path);
 }
 
@@ -307,9 +319,11 @@ function request_body() {
 
   static $content = null;
 
+  // called before, just return the value
   if ($content)
     return $content;
 
+  // get correct content-type of body (hopefully)
   $content_type = isset($_SERVER['HTTP_CONTENT_TYPE']) ?
     $_SERVER['HTTP_CONTENT_TYPE'] :
     $_SERVER['CONTENT_TYPE'];
@@ -317,12 +331,25 @@ function request_body() {
   $content = file_get_contents('php://input');
   $content_type = preg_split('/ ?; ?/', $content_type);
 
+  // if json, cache the decoded value
   if ($content_type[0] == 'application/json')
     $content = json_decode($content, true);
   else if ($content_type[0] == 'application/x-www-form-urlencoded')
     parse_str($content, $content);
 
   return $content;
+}
+
+/**
+ * Deprecated. Use send_file() instead.
+ */
+function download($path, $filename, $sec_expires = 0) {
+  trigger_error(
+    "The function download() has been marked for deprecation. ".
+    "Please use send_file() instead",
+    E_USER_DEPRECATED
+  );
+  send_file($path, $filename, $sec_expires);
 }
 
 /**
@@ -336,7 +363,7 @@ function request_body() {
  *
  * @return void
  */
-function download($path, $filename, $sec_expires = 0) {
+function send_file($path, $filename, $sec_expires = 0) {
 
   ($finf = finfo_open(FILEINFO_MIME)) or
     error(500, "download() failed to open fileinfo database");
@@ -379,6 +406,18 @@ function download($path, $filename, $sec_expires = 0) {
 }
 
 /**
+ * Deprecated. Use upload_info() instead.
+ */
+function upload($name) {
+  trigger_error(
+    "The function upload() has been marked for deprecation. ".
+    "Please use upload_info() instead",
+    E_USER_DEPRECATED
+  );
+  return upload_info($name);
+}
+
+/**
  * File upload wrapper. Returns a hash containing file
  * upload info. Skips invalid uploads based on
  * is_uploaded_file() check.
@@ -387,7 +426,7 @@ function download($path, $filename, $sec_expires = 0) {
  *
  * @param array info of file if found.
  */
-function upload($name) {
+function upload_info($name) {
 
   if (!isset($_FILES[$name]))
     return null;
