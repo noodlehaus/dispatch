@@ -6,13 +6,13 @@ Dispatch is another PHP micro-framework. It's very small and very straightforwar
 to use. No classes, no namespaces.
 
 ## Requirements
-Dispatch requires at least **PHP 5.4** to work.
+Officially, Dispatch requires **PHP 5.4**. Unoficially though, it can run with
+PHP 5.2 and up.
 
-However, no strict version check is being done by Dispatch, and no functions
-specific to 5.4 are being used. The reason for the 5.4 requirement is because
-5.3's end of life has already been announced, and 5.5 has already been released.
+No strict version check is being done by Dispatch, other than the requirements
+imposed by `composer.json`. Functions specific to 5.4 are only used when available.
 
-The other reason is that the adhoc tests for Dispatch make use of 5.4's built-in
+To run the tests though, you'll need PHP 5.4 as it makes use of PHP's built-in
 web server.
 
 ## Code
