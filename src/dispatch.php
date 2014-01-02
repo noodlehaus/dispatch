@@ -513,40 +513,6 @@ function redirect($path, $code = 302, $condition = true) {
 }
 
 /**
- * Returns the contents of the template partial $view, using
- * $locals (optional).
- *
- * @param string $view path to partial
- * @param array $locals optional, hash to load as scope variables
- *
- * @return string content of the partial.
- */
-function partial($view, $locals = null) {
-
-  if (($view_root = config('dispatch.views')) == null)
-    error(500, "config('dispatch.views') is not set.");
-
-  if (is_array($locals) && count($locals))
-    extract($locals, EXTR_SKIP);
-
-  $path = basename($view);
-  $view = preg_replace('/'.$path.'$/', "_{$path}", $view);
-  $view = $view_root.DIRECTORY_SEPARATOR.$view.'.html.php';
-
-  $html = '';
-
-  if (file_exists($view)) {
-    ob_start();
-    require $view;
-    $html = ob_get_clean();
-  } else {
-    error(500, "partial [{$view}] not found");
-  }
-
-  return $html;
-}
-
-/**
  * Convenience function for storing/fetching content to be
  * plugged into the layout within render().
  *
@@ -556,6 +522,52 @@ function partial($view, $locals = null) {
  */
 function content($value = null) {
   return scope('$content$', $value);
+}
+
+/**
+ * Returns the contents of the template $view, using
+ * $locals (optional).
+ *
+ * @param string $view path to partial
+ * @param array $locals optional, hash to load as scope variables
+ *
+ * @return string content of the partial.
+ */
+function template($view, $locals = null) {
+
+  if (($view_root = config('dispatch.views')) == null)
+    error(500, "config('dispatch.views') is not set.");
+
+  if (is_array($locals) && count($locals))
+    extract($locals, EXTR_SKIP);
+
+  $view = $view_root.DIRECTORY_SEPARATOR.$view.'.html.php';
+  $html = '';
+
+  if (file_exists($view)) {
+    ob_start();
+    require $view;
+    $html = ob_get_clean();
+  } else {
+    error(500, "template [{$view}] not found");
+  }
+
+  return $html;
+}
+
+/**
+ * Returns the contents of the partial $view, using $locals (optional).
+ * Partials differ from templates in that their filenames start with _.
+ *
+ * @param string $view path to partial
+ * @param array $locals optional, hash to load as scope variables
+ *
+ * @return string content of the partial.
+ */
+function partial($view, $locals = null) {
+  $path = basename($view);
+  $view = preg_replace('/'.$path.'$/', "_{$path}", $view);
+  return template($view, $locals);
 }
 
 /**
@@ -570,32 +582,25 @@ function content($value = null) {
  */
 function render($view, $locals = array(), $layout = null) {
 
-  $view_root = config('dispatch.views');
-  $view_root = (!$view_root ? 'layout' : $view_root);
+  // load the template and plug it into content()
+  $content = template($view, $locals);
+  content(trim($content));
 
-  if ($locals && is_array($locals))
-    extract($locals, EXTR_SKIP);
-
-  ob_start();
-  require $view_root.DIRECTORY_SEPARATOR.$view.'.html.php';
-  content(trim(ob_get_clean()));
-
+  // if we're to use a layout
   if ($layout !== false) {
 
+    // layout = null means use the default
     if ($layout == null) {
       $layout = config('dispatch.layout');
       $layout = ($layout == null) ? 'layout' : $layout;
     }
 
-    $layout = $view_root.DIRECTORY_SEPARATOR.$layout.'.html.php';
-
-    ob_start();
-    require $layout;
-    echo trim(ob_get_clean());
-
-  } else {
-    echo content();
+    // load the layout template, with content() already populated
+    return (print template($layout, $locals));
   }
+
+  // no layout was to be used (layout = false)
+  echo $content;
 }
 
 /**
@@ -842,32 +847,52 @@ function on($method, $path, $callback = null) {
       error(404, 'Page not found');
   }
 }
+
 /**
- * helper function to get the pathinfo.
- * move from function "dispatch"
+ * Deprecated. Use request_path() instead.
  */
 function path() {
+  trigger_error(
+    "The function path() has been marked for deprecation. ".
+    "Please use request_path() instead",
+    E_USER_DEPRECATED
+  );
+  return request_path(
+    $_SERVER['REQUEST_URI'],
+    site(true),
+    config('dispatch.router')
+  );
+}
+
+/**
+ * Returns the translated request path after removing $base and
+ * $router. This is used by dispatch() to get the final path
+ * before it goes through routing.
+ *
+ * @param string $request_uri URI to filter
+ * @param string $base application base path (for apps in subdirs)
+ * @param string $router routing file if no rewrite (ie. index.php)
+ *
+ * @return string cleaned up request uri
+ */
+function request_path($request_uri, $base, $router) {
 
   static $path;
 
+  // we want to cache this for the requests entire lifetime
   if (!$path) {
-
-    // normalize routing base, if site is in sub-dir
-    $path = parse_url($path ? $path : $_SERVER['REQUEST_URI'], PHP_URL_PATH);
-    $root = config('dispatch.router');
-    $base = site(true);
-
-    // strip base from path
-    if ($base !== null)
-      $path = preg_replace('@^'.preg_quote($base).'@', '', $path);
-
-    // if we have a routing file (no mod_rewrite), strip it from the URI
-    if ($root)
-      $path = preg_replace('@^/?'.preg_quote(trim($root, '/')).'@i', '', $path);
+    $path = parse_url($request_uri, PHP_URL_PATH);
+    $path = $base ? preg_replace('@^'.preg_quote($base).'@', '', $path) : $path;
+    $path = (
+      $router ?
+      preg_replace('@^/?'.preg_quote(trim($router, '/')).'@i', '', $path) :
+      $path
+    );
   }
 
   return $path;
 }
+
 /**
  * Entry point for the library.
  *
@@ -881,8 +906,12 @@ function dispatch($method = null, $path = null) {
   // see if we were invoked with params
   $method = ($method ? $method : $_SERVER['REQUEST_METHOD']);
 
-  // move the code to a function.
-  $path = path();
+  // get the request_uri basename
+  $path = request_path(
+    $path ? $path : $_SERVER['REQUEST_URI'],
+    site(true),
+    config('dispatch.router')
+  );
 
   // check for override
   $override = request_headers('x-http-method-override');

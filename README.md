@@ -350,6 +350,15 @@ render('index', ['name' => 'bob'], false);
 ?>
 ```
 
+If you just want to fetch the results of a template using some locales, without
+echoing the results, you can make a call to `template()` instead.
+
+```php
+<?php
+$page = template('index', ['name' => 'bob']);
+?>
+```
+
 For partials, the files are expected to begin with the `_` character, and can be
 loaded via `partial($path, $locals = [])`.
 
@@ -538,6 +547,7 @@ function redirect($path, $code = 302, $condition = true)
 
 // views, templates and responses
 function render($view, $locals = null, $layout = null)
+function template($view, $locals = null)
 function partial($view, $locals = null)
 function json_out($obj, $func = null)
 function nocache()
@@ -546,14 +556,15 @@ function nocache()
 function params($name = null, $default = null)
 function cookie($name, $value = null, $expire = 0, $path = '/')
 function scope($name, $value = null)
-function upload($name)
-function download($path, $filename, $sec_expire = 0)
+function upload_info($name)
+function send_file($path, $filename, $sec_expire = 0)
 function request_headers($name = null)
 function request_body()
 
 // configurations and settings
 function config($key, $value = null)
 function site($path_only = false)
+function path($request_uri, $url_base, $router_file)
 
 // misc helpers
 function flash($key, $msg = null, $now = false)
