@@ -92,7 +92,7 @@ test('on(DELETE)', function () {
   assert(preg_match('/DELETE route test/i', $res));
 });
 
-test('upload()', function () {
+test('upload_info()', function () {
 
   if (PHP_VERSION_ID < 50500)
     $att = '@'.__DIR__.'/upload.txt';
@@ -103,7 +103,7 @@ test('upload()', function () {
   assert(preg_match('/received upload\.txt/', $res));
 });
 
-test('download()', function () {
+test('send_file()', function () {
   $res = curly('GET', URL.'/download');
   assert(preg_match('/filename=readme\.txt/', $res));
   assert(preg_match('/maxage=31536000/', $res));

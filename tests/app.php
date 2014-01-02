@@ -134,7 +134,7 @@ on('GET', '/session/check', function () {
 });
 
 on('POST', '/upload', function () {
-  $info = upload('attachment');
+  $info = upload_info('attachment');
   if (is_array($info) && is_uploaded_file($info['tmp_name']))
     echo "received {$info['name']}";
   else
@@ -142,7 +142,7 @@ on('POST', '/upload', function () {
 });
 
 on('GET', '/download', function () {
-  download('./README.md', 'readme.txt', 60*60*24*365);
+  send_file('./README.md', 'readme.txt', 60*60*24*365);
 });
 
 prefix('books', function () {
