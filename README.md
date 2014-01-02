@@ -606,6 +606,7 @@ Thanks to the following contributors for helping improve this tool :)
 * 4d47 [4d47](https://github.com/4d47)
 * Bastian Widmer [dasrecht](https://github.com/dasrecht)
 * Lloyd Zhou [lloydzhou](https://github.com/lloydzhou)
+* darkalemanbr [darkalemanbr](https://github.com/darkalemanbr)
 
 ## LICENSE
 MIT <http://noodlehaus.mit-license.org/>
