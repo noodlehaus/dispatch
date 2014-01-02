@@ -165,7 +165,7 @@ function url($str) {
  * @return string encoded string
  */
 function html($str, $flags = -1, $enc = 'UTF-8', $denc = true) {
-  $flags = ($flags < 0 ? ENT_COMPAT|ENT_HTML401 : $flags);
+  $flags = ($flags < 0 ? ENT_QUOTES : $flags);
   return htmlentities($str, $flags, $enc, $denc);
 }
 
@@ -185,7 +185,7 @@ function params($name = null, $default = null) {
 
   // setup source on first call
   if (!$source) {
-    
+
     // by default, only get values from $_GET and $_POST
     $source = array_merge($_GET, $_POST);
 
@@ -732,7 +732,7 @@ function on($method, $path, $callback = null) {
     // wildcard method means for all supported methods
     if (!in_array('*', $method)) {
       $method = array_intersect(
-        array_keys($routes), 
+        array_keys($routes),
         array_map('strtoupper', $method)
       );
     } else {
@@ -808,25 +808,25 @@ function on($method, $path, $callback = null) {
  * move from function "dispatch"
  */
 function path() {
-  
+
   static $path;
-  
+
   if (!$path) {
 
     // normalize routing base, if site is in sub-dir
     $path = parse_url($path ? $path : $_SERVER['REQUEST_URI'], PHP_URL_PATH);
     $root = config('dispatch.router');
     $base = site(true);
-  
+
     // strip base from path
     if ($base !== null)
       $path = preg_replace('@^'.preg_quote($base).'@', '', $path);
-  
+
     // if we have a routing file (no mod_rewrite), strip it from the URI
     if ($root)
       $path = preg_replace('@^/?'.preg_quote(trim($root, '/')).'@i', '', $path);
   }
-  
+
   return $path;
 }
 /**
@@ -844,7 +844,7 @@ function dispatch($method = null, $path = null) {
 
   // move the code to a function.
   $path = path();
-  
+
   // check for override
   $override = request_headers('x-http-method-override');
   $override = $override ? $override : params('_method');
