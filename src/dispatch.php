@@ -58,26 +58,26 @@ function error($code, $callback = null) {
  */
 function config($key = null, $value = null) {
 
-  static $_config = array();
+  static $config = array();
 
   // if key is source, load ini file and return
   if ($key === 'source') {
     !file_exists($value) and
       error(500, "File passed to config('source') not found");
-    $_config = array_merge($_config, parse_ini_file($value, true));
+    $config = array_merge($config, parse_ini_file($value, true));
     return;
   }
 
   // for all other string keys, set or get
   if (is_string($key)) {
     if ($value === null)
-      return (isset($_config[$key]) ? $_config[$key] : null);
-    return ($_config[$key] = $value);
+      return (isset($config[$key]) ? $config[$key] : null);
+    return ($config[$key] = $value);
   }
 
   // setting multiple settings
   if (is_array($key) && array_diff_key($key, array_keys(array_keys($key))))
-    $_config = array_merge($_config, $key);
+    $config = array_merge($config, $key);
 }
 
 /**
@@ -180,8 +180,7 @@ function html($str, $flags = -1, $enc = 'UTF-8', $denc = true) {
 
 /**
  * Helper for getting values from $_GET, $_POST and route
- * symbols. If called with no arguments, it returns all param
- * values.
+ * symbols.
  *
  * @param string $name optional. parameter to get the value for
  * @param mixed $default optional. default value for param
@@ -192,24 +191,15 @@ function params($name = null, $default = null) {
 
   static $source = null;
 
-  // setup source on first call
-  if (!$source) {
+  !$source && ($source = array_merge($_GET, $_POST));
 
-    // by default, only get values from $_GET and $_POST
-    $source = array_merge($_GET, $_POST);
-
-    // if content-type is application/json, merge in values from request_body()
-    if (strtolower(request_headers('content-type')) == 'application/json')
-      $source = array_merge($source, request_body());
-  }
+  // if content-type is application/json, merge in values from request_body()
+  if (strtolower(request_headers('content-type')) == 'application/json')
+    $source = array_merge($source, request_body());
 
   // this is a value fetch call
   if (is_string($name))
     return (isset($source[$name]) ? $source[$name] : $default);
-
-  // no params means we return the hash
-  if ($name == null)
-    return $source;
 
   // used by on() for merging in route symbols.
   if (is_array($name))
@@ -252,10 +242,7 @@ function session($name, $value = null) {
   if (func_num_args() === 1)
     return (isset($_SESSION[$name]) ? $_SESSION[$name] : null);
 
-  if ($value === null)
-    unset($_SESSION[$name]);
-  else
-    $_SESSION[$name] = $value;
+  $_SESSION[$name] = $value;
 }
 
 /**
@@ -365,17 +352,19 @@ function download($path, $filename, $sec_expires = 0) {
  */
 function send_file($path, $filename, $sec_expires = 0) {
 
-  ($finf = finfo_open(FILEINFO_MIME)) or
-    error(500, "download() failed to open fileinfo database");
+  // use fileinfo if present (todo: pull this out)
+  if (extension_loaded('fileinfo')) {
+    ($finf = finfo_open(FILEINFO_MIME)) or
+      error(500, "send_file() failed to open fileinfo database");
+    $mime = finfo_file($finf, $path);
+    finfo_close($finf);
+  } else {
+    $mime = 'application/octet-stream';
+  }
 
-  // get meta info
-  $mime = finfo_file($finf, $path);
   $etag = md5($path);
   $lmod = filemtime($path);
   $size = filesize($path);
-
-  // close finfo
-  finfo_close($finf);
 
   // cache headers
   header('Pragma: public');
