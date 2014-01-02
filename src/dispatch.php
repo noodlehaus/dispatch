@@ -790,62 +790,53 @@ function on($method, $path, $callback = null) {
         'callback' => $callback
       );
 
-  } else {
+    // exit early
+    return;
+  }
 
-    // not a string? invalid
-    if (!is_string($method))
-      error(400, 'Invalid method');
+  // we're in a routing call, so normalize and search
+  $method = strtoupper($method);
 
-    // then normalize
-    $method = strtoupper($method);
+  // check for method support or routes for method
+  !in_array($method, array_keys($routes)) && error(400, 'Method not supported');
+  !isset($routes[$method]) && error(404, 'Page not found');
 
-    // for invokation, only support strings
-    if (!in_array($method, array_keys($routes)))
-      error(400, 'Method not supported');
+  // callback is null, so this is a route invokation. look up the callback.
+  foreach ($routes[$method] as $pattern => $info) {
+
+    // skip non-matching routes
+    if (!preg_match($info['regex'], $path, $values))
+      continue;
+
+    // construct the params for the callback
+    array_shift($values);
+    preg_match_all('@:([\w]+)@', $pattern, $symbols);
+    $symbols = $symbols[1];
+    $values = array_intersect_key($values, array_flip($symbols));
+
+    // decode values
+    $values = array_map('urldecode', $values);
+
+    // if we have symbols, init params and run filters
+    if (count($symbols)) {
+      params($values);
+      filter($values);
+    }
 
     // call our before filters
     before($method, $path);
 
-    // flag for 404 check
-    $found = false;
-
-    // callback is null, so this is a route invokation. look up the callback.
-    foreach ($routes[$method] as $pattern => $info) {
-
-      // skip non-matching routes
-      if (!preg_match($info['regex'], $path, $values))
-        continue;
-
-      // construct the params for the callback
-      array_shift($values);
-      preg_match_all('@:([\w]+)@', $pattern, $symbols);
-      $symbols = $symbols[1];
-      $values = array_intersect_key($values, array_flip($symbols));
-
-      // decode values
-      $values = array_map('urldecode', $values);
-
-      // if we have symbols, init params and run filters
-      if (count($symbols)) {
-        params($values);
-        filter($values);
-      }
-
-      // invoke callback
-      call_user_func_array($info['callback'], array_values($values));
-
-      // shouldn't do a 404 after the break
-      $found = true;
-
-      break;
-    }
+    // invoke callback
+    call_user_func_array($info['callback'], array_values($values));
 
     // call our after filters
     after($method, $path);
 
-    if (!$found)
-      error(404, 'Page not found');
+    return;
   }
+
+  // if we got here, then we didn't get a route
+  error(404, 'Page not found');
 }
 
 /**
