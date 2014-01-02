@@ -1,6 +1,6 @@
 # Dispatch
 
-Current version is 3.0.0.
+Current major version is 3.
 
 Dispatch is another PHP micro-framework. It's very small and very straightforward
 to use. No classes, no namespaces.
