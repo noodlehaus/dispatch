@@ -655,6 +655,34 @@ function filter($symbol, $callback = null) {
 }
 
 /**
+ * Filters parameters for certain symbols that are passed to the request
+ * callback. Only one callback can be bound to a symbol. The original request
+ * parameter can be accessed using the param() function.
+ *
+ * @param string $symbol symbol to bind a callback to
+ * @param callable|mixed callback to bind to that symbol
+ */
+function bind($symbol, $callback = null) {
+  static $bind_callbacks = array();
+
+  // Bind a callback to the symbol
+  if (is_callable($callback)) {
+      $bind_callbacks[$symbol] = $callback;
+    return;
+  }
+
+  // If callbacks are bound to symbols, apply them
+  $values = array();
+  foreach ($symbol as $sym => $val) {
+    if (isset($bind_callbacks[$sym])) {
+      $val = call_user_func($bind_callbacks[$sym], $val);
+    }
+    $values[$sym] = $val;
+  }
+  return $values;
+}
+
+/**
  * Function for mapping callbacks to be invoked before each request.
  * Order of execution depends on the order of mapping.
  *
@@ -810,6 +838,7 @@ function on($method, $path, $callback = null) {
     if (count($symbols)) {
       params($values);
       filter($values);
+      $values = bind($values);
     }
 
     // call our before filters

@@ -148,6 +148,11 @@ test('filter()', function () {
   assert(preg_match('/id = 123/i', $res));
 });
 
+test('bind()', function () {
+  $res = curly('GET', URL.'/md5/hello');
+  assert(preg_match('/5d41402abc4b2a76b9719d911017c592-hello/', $res));
+});
+
 test('cookie()', function () {
   $res = curly('GET', URL.'/cookie-set');
   assert(preg_match('/set-cookie: cookie=/i', $res));
