@@ -156,6 +156,14 @@ prefix('books', function () {
   });
 });
 
+bind('hashable', function ($hashable) {
+  return md5($hashable);
+});
+
+on('GET', '/md5/:hashable', function ($hash) {
+  echo $hash . '-' . params('hashable');
+});
+
 on('GET', '/list', function () {
   echo "different list";
 });
