@@ -52,17 +52,17 @@ on('DELETE', '/index/:id', function ($id) {
 });
 
 on('GET', '/json', function () {
-  json_out([
+  json_out(array(
     'name' => 'noodlehaus',
     'project' => 'dispatch'
-  ]);
+  ));
 });
 
 on('GET', '/jsonp', function () {
-  json_out([
+  json_out(array(
     'name' => 'noodlehaus',
     'project' => 'dispatch'
-  ], 'callback');
+  ), 'callback');
 });
 
 on('GET', '/redirect/302', function () {
@@ -114,11 +114,11 @@ on('GET', '/flash-get', function () {
 });
 
 on('GET', '/partial/:name', function ($name) {
-  echo partial('partial', ['name' => $name]);
+  echo partial('partial', array('name' => $name));
 });
 
 on('GET', '/template/:name', function ($name) {
-  render('template', ['name' => $name]);
+  render('template', array('name' => $name));
 });
 
 on('GET', '/session/setup', function () {

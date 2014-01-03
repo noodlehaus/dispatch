@@ -6,7 +6,7 @@ function start_http($host, $port, $router) {
 
   $dir = dirname($router);
   $cmd = 'php -S '.$host.':'.$port.' -t '.$dir.' '.$router.' >/dev/null 2>&1 & echo $!';
-  $out = [];
+  $out = array();
 
   exec($cmd, $out);
   $pid = (int) $out[0];
@@ -18,9 +18,9 @@ function start_http($host, $port, $router) {
   sleep(1);
 }
 
-function curly($method, $url, $data = [], $opts = []) {
+function curly($method, $url, $data = array(), $opts = array()) {
 
-  $opts += [
+  $opts += array(
     CURLOPT_URL => $url,
     CURLOPT_HEADER => 1,
     CURLOPT_FRESH_CONNECT => 1,
@@ -30,12 +30,12 @@ function curly($method, $url, $data = [], $opts = []) {
     CURLOPT_COOKIEFILE => __DIR__.'/cookiejar.txt',
     CURLOPT_TIMEOUT => 4,
     CURLOPT_FRESH_CONNECT => 1
-  ];
+  );
 
   if (!isset($opts[CURLOPT_HTTPHEADER]))
-    $opts[CURLOPT_HTTPHEADER] = [];
+    $opts[CURLOPT_HTTPHEADER] = array();
 
-  if (in_array($method, ['POST', 'DELETE', 'PUT', 'HEAD'])) {
+  if (in_array($method, array('POST', 'DELETE', 'PUT', 'HEAD'))) {
     if ($method === 'POST') {
       $opts[CURLOPT_POST] = true;
     } else {
@@ -62,7 +62,7 @@ function test_count($total_inc = 0, $failed_inc = 0) {
   static $total = 0, $failed = 0;
   $total += $total_inc;
   $failed += $failed_inc;
-  return [$total, $failed];
+  return array($total, $failed);
 }
 
 function test_summary() {
@@ -72,7 +72,7 @@ function test_summary() {
 }
 
 function test_stack($name = null) {
-  static $stack = [];
+  static $stack = array();
   if (!$name)
     return array_pop($stack);
   array_push($stack, $name);

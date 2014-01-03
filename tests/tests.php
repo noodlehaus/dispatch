@@ -16,10 +16,10 @@ test('config()', function () {
   assert(config('one') === 1);
   assert(config('false') === false);
   assert(config('invalid') === null);
-  config([
+  config(array(
     'name' => 'noodlehaus',
     'project' => 'dispatch'
-  ]);
+  ));
   assert(config('name') === 'noodlehaus');
   assert(config('project') === 'dispatch');
 });
@@ -78,12 +78,12 @@ test('on(GET)', function () {
 });
 
 test('on(POST)', function () {
-  $res = curly('POST', URL.'/index', ['name' => 'dispatch']);
+  $res = curly('POST', URL.'/index', array('name' => 'dispatch'));
   assert(preg_match('/POST received dispatch and dispatch/i', $res));
 });
 
 test('on(PUT)', function () {
-  $res = curly('PUT', URL.'/index', ['name' => 'dispatch']);
+  $res = curly('PUT', URL.'/index', array('name' => 'dispatch'));
   assert(preg_match('/PUT received dispatch/i', $res));
 });
 
@@ -99,7 +99,7 @@ test('upload_info()', function () {
   else
     $att = curl_file_create(__DIR__.'/upload.txt');
 
-  $res = curly('POST', URL.'/upload', ['attachment' => $att]);
+  $res = curly('POST', URL.'/upload', array('attachment' => $att));
   assert(preg_match('/received upload\.txt/', $res));
 });
 
@@ -111,13 +111,13 @@ test('send_file()', function () {
 });
 
 test('method override (_method, X-HTTP-Method-Override)', function () {
-  $res = curly('POST', URL.'/override', ['_method' => 'PUT']);
+  $res = curly('POST', URL.'/override', array('_method' => 'PUT'));
   assert(preg_match('/PUT received via _method/i', $res));
   $res = curly(
     'POST',
     URL.'/override',
-    ['data' => 'nothing'],
-    [CURLOPT_HTTPHEADER => ['X-HTTP-Method-Override: PUT']]
+    array('data' => 'nothing'),
+    array(CURLOPT_HTTPHEADER => array('X-HTTP-Method-Override: PUT'))
   );
   assert(preg_match('/PUT received via _method/i', $res));
 });
@@ -167,7 +167,7 @@ test('request_headers() and request_body()', function () {
     'POST',
     URL.'/request-headers',
     '{"name":"jaydee"}',
-    [CURLOPT_HTTPHEADER => ['Content-type: application/json']]
+    array(CURLOPT_HTTPHEADER => array('Content-type: application/json'))
   );
   assert(preg_match('/application\/json/', $res));
   assert(preg_match('/name=jaydee/', $res));
