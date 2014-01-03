@@ -661,31 +661,34 @@ function filter($symbol, $callback = null) {
  *
  * @param string $symbol symbol to bind a callback to
  * @param callable|mixed callback to bind to that symbol
+ *
+ * @return mixed transformed value based on the param
  */
 function bind($symbol, $callback = null) {
+  
   static $bind_callbacks = array();
 
   // Bind a callback to the symbol
   if (is_callable($callback)) {
-      $bind_callbacks[$symbol] = $callback;
+    $bind_callbacks[$symbol] = $callback;
     return;
   }
 
+  // cache transformed symbol values
   static $bound_symbols = array();
 
   // If the symbol is given but is not an array - see if we have filtered it
-  if (!is_array($symbol)) {
+  if (!is_array($symbol))
     return isset($bound_symbols[$symbol]) ? $bound_symbols[$symbol] : null;
-  }
 
   // If callbacks are bound to symbols, apply them
   $values = array();
   foreach ($symbol as $sym => $val) {
-    if (isset($bind_callbacks[$sym])) {
+    if (isset($bind_callbacks[$sym]))
       $bound_symbols[$sym] = $val = call_user_func($bind_callbacks[$sym], $val);
-    }
     $values[$sym] = $val;
   }
+  
   return $values;
 }
 
