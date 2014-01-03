@@ -164,6 +164,18 @@ on('GET', '/md5/:hashable', function ($hash) {
   echo $hash . '-' . params('hashable');
 });
 
+bind('author', function ($name) {
+  return strtoupper($name);
+});
+
+bind('title', function ($title) {
+  return sprintf('%s by %s', strtoupper($title), bind('author'));
+});
+
+on('GET', '/authors/:author/books/:title', function ($author, $title) {
+  echo $title;
+});
+
 on('GET', '/list', function () {
   echo "different list";
 });
