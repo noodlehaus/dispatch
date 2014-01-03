@@ -250,9 +250,32 @@ on('PUT', '/users/:id', function ($id) {
 ?>
 ```
 
-## Route Symbol Filters
-Route filters let you map functions against symbols in your routes. These functions get executed when
-those symbols are found in the request's matching route.
+## Route Symbol Bindings and Filters
+Named parameters or symbols in routes can have callbacks associated with it.
+With these callbacks, you can perform routines like data loading, or value
+filtering/transforms. Functions that let you do this are `bind($symbol, $callback = null)` and `filter($symbol, $callback = null)`.
+
+Callbacks mapped using `bind()` transform the final value that gets passed
+to your route handler.
+
+```php
+<?php
+// bind() callbacks need to return a value
+bind('hashable', function ($hashable) {
+  return md5($hashable);
+});
+
+// the value received for $hash is already
+// transformed by our bind() callback
+on('GET', '/md5/:hashable', function ($hash) {
+  echo $hash . '-' . params('hashable');
+});
+?>
+```
+
+For callbacks mapped using `filter()`, they are not required to have
+a return value, and if they do, the return value does not transform
+the parameter value passed to the route handler.
 
 ```php
 <?php
@@ -265,12 +288,15 @@ filter('blog_id', function ($blog_id) {
 
 // here, we have :blog_id in the route, so our preloader gets run
 on('GET', '/blogs/:blog_id', function ($blog_id) {
-	// pick up what we got from the stash
+  // $blog_id is still the original, but
+	// we can pick up what we stored with scope()
 	$blog = scope('blog');
 	render('blogs/show', array('blog' => $blog);
 });
 ?>
 ```
+
+## 
 
 ## Before and After Callbacks
 To setup routines to be run before and after a request, use `before($callable)` and `after($callable)`
@@ -539,6 +565,7 @@ function resource($name, $cb)
 function error($code, $callback = null)
 function before($callback)
 function after($callback)
+function bind($symbol, $callback = null)
 function filter($symbol, $callback)
 function redirect($path, $code = 302, $condition = true)
 
@@ -604,6 +631,7 @@ Thanks to the following contributors for helping improve this tool :)
 * Bastian Widmer [dasrecht](https://github.com/dasrecht)
 * Lloyd Zhou [lloydzhou](https://github.com/lloydzhou)
 * darkalemanbr [darkalemanbr](https://github.com/darkalemanbr)
+* Ross Masters [rmasters](https://github.com/rmasters)
 
 ## LICENSE
 MIT <http://noodlehaus.mit-license.org/>
