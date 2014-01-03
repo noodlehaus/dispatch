@@ -153,6 +153,11 @@ test('bind()', function () {
   assert(preg_match('/5d41402abc4b2a76b9719d911017c592-hello/', $res));
 });
 
+test('bind() with cache', function () {
+  $res = curly('GET', URL.'/authors/tolkien/books/lotr');
+  assert(preg_match('/LOTR by TOLKIEN/', $res));
+});
+
 test('cookie()', function () {
   $res = curly('GET', URL.'/cookie-set');
   assert(preg_match('/set-cookie: cookie=/i', $res));

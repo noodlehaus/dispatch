@@ -671,11 +671,18 @@ function bind($symbol, $callback = null) {
     return;
   }
 
+  static $bound_symbols = array();
+
+  // If the symbol is given but is not an array - see if we have filtered it
+  if (!is_array($symbol)) {
+    return isset($bound_symbols[$symbol]) ? $bound_symbols[$symbol] : null;
+  }
+
   // If callbacks are bound to symbols, apply them
   $values = array();
   foreach ($symbol as $sym => $val) {
     if (isset($bind_callbacks[$sym])) {
-      $val = call_user_func($bind_callbacks[$sym], $val);
+      $bound_symbols[$sym] = $val = call_user_func($bind_callbacks[$sym], $val);
     }
     $values[$sym] = $val;
   }
