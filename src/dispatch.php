@@ -760,14 +760,14 @@ function prefix($name = null, $cb = null) {
 
 /**
  * Maps a callback or invokes a callback for requests
- * on $pattern. If $callback is not set, $pattern
+ * on $path. If $callback is not set, $path
  * is matched against all routes for $method, and the
  * the mapped callback for the match is invoked. If $callback
  * is set, that callback is mapped against $pattern for $method
  * requests.
  *
  * @param string $method HTTP request method or method + path
- * @param string $pattern path or callback
+ * @param string $path path or callback
  * @param callable $callback optional, handler to map
  *
  * @return void
