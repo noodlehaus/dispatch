@@ -296,7 +296,7 @@ on('GET', '/blogs/:blog_id', function ($blog_id) {
 ?>
 ```
 
-## 
+##
 
 ## Before and After Callbacks
 To setup routines to be run before and after a request, use `before($callable)` and `after($callable)`
@@ -389,6 +389,25 @@ loaded via `partial($path, $locals = [])`.
 <?php
 // underscore on the filename is added automatically by partial()
 $html = partial('users/profile_page', array('data' => $data));
+?>
+```
+
+If you don't really need to do anything but to render a template for a route,
+and maybe use some local variables and a layout, you can use
+`inline($file, $locals = array(), $layout = null)` instead. `inline()` creates
+a route handler for you that does nothing but render the view specified using
+the scope variables, and layout file, if any, when the route is invoked.
+
+```php
+<?php
+// just render the about-us template for the route
+on('GET', '/about-us', inline('about-us'));
+
+// render a template with some locals
+on('GET', '/contact-us', inline('contact-us', array('email' => 'support@blah.com')));
+
+// render using a different template
+on('GET', '/faq', inline('faq', array(), 'faq-layout'));
 ?>
 ```
 
