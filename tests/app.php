@@ -121,6 +121,15 @@ on('GET', '/template/:name', function ($name) {
   render('template', array('name' => $name));
 });
 
+on('GET', '/inline', inline('inline'));
+on('GET', '/inline/locals', inline(
+  'inline-locals',
+  array('name' => 'dispatch')
+));
+on('GET', '/inline/callback', inline('inline-locals', function () {
+  return array('name' => 'dispatch');
+}));
+
 on('GET', '/session/setup', function () {
   session('name', 'i am dispatch');
   session('type', 'php framework');

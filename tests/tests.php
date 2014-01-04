@@ -207,6 +207,21 @@ test('render()', function () {
   assert(preg_match('/dispatch is awesome/', $res));
 });
 
+test('inline()', function () {
+  $res = curly('GET', URL.'/inline');
+  assert(preg_match('/inline content/i', $res));
+});
+
+test('inline() with locals', function () {
+  $res = curly('GET', URL.'/inline/locals');
+  assert(preg_match('/name=dispatch/i', $res));
+});
+
+test('inline() with callback', function () {
+  $res = curly('GET', URL.'/inline/callback');
+  assert(preg_match('/name=dispatch/i', $res));
+});
+
 test('prefix()', function () {
   $res1 = curly('GET', URL.'/books/list');
   $res2 = curly('GET', URL.'/books/chapters/list');

@@ -593,6 +593,24 @@ function render($view, $locals = array(), $layout = null) {
 }
 
 /**
+ * Convenience wrapper for creating route handlers
+ * that show nothing but a view.
+ *
+ * @param string $file name of the view to render
+ * @param array|callable $locals if array, local variables to use for rendering.
+ *    if callable, return value must be an array, which will be used for rendering.
+ * @param string|boolean $layout layout file to use
+ *
+ * @return callable handler function
+ */
+function inline($file, $locals = array(), $layout = 'layout') {
+  $locals = is_callable($locals) ? $locals() : $locals;
+  return function () use ($file, $locals, $layout) {
+    render($file, $locals, $layout);
+  };
+}
+
+/**
  * Spit headers that force cache volatility.
  *
  * @param string $content_type optional, defaults to text/html.
@@ -665,7 +683,7 @@ function filter($symbol, $callback = null) {
  * @return mixed transformed value based on the param
  */
 function bind($symbol, $callback = null) {
-  
+
   static $bind_callbacks = array();
 
   // Bind a callback to the symbol
@@ -688,7 +706,7 @@ function bind($symbol, $callback = null) {
       $bound_symbols[$sym] = $val = call_user_func($bind_callbacks[$sym], $val);
     $values[$sym] = $val;
   }
-  
+
   return $values;
 }
 
