@@ -259,7 +259,6 @@ function cookie($name, $value = null, $expire = 31536000, $path = '/') {
   if (func_num_args() === 1)
     return (isset($_COOKIE[$name]) ? $_COOKIE[$name] : null);
   call_user_func_array('setcookie', func_get_args());
-  setcookie($name, $value, time() + $expire, $path);
 }
 
 /**
