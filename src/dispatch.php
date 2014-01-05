@@ -5,6 +5,24 @@
  */
 
 /**
+ * If we have magic quotes turned on, reset GPCR
+ * so it looks like we don't
+ */
+if (get_magic_quotes_gpc()) {
+  trigger_error(
+    'You have magic_quotes_gpc enabled. '.
+    'Dispatch will call stripslashes on '.
+    '$_GET, $_POST, $_COOKIE, and $_REQUEST.',
+    E_USER_NOTICE
+  );
+  function _rmqgpc(&$v) { $v = stripslashes($v); }
+  array_walk_recursive($_GET, '_rmqgpc');
+  array_walk_recursive($_POST, '_rmqgpc');
+  array_walk_recursive($_COOKIE, '_rmqgpc');
+  array_walk_recursive($_REQUEST, '_rmqgpc');
+}
+
+/**
  * Function for setting http error code handlers and for
  * triggering them. Execution stops after an error callback
  * handler finishes.
