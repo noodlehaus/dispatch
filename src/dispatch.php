@@ -44,21 +44,23 @@ function error($code, $callback = null) {
     return;
   }
 
-  // error trigger path, set headers, call hooks
+  // see if passed callback is a message (string)
   $message = (is_string($callback) ? $callback : 'Page Error');
 
-  if (PHP_SAPI !== 'cli')
-    header(
-      "{$_SERVER['SERVER_PROTOCOL']} {$code} {$message}",
-      true,
-      (int) $code
-    );
+  // set the response code
+  header(
+    "{$_SERVER['SERVER_PROTOCOL']} {$code} {$message}",
+    true,
+    (int) $code
+  );
 
+  // bail early if no handler is set
+  !isset($error_callbacks[$code]) && die("{$code} {$message}");
+
+  // if we got callbacks, try to invoke
   if (isset($error_callbacks[$code]))
     foreach ($error_callbacks[$code] as $cb)
       call_user_func($cb, $code);
-  else
-    echo "{$code} {$message}\n";
 
   exit;
 }
