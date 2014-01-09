@@ -5,21 +5,11 @@
  */
 
 /**
- * If we have magic quotes turned on, reset GPCR
- * so it looks like we don't
+ * Routine for reversing magic quotes, only to be called
+ * inside params and cookie()
  */
-if (get_magic_quotes_gpc()) {
-  trigger_error(
-    'You have magic_quotes_gpc enabled. '.
-    'Dispatch will call stripslashes on '.
-    '$_GET, $_POST, $_COOKIE, and $_REQUEST.',
-    E_USER_NOTICE
-  );
-  function _rmqgpc(&$v) { $v = stripslashes($v); }
-  array_walk_recursive($_GET, '_rmqgpc');
-  array_walk_recursive($_POST, '_rmqgpc');
-  array_walk_recursive($_COOKIE, '_rmqgpc');
-  array_walk_recursive($_REQUEST, '_rmqgpc');
+function __rmqgpc(&$v) {
+  $v = stripslashes($v);
 }
 
 /**
@@ -211,11 +201,17 @@ function params($name = null, $default = null) {
 
   static $source = null;
 
-  !$source && ($source = array_merge($_GET, $_POST));
+  // initialize source if this is the first call
+  if (!$source) {
 
-  // if content-type is application/json, merge in values from request_body()
-  if (strtolower(request_headers('content-type')) == 'application/json')
-    $source = array_merge($source, request_body());
+    $source = array_merge($_GET, $_POST);
+
+    if (get_magic_quotes_gpc())
+      array_walk_recursive($source, '__rmqgpc');
+
+    if (strtolower(request_headers('content-type')) == 'application/json')
+      $source = array_merge($source, request_body());
+  }
 
   // this is a value fetch call
   if (is_string($name))
@@ -276,8 +272,22 @@ function session($name, $value = null) {
  * @return string value if only the name param is passed.
  */
 function cookie($name, $value = null, $expire = 31536000, $path = '/') {
-  if (func_num_args() === 1)
-    return (isset($_COOKIE[$name]) ? $_COOKIE[$name] : null);
+
+  static $quoted = -1;
+
+  if ($quoted < 0)
+    $quoted = get_magic_quotes_gpc();
+
+  if (func_num_args() === 1) {
+    return (
+      isset($_COOKIE[$name]) ? (
+        $quoted ?
+        stripslashes($_COOKIE[$name]) :
+        $_COOKIE[$name]
+      ) : null
+    );
+  }
+
   setcookie($name, $value, time() + $expire, $path);
 }
 
