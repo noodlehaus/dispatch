@@ -1,7 +1,5 @@
 # Dispatch
 
-Current major version is 3.
-
 Dispatch is another PHP micro-framework. It's very small and very straightforward
 to use. No classes, no namespaces.
 
@@ -26,7 +24,7 @@ To install using `composer`, have the following lines in your `composer.json` fi
   "require": {
     "php": ">= 5.4.0",
     ...
-    "dispatch/dispatch": "3.*",
+    "dispatch/dispatch": "dev-master",
   }
 }
 ```

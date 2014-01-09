@@ -348,18 +348,6 @@ function request_body() {
 }
 
 /**
- * Deprecated. Use send_file() instead.
- */
-function download($path, $filename, $sec_expires = 0) {
-  trigger_error(
-    "The function download() has been marked for deprecation. ".
-    "Please use send_file() instead",
-    E_USER_DEPRECATED
-  );
-  send_file($path, $filename, $sec_expires);
-}
-
-/**
  * Creates a file download response for the specified path using the passed
  * filename. If $sec_expires is specified, this duration will be used
  * to specify the download's cache expiration header.
@@ -412,18 +400,6 @@ function send_file($path, $filename, $sec_expires = 0) {
   }
 
   fclose($fp);
-}
-
-/**
- * Deprecated. Use upload_info() instead.
- */
-function upload($name) {
-  trigger_error(
-    "The function upload() has been marked for deprecation. ".
-    "Please use upload_info() instead",
-    E_USER_DEPRECATED
-  );
-  return upload_info($name);
 }
 
 /**
@@ -902,22 +878,6 @@ function on($method, $path, $callback = null) {
 
   // if we got here, then we didn't get a route
   error(404, 'Page not found');
-}
-
-/**
- * Deprecated. Use request_path() instead.
- */
-function path() {
-  trigger_error(
-    "The function path() has been marked for deprecation. ".
-    "Please use request_path() instead",
-    E_USER_DEPRECATED
-  );
-  return request_path(
-    $_SERVER['REQUEST_URI'],
-    site(true),
-    config('dispatch.router')
-  );
 }
 
 /**
