@@ -181,7 +181,6 @@ test('request_headers() and request_body()', function () {
   );
   assert(preg_match('/application\/json/', $res));
   assert(preg_match('/name=jaydee/', $res));
-  assert(preg_match('/params_name=jaydee/', $res));
 });
 
 test('params()', function () {
