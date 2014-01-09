@@ -607,7 +607,6 @@ function request_body()
 // configurations and settings
 function config($key, $value = null)
 function site($path_only = false)
-function request_path($request_uri, $url_base, $router_file)
 
 // misc helpers
 function flash($key, $msg = null, $now = false)
