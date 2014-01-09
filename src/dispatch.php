@@ -592,8 +592,7 @@ function render($view, $locals = array(), $layout = null) {
  * that show nothing but a view.
  *
  * @param string $file name of the view to render
- * @param array|callable $locals if array, local variables to use for rendering.
- *    if callable, return value must be an array, which will be used for rendering.
+ * @param array|callable $locals locals array or callable that return locals
  * @param string|boolean $layout layout file to use
  *
  * @return callable handler function
@@ -653,11 +652,13 @@ function filter($symbol, $callback = null) {
 
   static $filter_callbacks = array();
 
+  // this is a mapping call
   if (is_callable($callback)) {
     $filter_callbacks[$symbol][] = $callback;
     return;
   }
 
+  // run all mapped filters
   foreach ($symbol as $sym => $val) {
     if (isset($filter_callbacks[$sym])) {
       foreach ($filter_callbacks[$sym] as $callback) {
@@ -679,26 +680,25 @@ function filter($symbol, $callback = null) {
  */
 function bind($symbol, $callback = null) {
 
-  static $bind_callbacks = array();
+  // callback store and symbol cache
+  static $bindings = array();
+  static $symcache = array();
 
   // Bind a callback to the symbol
   if (is_callable($callback)) {
-    $bind_callbacks[$symbol] = $callback;
+    $bindings[$symbol] = $callback;
     return;
   }
 
-  // cache transformed symbol values
-  static $bound_symbols = array();
-
   // If the symbol is given but is not an array - see if we have filtered it
   if (!is_array($symbol))
-    return isset($bound_symbols[$symbol]) ? $bound_symbols[$symbol] : null;
+    return isset($symcache[$symbol]) ? $symcache[$symbol] : null;
 
   // If callbacks are bound to symbols, apply them
   $values = array();
   foreach ($symbol as $sym => $val) {
-    if (isset($bind_callbacks[$sym]))
-      $bound_symbols[$sym] = $val = call_user_func($bind_callbacks[$sym], $val);
+    if (isset($bindings[$sym]))
+      $symcache[$sym] = $val = call_user_func($bindings[$sym], $val);
     $values[$sym] = $val;
   }
 
