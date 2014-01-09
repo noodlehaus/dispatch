@@ -13,6 +13,10 @@
   "require": {
     "php": ">= 5.4.0"
   },
+  "suggest": {
+    "dispatch/dispatch-extras": "Encryption, caching and more, for dispatch",
+    "dispatch/dispatch-mustache": "mustache template support within dispatch"
+  },
   "autoload": {
     "files": [
       "src/dispatch.php"
