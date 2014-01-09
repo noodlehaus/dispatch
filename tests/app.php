@@ -90,7 +90,6 @@ on('POST', '/request-headers', function () {
   echo request_headers('content-type');
   $body = request_body();
   echo "name={$body['name']}";
-  echo "params_name=".params('name');
 });
 
 on('GET', '/cookie-get', function () {

@@ -195,21 +195,13 @@ function params($name = null, $default = null) {
 
   // initialize source if this is the first call
   if (!$source) {
-
     $source = array_merge($_GET, $_POST);
-
     if (get_magic_quotes_gpc()) {
-      array_walk_recursive(
-        $source,
-        create_function(
-          '&$v',
-          '$v = stripslashes($v);'
-        )
-      );
+      array_walk_recursive($source, create_function(
+        '&$value',
+        '$value = stripslashes($value);'
+      ));
     }
-
-    if (strtolower(request_headers('content-type')) == 'application/json')
-      $source = array_merge($source, request_body());
   }
 
   // this is a value fetch call
@@ -505,12 +497,11 @@ function scope($name, $value = null) {
  * @return string client's ip address.
  */
 function ip() {
-
-  $client = request_headers('client-ip');
-  $client = $client ? $client : request_headers('x-forwarded-for');
-  $client = $client ? $client : $_SERVER['REMOTE_ADDR'];
-
-  return $client;
+  if (isset($_SERVER['HTTP_CLIENT_IP']))
+    return $_SERVER['HTTP_CLIENT_IP'];
+  else if (isset($_SERVER['HTTP_X_FORWARDED_FOR']))
+    return $_SERVER['HTTP_X_FORWARDED_FOR'];
+  return $_SERVER['REMOTE_ADDR'];
 }
 
 /**
@@ -979,8 +970,11 @@ function dispatch($method = null, $path = null) {
   );
 
   // check for override
-  $override = request_headers('x-http-method-override');
-  $override = $override ? $override : params('_method');
+  $override = (
+    isset($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE']) ?
+    $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] :
+    params('_method')
+  );
 
   // set correct method
   $method = (
