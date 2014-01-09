@@ -921,35 +921,6 @@ function path() {
 }
 
 /**
- * Returns the translated request path after removing $base and
- * $router. This is used by dispatch() to get the final path
- * before it goes through routing.
- *
- * @param string $request_uri URI to filter
- * @param string $base application base path (for apps in subdirs)
- * @param string $router routing file if no rewrite (ie. index.php)
- *
- * @return string cleaned up request uri
- */
-function request_path($request_uri, $base, $router) {
-
-  static $path;
-
-  // we want to cache this for the requests entire lifetime
-  if (!$path) {
-    $path = parse_url($request_uri, PHP_URL_PATH);
-    $path = $base ? preg_replace('@^'.preg_quote($base).'@', '', $path) : $path;
-    $path = (
-      $router ?
-      preg_replace('@^/?'.preg_quote(trim($router, '/')).'@i', '', $path) :
-      $path
-    );
-  }
-
-  return $path;
-}
-
-/**
  * Entry point for the library.
  *
  * @param string $method optional, for testing in the cli
@@ -963,11 +934,19 @@ function dispatch($method = null, $path = null) {
   $method = ($method ? $method : $_SERVER['REQUEST_METHOD']);
 
   // get the request_uri basename
-  $path = request_path(
-    $path ? $path : $_SERVER['REQUEST_URI'],
-    site(true),
-    config('dispatch.router')
-  );
+  $path = parse_url($path ? $path : $_SERVER['REQUEST_URI'], PHP_URL_PATH);
+
+  // remove dir path if we live in a subdir
+  if ($base = config('dispatch.url')) {
+    $base = rtrim(parse_url($base, PHP_URL_PATH), '/');
+    $path = preg_replace('@^'.preg_quote($base).'@', '', $path);
+  }
+
+  // remove router file from URI
+  if ($stub = config('dispatch.router')) {
+    $stub = config('dispatch.router');
+    $path = preg_replace('@^/?'.preg_quote(trim($stub, '/')).'@i', '', $path);
+  }
 
   // check for override
   $override = (
