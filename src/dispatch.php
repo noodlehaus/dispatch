@@ -5,14 +5,6 @@
  */
 
 /**
- * Routine for reversing magic quotes, only to be called
- * inside params and cookie()
- */
-function __rmqgpc(&$v) {
-  $v = stripslashes($v);
-}
-
-/**
  * Function for setting http error code handlers and for
  * triggering them. Execution stops after an error callback
  * handler finishes.
@@ -206,8 +198,15 @@ function params($name = null, $default = null) {
 
     $source = array_merge($_GET, $_POST);
 
-    if (get_magic_quotes_gpc())
-      array_walk_recursive($source, '__rmqgpc');
+    if (get_magic_quotes_gpc()) {
+      array_walk_recursive(
+        $source,
+        create_function(
+          '&$v',
+          '$v = stripslashes($v);'
+        )
+      );
+    }
 
     if (strtolower(request_headers('content-type')) == 'application/json')
       $source = array_merge($source, request_body());
