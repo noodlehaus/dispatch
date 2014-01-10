@@ -116,42 +116,47 @@ function site($path_only = false) {
  */
 function flash($key, $msg = null, $now = false) {
 
-  // flash message cache (query lifetime)
-  static $x = array();
+  // initialize these things only once per request
+  static $token = null;
+  static $store = null;
+  static $cache = array();
 
-  $f = config('dispatch.flash_cookie');
-  $f = (!$f ? '_F' : $f);
+  if (!$token) {
+    $token = config('dispatch.flash_cookie');
+    $token = (!$token ? '_F' : $token);
+  }
 
   // get messages from cookie, if any, or from new hash
-  if ($c = cookie($f))
-    $c = json_decode($c, true);
-  else
-    $c = array();
+  if (!$store) {
+    if ($store = cookie($token))
+      $store = json_decode($store, true);
+    else
+      $store = array();
+  }
 
   // if this is a fetch request
   if ($msg == null) {
 
-    // if message exists, get it from the cookie
-    // and put it in our cache, then rewrite the cookie
-    if (isset($c[$key])) {
-      $x[$key] = $c[$key];
-      unset($c[$key]);
-      cookie($f, json_encode($c));
+    // cache value, unset from cookie
+    if (isset($store[$key])) {
+      $cache[$key] = $store[$key];
+      unset($store[$key]);
+      cookie($token, json_encode($store));
     }
 
-    // return whatever we get
-    return (isset($x[$key]) ? $x[$key] : null);
+    // value can now be taken from the cache
+    return (isset($cache[$key]) ? $cache[$key] : null);
   }
 
-  // this is a message setting call, so if this isn't
-  // a now-type message, we store it in our cookie
-  if (!$now) {
-    $c[$key] = $msg;
-    cookie($f, json_encode($c));
-  }
+  // cache it and put it in the cookie
+  $store[$key] = $cache[$key] = $msg;
+
+  // rewrite cookie unless now-type
+  if (!$now)
+    cookie($token, json_encode($store));
 
   // return the new message
-  return ($x[$key] = $msg);
+  return ($cache[$key] = $msg);
 }
 
 /**

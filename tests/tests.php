@@ -192,6 +192,9 @@ test('flash()', function () {
   curly('GET', URL.'/flash-set');
   $res = curly('GET', URL.'/flash-get');
   assert(preg_match('/message=success/i', $res));
+  assert(preg_match('/flash-now is null/i', $res));
+  $res = curly('GET', URL.'/flash-get');
+  assert(!preg_match('/message=success/i', $res));
 });
 
 test('partial()', function () {
