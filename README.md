@@ -5,7 +5,7 @@ to use. No classes, no namespaces.
 
 ## Requirements
 Officially, Dispatch requires **PHP 5.4**. Unofficially though, it can run with
-PHP 5.2 and up.
+**PHP 5.3** and up. Anything lower, you'll have to change things.
 
 No strict version check is being done by Dispatch, other than the requirements
 imposed by `composer.json`. Functions specific to 5.4 are only used when available.

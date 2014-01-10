@@ -195,12 +195,11 @@ function params($name = null, $default = null) {
   // initialize source if this is the first call
   if (!$source) {
     $source = array_merge($_GET, $_POST);
-    if (get_magic_quotes_gpc()) {
-      array_walk_recursive($source, create_function(
-        '&$value',
-        '$value = stripslashes($value);'
-      ));
-    }
+    if (get_magic_quotes_gpc())
+      array_walk_recursive(
+        $source,
+        function (&$v) { $v = stripslashes($v); }
+      );
   }
 
   // this is a value fetch call
