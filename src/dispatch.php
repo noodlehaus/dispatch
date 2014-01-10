@@ -358,16 +358,7 @@ function request_body() {
  */
 function send_file($path, $filename, $sec_expires = 0) {
 
-  // use fileinfo if present (todo: pull this out)
-  if (extension_loaded('fileinfo')) {
-    ($finf = finfo_open(FILEINFO_MIME)) or
-      error(500, "send_file() failed to open fileinfo database");
-    $mime = finfo_file($finf, $path);
-    finfo_close($finf);
-  } else {
-    $mime = 'application/octet-stream';
-  }
-
+  $mime = 'application/octet-stream';
   $etag = md5($path);
   $lmod = filemtime($path);
   $size = filesize($path);
