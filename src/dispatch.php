@@ -78,8 +78,7 @@ function config($key = null, $value = null) {
   }
 
   // setting multiple settings
-  if (is_array($key) && array_diff_key($key, array_keys(array_keys($key))))
-    $config = array_merge($config, $key);
+  $config = array_merge($config, $key);
 }
 
 /**
@@ -209,8 +208,7 @@ function params($name = null, $default = null) {
     return (isset($source[$name]) ? $source[$name] : $default);
 
   // used by on() for merging in route symbols.
-  if (is_array($name))
-    $source = array_merge($source, $name);
+  $source = array_merge($source, $name);
 }
 
 /**
@@ -522,8 +520,7 @@ function template($view, $locals = null) {
   if (($view_root = config('dispatch.views')) == null)
     error(500, "config('dispatch.views') is not set.");
 
-  if (is_array($locals) && count($locals))
-    extract($locals, EXTR_SKIP);
+  extract((array) $locals, EXTR_SKIP);
 
   $view = $view_root.DIRECTORY_SEPARATOR.$view.'.html.php';
   $html = '';
@@ -849,26 +846,23 @@ function on($method, $path, $callback = null) {
       continue;
 
     // construct the params for the callback
-    array_shift($values);
-    preg_match_all('@:([\w]+)@', $pattern, $symbols);
-    $symbols = $symbols[1];
-    $values = array_intersect_key($values, array_flip($symbols));
-
-    // decode values
+    $tokens = array_filter(array_keys($values), 'is_string');
+    $values = array_intersect_key($values, array_flip($tokens));
     $values = array_map('urldecode', $values);
 
+
     // if we have symbols, init params and run filters
-    if (count($symbols)) {
-      params($values);
-      filter($values);
-      $values = bind($values);
-    }
+    params($values);
+    filter($values);
 
     // call our before filters
     before($method, $path);
 
     // invoke callback
-    call_user_func_array($info['callback'], array_values($values));
+    call_user_func_array(
+      $info['callback'],
+      array_values(bind($values))
+    );
 
     // call our after filters
     after($method, $path);
