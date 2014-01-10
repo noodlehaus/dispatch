@@ -142,9 +142,8 @@ test('redirect()', function () {
   assert(preg_match('/Location: \/index/i', $res));
 });
 
-test('filter()', function () {
+test('filter() - symbol', function () {
   $res = curly('GET', URL.'/index/123');
-  assert(preg_match('/id found/i', $res));
   assert(preg_match('/id = 123/i', $res));
 });
 
