@@ -106,10 +106,15 @@ on('GET', '/params', function () {
 
 on('GET', '/flash-set', function () {
   flash('message', 'success');
+  flash('now', time(), true);
 });
 
 on('GET', '/flash-get', function () {
   echo 'message='.flash('message');
+  if (!flash('now'))
+    echo 'flash-now is null';
+  else
+    echo 'flash-now exists';
 });
 
 on('GET', '/partial/:name', function ($name) {
