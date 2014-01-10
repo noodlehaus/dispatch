@@ -637,18 +637,18 @@ function json_out($obj, $func = null) {
  */
 function filter($symbol, $callback = null) {
 
-  static $filter_callbacks = array();
+  static $symfilters = array();
 
   // this is a mapping call
   if (is_callable($callback)) {
-    $filter_callbacks[$symbol][] = $callback;
+    $symfilters[$symbol][] = $callback;
     return;
   }
 
-  // run all mapped filters
+  // run symbol filters
   foreach ($symbol as $sym => $val) {
-    if (isset($filter_callbacks[$sym])) {
-      foreach ($filter_callbacks[$sym] as $callback) {
+    if (isset($symfilters[$sym])) {
+      foreach ($symfilters[$sym] as $callback) {
         call_user_func($callback, $val);
       }
     }
