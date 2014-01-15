@@ -82,7 +82,6 @@ config([
 
 ## Routing
 Application routes are created via calls to `on($method, $path, $callback)`.
-Supported methods are `GET`, `POST`, `PUT`, `DELETE`, `HEAD` and `PATCH`.
 The `$method` parameter can be a single method, an array of methods, or `*`
 (for all methods).
 

@@ -99,6 +99,11 @@ test('on() - DELETE', function () {
   assert(preg_match('/DELETE route test/i', $res));
 });
 
+test('on() - any method', function () {
+  $res = curl('GET', URL.'/any');
+  assert(preg_match('/any method route test/i', $res));
+});
+
 test('files()', function () {
   if (PHP_VERSION_ID < 50500)
     $att = '@'.__DIR__.'/upload.txt';
