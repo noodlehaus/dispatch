@@ -248,17 +248,17 @@ the parameter value passed to the route handler.
 <?php
 // preload blog entry whenever a matching route has :blog_id in it
 filter('blog_id', function ($blog_id) {
-	$blog = Blog::findOne($blog_id);
-	// scope() lets you store stuff for later use (NOT a cache)
-	scope('blog', $blog);
+  $blog = Blog::findOne($blog_id);
+  // scope() lets you store stuff for later use (NOT a cache)
+  scope('blog', $blog);
 });
 
 // here, we have :blog_id in the route, so our preloader gets run
 on('GET', '/blogs/:blog_id', function ($blog_id) {
   // $blog_id is still the original, but
-	// we can pick up what we stored with scope()
-	$blog = scope('blog');
-	render('blogs/show', array('blog' => $blog);
+  // we can pick up what we stored with scope()
+  $blog = scope('blog');
+  render('blogs/show', array('blog' => $blog);
 });
 ?>
 ```
