@@ -326,7 +326,7 @@ function request_body($load = true) {
 
   // try to load everything
   if ($load) {
-    
+
     $content = file_get_contents('php://input');
     $content_type = preg_split('/ ?; ?/', $content_type);
 
@@ -803,14 +803,7 @@ function after($method_or_cb = null, $path = null) {
 function on($method, $path, $callback = null) {
 
   // callback map by request type
-  static $routes = array(
-    'HEAD' => array(),
-    'GET' => array(),
-    'POST' => array(),
-    'PUT' => array(),
-    'PATCH' => array(),
-    'DELETE' => array()
-  );
+  static $routes = array();
 
   // we don't want slashes on ends
   $path = trim($path, '/');
@@ -818,26 +811,14 @@ function on($method, $path, $callback = null) {
   // a callback was passed, so we create a route definition
   if (is_callable($callback)) {
 
-    // create the regex for this route
-    $regex = preg_replace('@:(\w+)@', '(?<\1>[^/]+)', $path);
-
-    // create the list of methods to map to
+    $regexp = preg_replace('@:(\w+)@', '(?<\1>[^/]+)', $path);
     $method = (array) $method;
-
-    // wildcard method means for all supported methods
-    if (!in_array('*', $method)) {
-      $method = array_intersect(
-        array_keys($routes),
-        array_map('strtoupper', $method)
-      );
-    } else {
-      $method = array_keys($routes);
-    }
+    $method = array_map('strtoupper', $method);
 
     // create a route entry for this path on every method
     foreach ($method as $m)
       $routes[$m][$path] = array(
-        'regex' => '@^'.$regex.'$@',
+        'regexp' => '@^'.$regexp.'$@',
         'callback' => $callback
       );
 
@@ -848,47 +829,49 @@ function on($method, $path, $callback = null) {
   // we're in a routing call, so normalize and search
   $method = strtoupper($method);
 
-  // method support check
-  if (!in_array($method, array_keys($routes)))
-    error(400, 'Method not supported');
-
-  // die quickly if no handlers for method
-  if (!isset($routes[$method]))
-    error(404, 'Page not found');
+  // routing helper
+  $finder = function ($routes, $path) {
+    $found = false;
+    foreach ($routes as $pattern => $info) {
+      if (!preg_match($info['regexp'], $path, $values))
+        continue;
+      $found = true;
+      break;
+    }
+    if (!$found)
+      return array(null, null, null);
+    return array($pattern, $info, $values);
+  };
 
   // callback is null, so this is a route invokation. look up the callback.
-  foreach ($routes[$method] as $pattern => $info) {
+  if (isset($routes[$method]))
+    list($pattern, $info, $values) = $finder($routes[$method], $path);
 
-    // skip non-matching routes
-    if (!preg_match($info['regex'], $path, $values))
-      continue;
+  // no specific match, try any-method routes
+  if (!$pattern && isset($routes['*']))
+    list($pattern, $info, $values) = $finder($routes['*'], $path);
+
+  // we got a match
+  if ($pattern !== null) {
 
     // construct the params for the callback
     $tokens = array_filter(array_keys($values), 'is_string');
-    $values = array_intersect_key($values, array_flip($tokens));
-    $values = array_map('urldecode', $values);
-
+    $values = array_map('urlencode', array_intersect_key(
+      $values,
+      array_flip($tokens)
+    ));
 
     // if we have symbols, init params and run filters
     params($values);
     filter($values);
 
-    // call our before filters
+    // before, callback, after
     before($method, $path);
-
-    // invoke callback
-    call_user_func_array(
-      $info['callback'],
-      array_values(bind($values))
-    );
-
-    // call our after filters
+    call_user_func_array($info['callback'], array_values(bind($values)));
     after($method, $path);
-
-    return;
   }
 
-  // if we got here, then we didn't get a route
+  // nothing, so just 404
   error(404, 'Page not found');
 }
 

@@ -36,6 +36,10 @@ on('GET', '/error', function () {
   error(500);
 });
 
+on('*', '/any', function () {
+  echo "any method route test";
+});
+
 on('GET', '/index', function () {
   $name1 = params('name');
   $name2 = $_GET['name'];
