@@ -655,6 +655,7 @@ Thanks to the following contributors for helping improve this tool :)
 * Bastian Widmer [dasrecht](https://github.com/dasrecht)
 * Lloyd Zhou [lloydzhou](https://github.com/lloydzhou)
 * darkalemanbr [darkalemanbr](https://github.com/darkalemanbr)
+* Amin By [xielingwang](https://github.com/xielingwang)
 * Ross Masters [rmasters](https://github.com/rmasters)
 
 ## LICENSE
