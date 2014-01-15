@@ -295,9 +295,10 @@ on('GET', '/blogs/:blog_id', function ($blog_id) {
 ##
 
 ## Before and After Callbacks
-To setup routines to be run before and after a request, use `before($callable)`
-and `after($callable)` respectively. The callback routines will receive two
-arguments - the `REQUEST_METHOD`, and the `REQUEST_URI`.
+To setup routines to be run before and after a request, use
+`before($cb_or_rx, $cb)` and `after($cb_or_rx, $cb)` respectively. The
+callback routines will receive two arguments - the `REQUEST_METHOD`, and the
+`REQUEST_URI`.
 
 ```php
 <?php
@@ -306,9 +307,19 @@ before(function ($method, $path) {
   // setup stuff
 });
 
+// setup a function to be called only if the URI matches the regex
+before('^admin/', function ($method, $path) {
+  // do some admin checks, for example
+});
+
 // setup a function to be called after each request
 after(function ($method, $path) {
   // clean up stuff
+});
+
+// setup a function to be called only if the URI matches the regex
+after('^transcode/', function ($method, $path) {
+  // clean up temp files, for example
 });
 ?>
 ```
