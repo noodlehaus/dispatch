@@ -848,7 +848,7 @@ function on($method, $path, $callback = null) {
     list($pattern, $info, $values) = $finder($routes[$method], $path);
 
   // no specific match, try any-method routes
-  if (!$pattern && isset($routes['*']))
+  if ((!isset($pattern) || $pattern) && isset($routes['*']))
     list($pattern, $info, $values) = $finder($routes['*'], $path);
 
   // we got a match
@@ -869,10 +869,11 @@ function on($method, $path, $callback = null) {
     before($method, $path);
     call_user_func_array($info['callback'], array_values(bind($values)));
     after($method, $path);
-  }
 
-  // nothing, so just 404
-  error(404, 'Page not found');
+  } else {
+    // nothing, so just 404
+    error(404, 'Page not found');
+  }
 }
 
 /**
