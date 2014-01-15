@@ -18,7 +18,7 @@ function start_http($host, $port, $router) {
   sleep(1);
 }
 
-function curly($method, $url, $data = array(), $opts = array()) {
+function curl($method, $url, $data = array(), $opts = array()) {
 
   $opts += array(
     CURLOPT_URL => $url,
