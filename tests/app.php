@@ -94,7 +94,16 @@ on('GET', '/cookie-set', function () {
 
 on('POST', '/request-headers', function () {
   echo request_headers('content-type');
+});
+
+on('POST', '/request-body', function () {
   $body = request_body();
+  echo "name={$body['name']}";
+});
+
+on('POST', '/request-body-file', function () {
+  $path = request_body($load = false);
+  $body = json_decode(file_get_contents($path), true);
   echo "name={$body['name']}";
 });
 
