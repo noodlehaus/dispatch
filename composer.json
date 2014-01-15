@@ -5,11 +5,58 @@
   "keywords": ["framework", "router", "microframework", "micro", "microphp"],
   "homepage": "http://noodlehaus.github.io/dispatch/",
   "license": "MIT",
-  "authors": [{
-    "name": "Jesus A. Domingo",
-    "role": "Developer",
-    "homepage": "http://noodlehaus.github.io/"
-  }],
+  "authors": [
+    {
+      "name": "Jesus A. Domingo",
+      "role": "Developer",
+      "homepage": "http://noodlehaus.github.io/"
+    },
+    {
+      "name": "Kafene",
+      "role": "Contributor",
+      "homepage": "https://github.com/kafene"
+    },
+    {
+      "name": "Martin Angelov",
+      "role": "Contributor",
+      "homepage": "https://github.com/martinaglv"
+    },
+    {
+      "name": "Lars",
+      "role": "Developer",
+      "homepage": "https://github.com/larsbo"
+    },
+    {
+      "name": "4d47",
+      "role": "Contributor",
+      "homepage": "https://github.com/4d47"
+    },
+    {
+      "name": "Bastian Widmer",
+      "role": "Contributor",
+      "homepage": "https://github.com/dasrecht"
+    },
+    {
+      "name": "Lloyd Zhou",
+      "role": "Contributor",
+      "homepage": "https://github.com/lloydzhou"
+    },
+    {
+      "name": "Darkalemanbr",
+      "role": "Contributor",
+      "homepage": "https://github.com/darkalemanbr"
+    },
+    {
+      "name": "Amin By",
+      "role": "Contributor",
+      "homepage": "https://github.com/xielingwang"
+    },
+    {
+      "name": "Ross Masters",
+      "role": "Contributor",
+      "homepage": "https://github.com/rmasters"
+    }
+  ],
   "require": {
     "php": ">= 5.4.0"
   },
