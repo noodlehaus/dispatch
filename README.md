@@ -296,9 +296,9 @@ on('GET', '/blogs/:blog_id', function ($blog_id) {
 
 ## Before and After Callbacks
 To setup routines to be run before and after a request, use
-`before($cb_or_rx, $cb)` and `after($cb_or_rx, $cb)` respectively. The
-callback routines will receive two arguments - the `REQUEST_METHOD`, and the
-`REQUEST_URI`.
+`before($cb_or_rx, $cb = null)` and `after($cb_or_rx, $cb = null)`
+respectively. The callback routines will receive two arguments - the
+`REQUEST_METHOD`, and the `REQUEST_URI`.
 
 ```php
 <?php
@@ -600,8 +600,8 @@ Below's the list of functions provided by Dispatch.
 function on($method, $path, $callback)
 function resource($name, $cb)
 function error($code, $callback = null)
-function before($rx_or_cb, $cb)
-function after($rx_or_cb, $cb)
+function before($rx_or_cb, $cb = null)
+function after($rx_or_cb, $cb = null)
 function bind($symbol, $callback = null)
 function filter($symbol, $callback)
 function redirect($path, $code = 302, $condition = true)
