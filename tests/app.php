@@ -164,17 +164,6 @@ on('GET', '/download', function () {
   send('./README.md', 'readme.txt', 60*60*24*365);
 });
 
-prefix('books', function () {
-  on('GET', '/list', function () {
-    echo "book list";
-  });
-  prefix('chapters', function () {
-    on('GET', '/list', function () {
-      echo "chapter list";
-    });
-  });
-});
-
 bind('hashable', function ($hashable) {
   return md5($hashable);
 });
