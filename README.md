@@ -102,7 +102,7 @@ on(['GET', 'POST'], '/greet', function () {
   echo "hello, world!\n";
 });
 
-// handle supported methods (get, post, put, delete, head, patch)
+// handle any method
 on('*', '/multi', function () {
   echo "it works!\n";
 });
