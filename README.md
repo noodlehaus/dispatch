@@ -412,7 +412,7 @@ on('GET', '/faq', inline('faq', array(), 'faq-layout'));
 ```
 
 ## JSON and JSONP Responses
-JSON and JSONP responses are done via `json_out($obj, $func = null)`.
+JSON and JSONP responses are done via `json($obj, $func = null)`.
 
 ```php
 <?php
@@ -420,7 +420,7 @@ JSON and JSONP responses are done via `json_out($obj, $func = null)`.
 $obj = ['name' => 'noodlehaus', 'age' => 34];
 
 // non-cacheable json response
-json_out($obj);
+json($obj);
 
 ...
 
@@ -428,7 +428,7 @@ json_out($obj);
 $fxn = 'parseResponse';
 
 // non-cacheable jsonp response
-json_out($obj, $fxn);
+json($obj, $fxn);
 ?>
 ```
 
@@ -511,7 +511,7 @@ $name = params('name', 'stranger');
 
 ## File Downloads (Content-Disposition)
 You can push a file to the client using the `Content-Disposition` header via
-`send_file($path, $filename, $sec_expire = 0)`. `$path` points to the
+`send($path, $filename, $lifespan = 0)`. `$path` points to the
 filesystem path of the file to push, `$filename` will be the filename to be
 used in the header, and `$sec_expire` will be the cache lifespan of the file
 in seconds.
@@ -525,14 +525,14 @@ send_file('/path/to/file/to/push.pdf', 'ebook.pdf', 60*60*24*180);
 
 ## $\_FILES Values
 During file uploads, to get consolidated info on the file, call
-`upload_info($name)`, where `$name` is the name of the file input field. If
+`files($name)`, where `$name` is the name of the file input field. If
 the file input field is an array, info is grouped conveniently by file and
 returned as an array.
 
 ```php
 <?php
 // get info on an uploaded file
-$file = upload_info('photo');
+$file = files('photo');
 ?>
 ```
 
@@ -599,15 +599,15 @@ function redirect($path, $code = 302, $condition = true)
 function render($view, $locals = null, $layout = null)
 function template($view, $locals = null)
 function partial($view, $locals = null)
-function json_out($obj, $func = null)
+function json($obj, $func = null)
 function nocache()
 
 // request data helpers
 function params($name = null, $default = null)
 function cookie($name, $value = null, $expire = 0, $path = '/')
 function scope($name, $value = null)
-function upload_info($name)
-function send_file($path, $filename, $sec_expire = 0)
+function files($name)
+function send($path, $filename, $sec_expire = 0)
 function request_headers($name = null)
 function request_body()
 

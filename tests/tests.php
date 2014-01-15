@@ -16,6 +16,9 @@ test('config()', function () {
   assert(config('one') === 1);
   assert(config('false') === false);
   assert(config('invalid') === null);
+});
+
+test('config() - array of keys', function () {
   config(array(
     'name' => 'noodlehaus',
     'project' => 'dispatch'
@@ -56,57 +59,58 @@ test('after()', function () {
   assert(preg_match('/AFTER PATH: index/', $res));
 });
 
-test('error(code)', function () {
+test('error() - direct trigger', function () {
   $res = curly('GET', URL.'/error');
   assert(preg_match('/500 page error/i', $res));
 });
 
-test('error(code, callable)', function () {
+test('error() - custom callback', function () {
   $res = curly('GET', URL.'/not-found');
   assert(preg_match('/file not found/', $res));
 });
 
-test('on(GET)', function () {
+test('on() - GET', function () {
   $res = curly('GET', URL.'/index?name=dispatch');
   assert(preg_match('/GET received dispatch and dispatch/', $res));
 });
 
-test('on(POST)', function () {
+test('on() - POST', function () {
   $res = curly('POST', URL.'/index', array('name' => 'dispatch'));
   assert(preg_match('/POST received dispatch and dispatch/i', $res));
 });
 
-test('on(PUT)', function () {
+test('on() - PUT', function () {
   $res = curly('PUT', URL.'/index', array('name' => 'dispatch'));
   assert(preg_match('/PUT received dispatch/i', $res));
 });
 
-test('on(DELETE)', function () {
+test('on() - DELETE', function () {
   $res = curly('DELETE', URL.'/index/1');
   assert(preg_match('/DELETE route test/i', $res));
 });
 
-test('upload_info()', function () {
-
+test('files()', function () {
   if (PHP_VERSION_ID < 50500)
     $att = '@'.__DIR__.'/upload.txt';
   else
     $att = curl_file_create(__DIR__.'/upload.txt');
-
   $res = curly('POST', URL.'/upload', array('attachment' => $att));
   assert(preg_match('/received upload\.txt/', $res));
 });
 
-test('send_file()', function () {
+test('send()', function () {
   $res = curly('GET', URL.'/download');
   assert(preg_match('/filename=readme\.txt/', $res));
   assert(preg_match('/maxage=31536000/', $res));
   assert(preg_match('/ETag: '.md5('./README.md').'/', $res));
 });
 
-test('method override (_method, X-HTTP-Method-Override)', function () {
+test('method override - via _method', function () {
   $res = curly('POST', URL.'/override', array('_method' => 'PUT'));
   assert(preg_match('/PUT received via _method/i', $res));
+});
+
+test('method override - via X-HTTP-Method-Override', function () {
   $res = curly(
     'POST',
     URL.'/override',
@@ -116,11 +120,14 @@ test('method override (_method, X-HTTP-Method-Override)', function () {
   assert(preg_match('/PUT received via _method/i', $res));
 });
 
-test('json_out()', function () {
+test('json() - JSON response', function () {
   $res = curly('GET', URL.'/json');
   $val = '{"name":"noodlehaus","project":"dispatch"}';
   assert(preg_match('/application\/json/', $res));
   assert(preg_match('/'.preg_quote($val).'/', $res));
+});
+
+test('json() - JSON-P response', function () {
   $res = curly('GET', URL.'/jsonp');
   $val = 'callback({"name":"noodlehaus","project":"dispatch"})';
   assert(preg_match('/application\/javascript/', $res));
@@ -130,9 +137,6 @@ test('json_out()', function () {
 test('redirect()', function () {
   $res = curly('GET', URL.'/redirect/302');
   assert(preg_match('/302 found/i', $res));
-  assert(preg_match('/Location: \/index/i', $res));
-  $res = curly('GET', URL.'/redirect/301');
-  assert(preg_match('/301 moved permanently/i', $res));
   assert(preg_match('/Location: \/index/i', $res));
 });
 
@@ -146,14 +150,17 @@ test('bind()', function () {
   assert(preg_match('/5d41402abc4b2a76b9719d911017c592-hello/', $res));
 });
 
-test('bind() with cache', function () {
+test('bind() - with cache', function () {
   $res = curly('GET', URL.'/authors/tolkien/books/lotr');
   assert(preg_match('/LOTR by TOLKIEN/', $res));
 });
 
-test('cookie()', function () {
+test('cookie() - set', function () {
   $res = curly('GET', URL.'/cookie-set');
   assert(preg_match('/set-cookie: cookie=/i', $res));
+});
+
+test('cookie() - get', function () {
   $res = curly('GET', URL.'/cookie-get');
   assert(preg_match('/cookie=123/i', $res));
 });
@@ -182,13 +189,21 @@ test('params()', function () {
   assert(preg_match('/two=2/', $res));
 });
 
-test('flash()', function () {
+test('flash() - set', function () {
   curly('GET', URL.'/flash-set');
   $res = curly('GET', URL.'/flash-get');
   assert(preg_match('/message=success/i', $res));
-  assert(preg_match('/flash-now is null/i', $res));
+});
+
+test('flash() - get', function () {
   $res = curly('GET', URL.'/flash-get');
   assert(!preg_match('/message=success/i', $res));
+});
+
+test('flash() - now messages', function () {
+  curly('GET', URL.'/flash-set');
+  $res = curly('GET', URL.'/flash-get');
+  assert(preg_match('/flash-now is null/i', $res));
 });
 
 test('partial()', function () {
@@ -207,12 +222,12 @@ test('inline()', function () {
   assert(preg_match('/inline content/i', $res));
 });
 
-test('inline() with locals', function () {
+test('inline() - with locals', function () {
   $res = curly('GET', URL.'/inline/locals');
   assert(preg_match('/name=dispatch/i', $res));
 });
 
-test('inline() with callback', function () {
+test('inline() - with callback', function () {
   $res = curly('GET', URL.'/inline/callback');
   assert(preg_match('/name=dispatch/i', $res));
 });
