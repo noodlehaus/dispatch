@@ -201,16 +201,18 @@ $accept_encoding = request_headers('accept-encoding');
 
 ## Request Body in PUTs or JSON POSTs
 In cases where you're handling PUT requests or JSON posts and you need access
-to the raw http request body contents, you can use `request_body()`.
+to the raw http request body contents, you can use `request_body($load = true)`.
 
 For content of type `application/json` and `application/x-www-form-urlencoded`,
 the content are automatically parsed and returned as arrays.
 
 ```php
 <?php
-on('PUT', '/users/:id', function ($id) {
-  $data = request_body();
-});
+// this returns the actual content (expensive for big uploads)
+$data = request_body();
+
+// this writes the body into a temp file and returns the path
+$path = request_body($load = file);
 ?>
 ```
 
