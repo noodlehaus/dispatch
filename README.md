@@ -1,6 +1,6 @@
 # Dispatch
 
-Dispatch is another PHP micro-framework. It's very small and very straightforward
+Dispatch is another PHP micro-framework. It's very small and very simple
 to use. No classes, no namespaces.
 
 ## Requirements
@@ -8,7 +8,8 @@ Officially, Dispatch requires **PHP 5.4**. Unofficially though, it can run with
 **PHP 5.3** and up. Anything lower, you'll have to change things.
 
 No strict version check is being done by Dispatch, other than the requirements
-imposed by `composer.json`. Functions specific to 5.4 are only used when available.
+imposed by `composer.json`. Functions specific to 5.4 are only used when
+available.
 
 To run the tests though, you'll need PHP 5.4 as it makes use of PHP's built-in
 web server.
@@ -17,7 +18,7 @@ web server.
 Get the code on GitHub: <http://github.com/noodlehaus/dispatch>.
 
 ## Installation
-To install using `composer`, have the following lines in your `composer.json` file.
+To install using `composer`, have the following lines to `composer.json`.
 
 ```javascript
 {
@@ -31,13 +32,13 @@ To install using `composer`, have the following lines in your `composer.json` fi
 
 Then do a `composer install` or `composer update` to install the package.
 
-If you don't use `composer`, just download and include `dispatch.php` directly in
-your application.
+If you don't use `composer`, just download and include `dispatch.php` directly
+in your application.
 
 Note that Dispatch functions are all loaded into the global namespace.
 
-If you have access to `mod_rewrite`, make sure to redirect all your PHP requests to
-your app.
+If you have access to `mod_rewrite`, make sure to redirect all your PHP
+requests to your app.
 
 ```
 <IfModule mod_rewrite.c>
@@ -80,9 +81,10 @@ config([
 ```
 
 ## Routing
-Application routes are created via calls to `on($method, $path, $callback)`. Supported methods are
-`GET`, `POST`, `PUT`, `DELETE`, `HEAD` and `PATCH`. The `$method` parameter can be a single method, an
-array of methods, or `*` (for all methods).
+Application routes are created via calls to `on($method, $path, $callback)`.
+Supported methods are `GET`, `POST`, `PUT`, `DELETE`, `HEAD` and `PATCH`.
+The `$method` parameter can be a single method, an array of methods, or `*`
+(for all methods).
 
 ```php
 <?php
@@ -101,7 +103,7 @@ on(['GET', 'POST'], '/greet', function () {
   echo "hello, world!\n";
 });
 
-// handle all supported methods for a route (get, post, put, delete, head, patch)
+// handle supported methods (get, post, put, delete, head, patch)
 on('*', '/multi', function () {
   echo "it works!\n";
 });
@@ -109,10 +111,11 @@ on('*', '/multi', function () {
 ```
 
 ## Grouped Routes (Resources)
-When working on APIs, you tend to create routes that resemble resources. You can do this by
-including the resource name in your route, or by scoping your route creation with a
-`prefix($path, $routine)` call, where `$path` contains the name of the resource, and
-`$routine` is a callable that contains routing calls.
+When working on APIs, you tend to create routes that resemble resources.
+You can do this by including the resource name in your route, or by scoping
+your route creation with a `prefix($path, $routine)` call, where `$path`
+contains the name of the resource, and `$routine` is a callable that contains
+routing calls.
 
 ```php
 <?php
@@ -135,13 +138,12 @@ on('GET', '/about', function () {
 ?>
 ```
 
-From the code sample, routes `/users/index` and `/users/:username/show` will be made. Then
-outside of the `users` resource, a `/about` route is also made.
+From the code sample, routes `/users/index` and `/users/:username/show` will be
+made. Then outside of the `users` resource, a `/about` route is also made.
 
 ## Site Path and URL Rewriting
-If your app resides in a subfolder, include this path in your `dispatch.url` setting, so Dispatch
-knows which parts of the `REQUEST_URI` need to be removed. This URL or your app path can then be
-accessed via `site($path_only = false)`.
+If your app resides in a subfolder, include this path in your `dispatch.url`
+setting, so Dispatch knows which parts of the `REQUEST_URI` need to be removed.
 
 ```php
 <?php
@@ -154,18 +156,13 @@ on('GET', '/users', function () {
 
 // requested URI = http://somehost.com/mysite/users
 // response = "listing users..."
-
-// get your full URL
-$url = site();
-
-// get just /mysite
-$path = site(true);
 ?>
 ```
 
-If you don't have access to URL rewrites, and are using a file router (ie. /index.php/controller/action),
-you need to specify this via `dispatch.router`. The string you set this to gets stripped off of the
-`REQUEST_URI` before Dispatch routes the request.
+If you don't have access to URL rewrites, and are using a file router
+(ie. /index.php/some/action), you need to specify this via `dispatch.router`.
+The string you set this to gets stripped off of the `REQUEST_URI` before
+Dispatch routes the request.
 
 ```php
 <?php
@@ -182,9 +179,9 @@ on('GET', '/users', function () {
 ```
 
 ## HTTP Redirects
-Redirects are done via `redirect($path, $code = 302, $condition = true)`. The third
-parameter, `$condition`, is useful if you want your redirects to happen depending on
-the result of an expression.
+Redirects are done via `redirect($path, $code = 302, $condition = true)`. The
+third parameter, `$condition`, is useful if you want your redirects to happen
+depending on the result of an expression.
 
 ```php
 <?php
@@ -251,7 +248,8 @@ on('PUT', '/users/:id', function ($id) {
 ## Route Symbol Bindings and Filters
 Named parameters or symbols in routes can have callbacks associated with it.
 With these callbacks, you can perform routines like data loading, or value
-filtering/transforms. Functions that let you do this are `bind($symbol, $callback = null)` and `filter($symbol, $callback = null)`.
+filtering/transforms. Functions that let you do this are
+`bind($symbol, $callback = null)` and `filter($symbol, $callback = null)`.
 
 Callbacks mapped using `bind()` transform the final value that gets passed
 to your route handler.
@@ -297,8 +295,9 @@ on('GET', '/blogs/:blog_id', function ($blog_id) {
 ##
 
 ## Before and After Callbacks
-To setup routines to be run before and after a request, use `before($callable)` and `after($callable)`
-respectively. The callback routines will receive two arguments - the `REQUEST_METHOD`, and the `REQUEST_URI`.
+To setup routines to be run before and after a request, use `before($callable)`
+and `after($callable)` respectively. The callback routines will receive two
+arguments - the `REQUEST_METHOD`, and the `REQUEST_URI`.
 
 ```php
 <?php
@@ -337,11 +336,11 @@ error(500, "Something broke!");
 For Dispatch to work with layouts, views and partials, you need three settings:
 
 * `dispatch.views` - where to find all the views
-* `dispatch.layout` - the layout file to use (without .html.php) from the views path
+* `dispatch.layout` - the layout file to use (without .html.php)
 * your layout, views and partials should end with `.html.php`
 
-The layout file you specify needs to contain a call to `content()`. This will plug in
-the contents of your view into your layout file.
+The layout file you specify needs to contain a call to `content()`. This will
+plug in the contents of your view into your layout file.
 
 ```php
 <!DOCTYPE html>
@@ -380,8 +379,8 @@ $page = template('index', ['name' => 'bob']);
 ?>
 ```
 
-For partials, the files are expected to begin with the `_` character, and can be
-loaded via `partial($path, $locals = [])`.
+For partials, the files are expected to begin with the `_` character, and can
+be loaded via `partial($path, $locals = [])`.
 
 ```php
 <?php
@@ -402,7 +401,10 @@ the scope variables, and layout file, if any, when the route is invoked.
 on('GET', '/about-us', inline('about-us'));
 
 // render a template with some locals
-on('GET', '/contact-us', inline('contact-us', array('email' => 'support@blah.com')));
+on('GET', '/contact-us', inline(
+  'contact-us',
+  array('email' => 'support@blah.com')
+));
 
 // render using a different template
 on('GET', '/faq', inline('faq', array(), 'faq-layout'));
@@ -431,8 +433,8 @@ json_out($obj, $fxn);
 ```
 
 ## No-Cache
-If you want to output non-cacheable content, you can do this by calling `nocache()` before
-outputting any content.
+If you want to output non-cacheable content, you can do this by calling
+`nocache()` before outputting any content.
 
 ```php
 <?php
@@ -444,7 +446,8 @@ echo "comes fresh, everytime!";
 ```
 
 ## Cookies and Sessions
-Get and set cookie values via `cookie($name, $value = null, $expire = 0, $path = '/')`.
+Get and set cookie values via
+`cookie($name, $value = null, $expire = 0, $path = '/')`.
 
 ```php
 <?php
@@ -456,8 +459,9 @@ $user_id = cookie('user_id');
 ?>
 ```
 
-For getting and setting session values, use `session($name, $value = null)`. Calls to `session()` will
-fail and raise an error if you have sessions disabled in your `php.ini`.
+For getting and setting session values, use `session($name, $value = null)`.
+Calls to `session()` will fail and raise an error if you have sessions
+disabled in your `php.ini`.
 
 If sessions are enabled, `session_start()` is called automatically for you.
 
@@ -475,7 +479,8 @@ session('authenticated', null);
 ```
 
 ## Cross-Request Messages (Flash)
-Cross-request messages, or flash messages, can be done via `flash($name, $message = null, $now = false)`.
+Cross-request messages, or flash messages, can be done via
+`flash($name, $message = null, $now = false)`.
 
 ```php
 <?php
@@ -491,7 +496,8 @@ $message = flash('error');
 
 ## $\_GET, $\_POST Values and Route Symbols
 To fetch a value from a request without regard to wether it comes from `$_GET`,
-`$_POST`, or the route symbols, use `params($name)`. This is just like Rails' `params` hash.
+`$_POST`, or the route symbols, use `params($name)`. This is just like Rails'
+`params` hash.
 
 ```php
 <?php
@@ -505,9 +511,10 @@ $name = params('name', 'stranger');
 
 ## File Downloads (Content-Disposition)
 You can push a file to the client using the `Content-Disposition` header via
-`send_file($path, $filename, $sec_expire = 0)`. `$path` points to the filesystem path
-of the file to push, `$filename` will be the filename to be used in the header, and
-`$sec_expire` will be the cache lifespan of the file in seconds.
+`send_file($path, $filename, $sec_expire = 0)`. `$path` points to the
+filesystem path of the file to push, `$filename` will be the filename to be
+used in the header, and `$sec_expire` will be the cache lifespan of the file
+in seconds.
 
 ```php
 <?php
@@ -517,9 +524,10 @@ send_file('/path/to/file/to/push.pdf', 'ebook.pdf', 60*60*24*180);
 ```
 
 ## $\_FILES Values
-During file uploads, to get consolidated info on the file, call `upload_info($name)`, where `$name`
-is the name of the file input field. If the file input field is an array, info is grouped
-conveniently by file and returned as an array.
+During file uploads, to get consolidated info on the file, call
+`upload_info($name)`, where `$name` is the name of the file input field. If
+the file input field is an array, info is grouped conveniently by file and
+returned as an array.
 
 ```php
 <?php
@@ -529,7 +537,8 @@ $file = upload_info('photo');
 ```
 
 ## Loading INI Files
-You can make use of ini files for configuration by calling `config('source', 'myconfig.ini')`.
+You can make use of ini files for configuration by calling
+`config('source', 'myconfig.ini')`.
 
 ```php
 <?php
@@ -604,7 +613,6 @@ function request_body()
 
 // configurations and settings
 function config($key, $value = null)
-function site($path_only = false)
 
 // misc helpers
 function flash($key, $msg = null, $now = false)
@@ -621,8 +629,8 @@ function dispatch($method = null, $path = null)
 
 Some extra functions can be added to Dispatch via the following libraries:
 
-* [dispatch-extras](http://github.com/noodlehaus/dispatch-extras) - encryption, caching
-* [dispatch-mustache](http://github.com/noodlehaus/dispatch-mustache) - use mustache templates for your views
+* [dispatch-extras](http://github.com/noodlehaus/dispatch-extras)
+* [dispatch-mustache](http://github.com/noodlehaus/dispatch-mustache)
 
 ## About the Author
 

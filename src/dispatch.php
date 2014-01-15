@@ -82,25 +82,6 @@ function config($key = null, $value = null) {
 }
 
 /**
- * Returns the string contained by 'dispatch.url' in config.ini.
- * This includes the hostname and path. If called with $path_only set to
- * true, it will return only the path section of the URL.
- *
- * @param boolean $path_only defaults to false, true returns only the path
- * @return string value pointed to by 'dispatch.url' in config.ini.
- */
-function site($path_only = false) {
-
-  if (!config('dispatch.url'))
-    return null;
-
-  if ($path_only)
-    return rtrim(parse_url(config('dispatch.url'), PHP_URL_PATH), '/');
-
-  return rtrim(config('dispatch.url'), '/').'/';
-}
-
-/**
  * Utility for setting cross-request messages using cookies,
  * referred to as flash messages (invented by Rails folks).
  * Calling flash('key') will return the message and remove
@@ -829,9 +810,13 @@ function on($method, $path, $callback = null) {
   // we're in a routing call, so normalize and search
   $method = strtoupper($method);
 
-  // check for method support or routes for method
-  !in_array($method, array_keys($routes)) && error(400, 'Method not supported');
-  !isset($routes[$method]) && error(404, 'Page not found');
+  // method support check
+  if (!in_array($method, array_keys($routes)))
+    error(400, 'Method not supported');
+
+  // die quickly if no handlers for method
+  if (!isset($routes[$method]))
+    error(404, 'Page not found');
 
   // callback is null, so this is a route invokation. look up the callback.
   foreach ($routes[$method] as $pattern => $info) {

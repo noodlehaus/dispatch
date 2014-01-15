@@ -24,12 +24,6 @@ test('config()', function () {
   assert(config('project') === 'dispatch');
 });
 
-test('site()', function () {
-  config('dispatch.url', 'http://localhost:8888/mysite/');
-  assert(site() === 'http://localhost:8888/mysite/');
-  assert(site(true) === '/mysite');
-});
-
 test('url()', function () {
   $s = 'name=noodlehaus&project=dispatch';
   assert(url($s) === urlencode($s));
