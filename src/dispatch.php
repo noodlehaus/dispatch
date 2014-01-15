@@ -684,42 +684,86 @@ function bind($symbol, $callback = null) {
 
 /**
  * Function for mapping callbacks to be invoked before each request.
- * Order of execution depends on the order of mapping.
+ * If called with two args, with first being regex, callback is only
+ * invoked if the regex matches the request URI.
  *
- * @param callable $callback routine to invoke before each request.
+ * @param callable|string $callback_or_regex callable or regex
+ * @param callable $callback required if arg 1 is regex
  *
  * @return void
  */
-function before($method_or_cb = null, $path = null) {
+function before() {
 
+  static $regexp_callbacks = array();
   static $before_callbacks = array();
 
-  if (!is_callable($method_or_cb)) {
-    foreach ($before_callbacks as $callback)
-      call_user_func_array($callback, array($method_or_cb, $path));
-  } else {
-    $before_callbacks[] = $method_or_cb;
+  $args = func_get_args();
+  $func = array_pop($args);
+  $rexp = array_pop($args);
+
+  // mapping call
+  if (is_callable($func)) {
+    if ($rexp)
+      $regexp_callbacks[$rexp] = $func;
+    else
+      $before_callbacks[] = $func;
+    return;
   }
+
+  // remap args for clarity
+  $verb = $rexp;
+  $path = $func;
+
+  // let's run regexp callbacks first
+  foreach ($regexp_callbacks as $rexp => $func)
+    if (preg_match($rexp, $path))
+      $func($verb, $path);
+
+  // call generic callbacks
+  foreach ($before_callbacks as $func)
+    $func($verb, $path);
 }
 
 /**
  * Function for mapping callbacks to be invoked after each request.
- * Order of execution depends on the order of mapping.
+ * If called with two args, with first being regex, callback is only
+ * invoked if the regex matches the request URI.
  *
- * @param callable $callback routine to invoke after each request.
+ * @param callable|string $callback_or_regex callable or regex
+ * @param callable $callback required if arg 1 is regex
  *
  * @return void
  */
 function after($method_or_cb = null, $path = null) {
 
+  static $regexp_callbacks = array();
   static $after_callbacks = array();
 
-  if (!is_callable($method_or_cb)) {
-    foreach ($after_callbacks as $callback)
-      call_user_func_array($callback, array($method_or_cb, $path));
-  } else {
-    $after_callbacks[] = $method_or_cb;
+  $args = func_get_args();
+  $func = array_pop($args);
+  $rexp = array_pop($args);
+
+  // mapping call
+  if (is_callable($func)) {
+    if ($rexp)
+      $regexp_callbacks[$rexp] = $func;
+    else
+      $after_callbacks[] = $func;
+    return;
   }
+
+  // remap args for clarity
+  $verb = $rexp;
+  $path = $func;
+
+  // let's run regexp callbacks first
+  foreach ($regexp_callbacks as $rexp => $func)
+    if (preg_match($rexp, $path))
+      $func($verb, $path);
+
+  // call generic callbacks
+  foreach ($after_callbacks as $func)
+    $func($verb, $path);
 }
 
 /**

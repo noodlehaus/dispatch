@@ -12,9 +12,19 @@ before(function ($method, $path) {
   echo "BEFORE METHOD: {$method}, BEFORE PATH: {$path}".PHP_EOL;
 });
 
+// regex before routine
+before('/^admin\//', function ($method, $path) {
+  echo "BEFORE via ADMIN";
+});
+
 // after routine
 after(function ($method, $path) {
   echo "AFTER METHOD: {$method}, AFTER PATH: {$path}".PHP_EOL;
+});
+
+// regex after routine
+after('/^admin\//', function ($method, $path) {
+  echo "AFTER via ADMIN";
 });
 
 // routines for testing
@@ -187,6 +197,10 @@ on('GET', '/authors/:author/books/:title', function ($author, $title) {
 
 on('GET', '/list', function () {
   echo "different list";
+});
+
+on('GET', '/admin/:stub', function ($stub) {
+  echo "{$stub}\n";
 });
 
 dispatch();
