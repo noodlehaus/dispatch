@@ -53,10 +53,20 @@ test('before()', function () {
   assert(preg_match('/BEFORE PATH: index/', $res));
 });
 
+test('before() - with regex', function () {
+  $res = curl('GET', URL.'/admin/before');
+  assert(preg_match('/BEFORE via ADMIN/', $res));
+});
+
 test('after()', function () {
   $res = curl('GET', URL.'/index?name=dispatch');
   assert(preg_match('/AFTER METHOD: GET/', $res));
   assert(preg_match('/AFTER PATH: index/', $res));
+});
+
+test('after() - with regex', function () {
+  $res = curl('GET', URL.'/admin/after');
+  assert(preg_match('/AFTER via ADMIN/', $res));
 });
 
 test('error() - direct trigger', function () {
