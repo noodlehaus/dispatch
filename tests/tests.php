@@ -182,7 +182,7 @@ test('session()', function () {
   assert(!preg_match('/type is still set/i', $res));
 });
 
-test('request_headers() and request_body()', function () {
+test('request_headers()', function () {
   $res = curl(
     'POST',
     URL.'/request-headers',
@@ -190,6 +190,25 @@ test('request_headers() and request_body()', function () {
     array(CURLOPT_HTTPHEADER => array('Content-type: application/json'))
   );
   assert(preg_match('/application\/json/', $res));
+});
+
+test('request_body()', function () {
+  $res = curl(
+    'POST',
+    URL.'/request-body',
+    '{"name":"jaydee"}',
+    array(CURLOPT_HTTPHEADER => array('Content-type: application/json'))
+  );
+  assert(preg_match('/name=jaydee/', $res));
+});
+
+test('request_body() - temp file', function () {
+  $res = curl(
+    'POST',
+    URL.'/request-body-file',
+    '{"name":"jaydee"}',
+    array(CURLOPT_HTTPHEADER => array('Content-type: application/json'))
+  );
   assert(preg_match('/name=jaydee/', $res));
 });
 
