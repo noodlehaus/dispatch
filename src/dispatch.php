@@ -22,7 +22,7 @@ function error($code, $callback = null) {
 
   // this is a hook setup, save and return
   if (is_callable($callback)) {
-    $error_callbacks[$code][] = $callback;
+    $error_callbacks[$code] = $callback;
     return;
   }
 
@@ -41,8 +41,7 @@ function error($code, $callback = null) {
 
   // if we got callbacks, try to invoke
   if (isset($error_callbacks[$code]))
-    foreach ($error_callbacks[$code] as $cb)
-      call_user_func($cb, $code);
+    call_user_func($error_callbacks[$code], $code);
 
   exit;
 }
@@ -64,8 +63,12 @@ function config($key = null, $value = null) {
 
   // if key is source, load ini file and return
   if ($key === 'source') {
-    !file_exists($value) and
-      error(500, "File passed to config('source') not found");
+    if (!file_exists($value)) {
+      trigger_error(
+        "File passed to config('source') not found",
+        E_USER_ERROR
+      );
+    }
     $config = array_merge($config, parse_ini_file($value, true));
     return;
   }
@@ -212,11 +215,12 @@ function session($name, $value = null) {
   // stackoverflow.com: 3788369
   if ($session_active === false) {
 
-    if (($current = ini_get('session.use_trans_sid')) === false)
-      error(
-        500,
-        'Calls to session() requires [session.use_trans_sid] to be set'
+    if (($current = ini_get('session.use_trans_sid')) === false) {
+      trigger_error(
+        'Call to session() requires that sessions be enabled in PHP',
+        E_USER_ERROR
       );
+    }
 
     $test = "mix{$current}{$current}";
 
@@ -494,7 +498,7 @@ function content($value = null) {
 function template($view, $locals = null) {
 
   if (($view_root = config('dispatch.views')) == null)
-    error(500, "config('dispatch.views') is not set.");
+    trigger_error("config('dispatch.views') is not set.", E_USER_ERROR);
 
   extract((array) $locals, EXTR_SKIP);
 
@@ -506,7 +510,7 @@ function template($view, $locals = null) {
     require $view;
     $html = ob_get_clean();
   } else {
-    error(500, "template [{$view}] not found");
+    trigger_error("Template [{$view}] not found.", E_USER_ERROR);
   }
 
   return $html;
@@ -736,7 +740,7 @@ function prefix($name = null, $cb = null) {
 
   // outside of sys calls, always require 2 params
   if ($nargs < 2)
-    error(500, 'Invalid call to prefix()');
+    trigger_error("Invalid call to prefix()", E_USER_ERROR);
 
   // push, routine, pop so we can nest
   array_push($paths, trim($name, '/'));
