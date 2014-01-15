@@ -307,9 +307,11 @@ function request_headers($key = null) {
  * and form-urlencoded content are automatically parsed and returned
  * as arrays.
  *
+ * @param boolean $load if false, you get a temp file path with the data
+ *
  * @return mixed raw string or decoded JSON object
  */
-function request_body() {
+function request_body($load = true) {
 
   static $content = null;
 
@@ -322,16 +324,34 @@ function request_body() {
     $_SERVER['HTTP_CONTENT_TYPE'] :
     $_SERVER['CONTENT_TYPE'];
 
-  $content = file_get_contents('php://input');
-  $content_type = preg_split('/ ?; ?/', $content_type);
+  // try to load everything
+  if ($load) {
+    
+    $content = file_get_contents('php://input');
+    $content_type = preg_split('/ ?; ?/', $content_type);
 
-  // if json, cache the decoded value
-  if ($content_type[0] == 'application/json')
-    $content = json_decode($content, true);
-  else if ($content_type[0] == 'application/x-www-form-urlencoded')
-    parse_str($content, $content);
+    // if json, cache the decoded value
+    if ($content_type[0] == 'application/json')
+      $content = json_decode($content, true);
+    else if ($content_type[0] == 'application/x-www-form-urlencoded')
+      parse_str($content, $content);
 
-  return $content;
+    return $content;
+  }
+
+  // create a temp file with the data
+  $path = tempnam(sys_get_temp_dir(), 'disp-');
+  $temp = fopen($path, 'w');
+  $data = fopen('php://input', 'r');
+
+  // 8k per read
+  while ($buff = fread($data, 8192))
+    fwrite($temp, $buff);
+
+  fclose($temp);
+  fclose($data);
+
+  return $path;
 }
 
 /**
