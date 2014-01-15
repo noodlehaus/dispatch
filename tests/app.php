@@ -52,25 +52,21 @@ on('DELETE', '/index/:id', function ($id) {
 });
 
 on('GET', '/json', function () {
-  json_out(array(
+  json(array(
     'name' => 'noodlehaus',
     'project' => 'dispatch'
   ));
 });
 
 on('GET', '/jsonp', function () {
-  json_out(array(
+  json(array(
     'name' => 'noodlehaus',
     'project' => 'dispatch'
   ), 'callback');
 });
 
-on('GET', '/redirect/302', function () {
-  redirect('/index');
-});
-
-on('GET', '/redirect/301', function () {
-  redirect('/index', 301);
+on('GET', '/redirect/:code', function ($code) {
+  redirect('/index', (int) $code);
 });
 
 filter('id', function () {
@@ -147,7 +143,7 @@ on('GET', '/session/check', function () {
 });
 
 on('POST', '/upload', function () {
-  $info = upload_info('attachment');
+  $info = files('attachment');
   if (is_array($info) && is_uploaded_file($info['tmp_name']))
     echo "received {$info['name']}";
   else
@@ -155,7 +151,7 @@ on('POST', '/upload', function () {
 });
 
 on('GET', '/download', function () {
-  send_file('./README.md', 'readme.txt', 60*60*24*365);
+  send('./README.md', 'readme.txt', 60*60*24*365);
 });
 
 prefix('books', function () {

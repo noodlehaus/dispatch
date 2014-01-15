@@ -341,7 +341,7 @@ function request_body() {
  *
  * @return void
  */
-function send_file($path, $filename, $sec_expires = 0) {
+function send($path, $filename, $sec_expires = 0) {
 
   $mime = 'application/octet-stream';
   $etag = md5($path);
@@ -385,7 +385,7 @@ function send_file($path, $filename, $sec_expires = 0) {
  *
  * @param array info of file if found.
  */
-function upload_info($name) {
+function files($name) {
 
   if (!isset($_FILES[$name]))
     return null;
@@ -600,7 +600,7 @@ function nocache() {
  *
  * @return void
  */
-function json_out($obj, $func = null) {
+function json($obj, $func = null) {
   nocache();
   if (!$func) {
     header('Content-type: application/json');
