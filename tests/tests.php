@@ -242,14 +242,5 @@ test('inline() - with callback', function () {
   assert(preg_match('/name=dispatch/i', $res));
 });
 
-test('prefix()', function () {
-  $res1 = curl('GET', URL.'/books/list');
-  $res2 = curl('GET', URL.'/books/chapters/list');
-  $res3 = curl('GET', URL.'/list');
-  assert(preg_match('/book list/', $res1));
-  assert(preg_match('/chapter list/', $res2));
-  assert(preg_match('/different list/', $res3));
-});
-
 test_summary();
 ?>
