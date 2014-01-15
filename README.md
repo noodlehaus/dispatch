@@ -263,8 +263,6 @@ on('GET', '/blogs/:blog_id', function ($blog_id) {
 ?>
 ```
 
-##
-
 ## Before and After Callbacks
 To setup routines to be run before and after a request, use
 `before($cb_or_rx, $cb = null)` and `after($cb_or_rx, $cb = null)`
