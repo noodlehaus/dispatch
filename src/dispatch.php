@@ -856,7 +856,7 @@ function on($method, $path, $callback = null) {
 
     // construct the params for the callback
     $tokens = array_filter(array_keys($values), 'is_string');
-    $values = array_map('urlencode', array_intersect_key(
+    $values = array_map('urldecode', array_intersect_key(
       $values,
       array_flip($tokens)
     ));
