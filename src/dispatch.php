@@ -825,29 +825,21 @@ function on($method, $path, $callback = null) {
   // a callback was passed, so we create a route definition
   if (is_callable($callback)) {
 
-    // see if we've already cached this route
     $regexp = $rcache("route:{$path}");
-
-    // no apc, or cache miss
     if (!$regexp) {
       $regexp = preg_replace('@:(\w+)@', '(?<\1>[^/]+)', $path);
       $rcache("route:{$path}", $regexp);
     }
 
     $method = array_map('strtoupper', (array) $method);
-
-    // create a route entry for this path on every method
     foreach ($method as $m)
       $routes[$m]['@^'.$regexp.'$@'] = $callback;
 
-    // exit early
     return;
   }
 
-  // we're in a routing call, so normalize and search
+  // setup method and rexp for dispatch
   $method = strtoupper($method);
-
-  // see if this call's been compiled before
   $regexp = $rcache("call:{$method}:{$path}");
 
   if ($regexp) {
@@ -894,11 +886,9 @@ function on($method, $path, $callback = null) {
       array_flip($tokens)
     ));
 
-    // if we have symbols, init params and run filters
+    // setup + dispatch
     params($values);
     filter($values);
-
-    // run before and after filters, pass values to cb after bind()
     before($method, $path);
     call_user_func_array($callback, array_values(bind($values)));
     after($method, $path);
