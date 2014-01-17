@@ -912,7 +912,13 @@ function on($method, $path, $callback = null) {
 function dispatch() {
 
   // see if we were invoked with params
-  $method = $_SERVER['REQUEST_METHOD'];
+  $method = strtoupper($_SERVER['REQUEST_METHOD']);
+  if ($method == 'POST') {
+    if (isset($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE']))
+      $method = $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'];
+    else
+      $method = params('_method') ? params('_method') : $method;
+  }
 
   // get the request_uri basename
   $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -928,20 +934,6 @@ function dispatch() {
     $stub = config('dispatch.router');
     $path = preg_replace('@^/?'.preg_quote(trim($stub, '/')).'@i', '', $path);
   }
-
-  // check for override
-  $override = (
-    isset($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE']) ?
-    $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] :
-    params('_method')
-  );
-
-  // set correct method
-  $method = (
-    $override ?
-    $override :
-    ($method ? $method : $_SERVER['REQUEST_METHOD'])
-  );
 
   // dispatch it
   on($method, $path);
