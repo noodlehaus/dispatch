@@ -827,7 +827,7 @@ function on($method, $path, $callback = null) {
     // no apc, or cache miss
     if (!$regexp) {
       $regexp = preg_replace('@:(\w+)@', '(?<\1>[^/]+)', $path);
-      $apc_on && apc_store("route:{$path}");
+      $apc_on && apc_store("route:{$path}", $regexp);
     }
 
     $method = array_map('strtoupper', (array) $method);
