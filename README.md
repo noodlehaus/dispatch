@@ -588,7 +588,7 @@ function scope($name, $value = null)
 function files($name)
 function send($path, $filename, $sec_expire = 0)
 function request_headers($name = null)
-function request_body()
+function request_body($load = true)
 
 // configurations and settings
 function config($key, $value = null)
@@ -600,7 +600,7 @@ function html($str, $flags = ENT_QUOTES, $enc = 'UTF-8')
 function ip()
 
 // entry point
-function dispatch($method = null, $path = null)
+function dispatch()
 ?>
 ```
 
