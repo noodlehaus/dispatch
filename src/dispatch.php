@@ -282,24 +282,20 @@ function request_headers($key = null) {
 
   // if first call, pull headers
   if (!$headers) {
-    if (function_exists('getallheaders')) {
-      foreach (getallheaders() as $k => $v)
-        $headers[strtolower($k)] = $v;
-    } else {
-      // if we're not on apache
-      $headers = array();
-      foreach ($_SERVER as $k => $v)
-        if (substr($k, 0, 5) == 'HTTP_')
-          $headers[strtolower(str_replace('_', '-', substr($k, 5)))] = $v;
-    }
+    // if we're not on apache
+    $headers = array();
+    foreach ($_SERVER as $k => $v)
+      if (substr($k, 0, 5) == 'HTTP_')
+        $headers[strtolower(str_replace('_', '-', substr($k, 5)))] = $v;
   }
 
-  if ($key == null)
-    return $headers;
+  // header fetch
+  if ($key !== null) {
+    $key = strtolower($key);
+    return isset($headers[$key]) ? $headers[$key] : null;
+  }
 
-  $key = strtolower($key);
-
-  return (isset($headers[$key]) ? $headers[$key] : null);
+  return $headers;
 }
 
 /**
@@ -457,12 +453,12 @@ function files($name) {
  */
 function scope($name, $value = null) {
 
-  static $_stash = array();
+  static $stash = array();
 
   if ($value === null)
-    return isset($_stash[$name]) ? $_stash[$name] : null;
+    return isset($stash[$name]) ? $stash[$name] : null;
 
-  return ($_stash[$name] = $value);
+  return ($stash[$name] = $value);
 }
 
 /**
