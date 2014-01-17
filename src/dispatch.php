@@ -887,11 +887,17 @@ function on($method, $path, $callback = null) {
     ));
 
     // setup + dispatch
+    ob_start();
     params($values);
     filter($values);
     before($method, $path);
     call_user_func_array($callback, array_values(bind($values)));
     after($method, $path);
+    $buff = ob_get_clean();
+
+    // output only when not HEAD
+    if ($method !== 'HEAD')
+      echo $buff;
 
   } else {
     // nothing, so just 404
