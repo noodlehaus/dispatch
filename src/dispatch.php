@@ -805,13 +805,31 @@ function on($method, $path, $callback = null) {
   // callback map by request type
   static $routes = array();
 
+  // flag for apc availability (klein's approach)
+  static $apc_on = null;
+
+  $regexp = null;
+
+  // do this just once per request
+  if ($apc_on === null)
+    $apc_on = function_exists('apc_store');
+
   // we don't want slashes on ends
   $path = trim($path, '/');
 
   // a callback was passed, so we create a route definition
   if (is_callable($callback)) {
 
-    $regexp = preg_replace('@:(\w+)@', '(?<\1>[^/]+)', $path);
+    // see if we've already cached this route
+    if ($apc_on)
+      $regexp = apc_fetch("route:{$path}");
+
+    // no apc, or cache miss
+    if (!$regexp) {
+      $regexp = preg_replace('@:(\w+)@', '(?<\1>[^/]+)', $path);
+      $apc_on && apc_store("route:{$path}");
+    }
+
     $method = array_map('strtoupper', (array) $method);
 
     // create a route entry for this path on every method
@@ -825,32 +843,47 @@ function on($method, $path, $callback = null) {
   // we're in a routing call, so normalize and search
   $method = strtoupper($method);
 
-  // routing helper
-  $finder = function ($routes, $path) {
-    $found = false;
-    foreach ($routes as $regexp => $callback) {
-      if (!preg_match($regexp, $path, $values))
-        continue;
-      $found = true;
-      break;
-    }
-    if (!$found)
-      return array(null, null, null);
-    return array($regexp, $callback, $values);
-  };
+  // see if this call's been compiled before
+  if ($apc_on)
+    $regexp = apc_fetch("call:{$method}:{$path}");
 
-  $regexp = $callback = null;
+  if ($regexp) {
+    $callback = $routes[$method][$regexp];
+    preg_match($regexp, $path, $values);
+  }
 
-  // callback is null, so this is a route invokation. look up the callback.
-  if (isset($routes[$method]))
-    list($regexp, $callback, $values) = $finder($routes[$method], $path);
+  if ($regexp === false) {
 
-  // no specific match, try any-method routes
-  if (!$regexp && isset($routes['*']))
-    list($regexp, $callback, $values) = $finder($routes['*'], $path);
+    // routing helper
+    $finder = function ($routes, $path) {
+      $found = false;
+      foreach ($routes as $regexp => $callback) {
+        if (!preg_match($regexp, $path, $values))
+          continue;
+        $found = true;
+        break;
+      }
+      if (!$found)
+        return array(null, null, null);
+      return array($regexp, $callback, $values);
+    };
+
+    $regexp = $callback = null;
+
+    // callback is null, so this is a route invokation. look up the callback.
+    if (isset($routes[$method]))
+      list($regexp, $callback, $values) = $finder($routes[$method], $path);
+
+    // no specific match, try any-method routes
+    if (!$regexp && isset($routes['*']))
+      list($regexp, $callback, $values) = $finder($routes['*'], $path);
+  }
 
   // we got a match
-  if ($regexp !== null) {
+  if ($regexp) {
+
+    // cache it
+    $apc_on && apc_store("call:{$method}:{$path}", $regexp);
 
     // construct the params for the callback
     $tokens = array_filter(array_keys($values), 'is_string');
