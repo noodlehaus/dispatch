@@ -802,32 +802,36 @@ function after($method_or_cb = null, $path = null) {
  */
 function on($method, $path, $callback = null) {
 
-  // callback map by request type
+  // state (routes and cache util)
   static $routes = array();
-
-  // flag for apc availability (klein's approach)
-  static $apc_on = null;
-
-  $regexp = null;
+  static $rcache = null;
 
   // do this just once per request
-  if ($apc_on === null)
-    $apc_on = function_exists('apc_store');
+  if (!$rcache) {
+    if (extension_loaded('apc')) {
+      $rcache = function ($a, $b = null) {
+        if ($b == null)
+          return apc_fetch($a);
+        apc_store($a, $b);
+      };
+    } else {
+      $rcache = function ($a, $b = null) { return null; };
+    }
+  }
 
-  // we don't want slashes on ends
+  $regexp = null;
   $path = trim($path, '/');
 
   // a callback was passed, so we create a route definition
   if (is_callable($callback)) {
 
     // see if we've already cached this route
-    if ($apc_on)
-      $regexp = apc_fetch("route:{$path}");
+    $regexp = $rcache("route:{$path}");
 
     // no apc, or cache miss
     if (!$regexp) {
       $regexp = preg_replace('@:(\w+)@', '(?<\1>[^/]+)', $path);
-      $apc_on && apc_store("route:{$path}", $regexp);
+      $rcache("route:{$path}", $regexp);
     }
 
     $method = array_map('strtoupper', (array) $method);
@@ -844,17 +848,17 @@ function on($method, $path, $callback = null) {
   $method = strtoupper($method);
 
   // see if this call's been compiled before
-  if ($apc_on)
-    $regexp = apc_fetch("call:{$method}:{$path}");
+  $regexp = $rcache("call:{$method}:{$path}");
 
   if ($regexp) {
+
+    // cache hit, run the expr
     $callback = $routes[$method][$regexp];
     preg_match($regexp, $path, $values);
-  }
 
-  if ($regexp === false) {
+  } else {
 
-    // routing helper
+    // cache miss, do a lookup
     $finder = function ($routes, $path) {
       $found = false;
       foreach ($routes as $regexp => $callback) {
@@ -868,13 +872,11 @@ function on($method, $path, $callback = null) {
       return array($regexp, $callback, $values);
     };
 
-    $regexp = $callback = null;
-
-    // callback is null, so this is a route invokation. look up the callback.
+    // lookup a matching route
     if (isset($routes[$method]))
       list($regexp, $callback, $values) = $finder($routes[$method], $path);
 
-    // no specific match, try any-method routes
+    // if no match, try the any-method handlers
     if (!$regexp && isset($routes['*']))
       list($regexp, $callback, $values) = $finder($routes['*'], $path);
   }
@@ -883,7 +885,7 @@ function on($method, $path, $callback = null) {
   if ($regexp) {
 
     // cache it
-    $apc_on && apc_store("call:{$method}:{$path}", $regexp);
+    $rcache("call:{$method}:{$path}", $regexp);
 
     // construct the params for the callback
     $tokens = array_filter(array_keys($values), 'is_string');
@@ -897,7 +899,6 @@ function on($method, $path, $callback = null) {
     filter($values);
 
     // run before and after filters, pass values to cb after bind()
-    // filters are run against it
     before($method, $path);
     call_user_func_array($callback, array_values(bind($values)));
     after($method, $path);
