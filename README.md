@@ -624,6 +624,7 @@ The following projects served as both references and inspirations for Dispatch:
 * [ExpressJS](http://expressjs.com)
 * [Sinatra](http://sinatrarb.com)
 * [BreezePHP](http://breezephp.com)
+* [Klein.php](http://github.com/chriso/klein.php)
 
 Thanks to the following contributors for helping improve this tool :)
 
