@@ -812,15 +812,11 @@ function on($method, $path, $callback = null) {
   if (is_callable($callback)) {
 
     $regexp = preg_replace('@:(\w+)@', '(?<\1>[^/]+)', $path);
-    $method = (array) $method;
-    $method = array_map('strtoupper', $method);
+    $method = array_map('strtoupper', (array) $method);
 
     // create a route entry for this path on every method
     foreach ($method as $m)
-      $routes[$m][$path] = array(
-        'regexp' => '@^'.$regexp.'$@',
-        'callback' => $callback
-      );
+      $routes[$m]['@^'.$regexp.'$@'] = $callback;
 
     // exit early
     return;
@@ -832,27 +828,29 @@ function on($method, $path, $callback = null) {
   // routing helper
   $finder = function ($routes, $path) {
     $found = false;
-    foreach ($routes as $pattern => $info) {
-      if (!preg_match($info['regexp'], $path, $values))
+    foreach ($routes as $regexp => $callback) {
+      if (!preg_match($regexp, $path, $values))
         continue;
       $found = true;
       break;
     }
     if (!$found)
       return array(null, null, null);
-    return array($pattern, $info, $values);
+    return array($regexp, $callback, $values);
   };
+
+  $regexp = $callback = null;
 
   // callback is null, so this is a route invokation. look up the callback.
   if (isset($routes[$method]))
-    list($pattern, $info, $values) = $finder($routes[$method], $path);
+    list($regexp, $callback, $values) = $finder($routes[$method], $path);
 
   // no specific match, try any-method routes
-  if ((!isset($pattern) || $pattern) && isset($routes['*']))
-    list($pattern, $info, $values) = $finder($routes['*'], $path);
+  if (!$regexp && isset($routes['*']))
+    list($regexp, $callback, $values) = $finder($routes['*'], $path);
 
   // we got a match
-  if ($pattern !== null) {
+  if ($regexp !== null) {
 
     // construct the params for the callback
     $tokens = array_filter(array_keys($values), 'is_string');
@@ -865,9 +863,10 @@ function on($method, $path, $callback = null) {
     params($values);
     filter($values);
 
-    // before, callback, after
+    // run before and after filters, pass values to cb after bind()
+    // filters are run against it
     before($method, $path);
-    call_user_func_array($info['callback'], array_values(bind($values)));
+    call_user_func_array($callback, array_values(bind($values)));
     after($method, $path);
 
   } else {
@@ -884,13 +883,13 @@ function on($method, $path, $callback = null) {
  *
  * @return void
  */
-function dispatch($method = null, $path = null) {
+function dispatch() {
 
   // see if we were invoked with params
-  $method = ($method ? $method : $_SERVER['REQUEST_METHOD']);
+  $method = $_SERVER['REQUEST_METHOD'];
 
   // get the request_uri basename
-  $path = parse_url($path ? $path : $_SERVER['REQUEST_URI'], PHP_URL_PATH);
+  $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
   // remove dir path if we live in a subdir
   if ($base = config('dispatch.url')) {
