@@ -80,8 +80,8 @@ test('error() - custom callback', function () {
 });
 
 test('on() - GET', function () {
-  $res = curl('GET', URL.'/index?name=dispatch');
-  assert(preg_match('/GET received dispatch and dispatch/', $res));
+  $res = curl('GET', URL.'/index?name=one%20two');
+  assert(preg_match('/GET received one two and one two/', $res));
 });
 
 test('on() - POST', function () {
