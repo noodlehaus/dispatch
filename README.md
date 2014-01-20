@@ -498,7 +498,7 @@ in seconds.
 ```php
 <?php
 // push a pdf that can be cached for 180 days
-send_file('/path/to/file/to/push.pdf', 'ebook.pdf', 60*60*24*180);
+send('/path/to/file/to/push.pdf', 'ebook.pdf', 60*60*24*180);
 ?>
 ```
 
