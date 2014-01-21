@@ -172,13 +172,13 @@ code that describes how this is handled.
 
 ```php
 <?php
-  // check for method override
+// actual dispatch code that checks for a method override
+if ($method == 'POST') {
   if (isset($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE']))
     $method = $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'];
-  else if (params('_method'))
-    $method = params('_method');
   else
-    $method = $_SERVER['REQUEST_METHOD'];
+    $method = params('_method') ? params('_method') : $method;
+}
 ?>
 ```
 
