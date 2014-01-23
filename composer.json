@@ -68,5 +68,10 @@
     "files": [
       "src/dispatch.php"
     ]
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-master": "4.x-dev"
+    }
   }
 }
