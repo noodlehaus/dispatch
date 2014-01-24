@@ -62,7 +62,8 @@
   },
   "suggest": {
     "dispatch/dispatch-extras": "Encryption, caching and more, for dispatch",
-    "dispatch/dispatch-mustache": "mustache template support within dispatch"
+    "dispatch/dispatch-mustache": "mustache template support within dispatch",
+    "giggleboxstudios/dispatch-handlebars": "handlebars template support within dispatch"
   },
   "autoload": {
     "files": [
