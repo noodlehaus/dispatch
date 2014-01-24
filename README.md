@@ -608,8 +608,9 @@ function dispatch()
 
 Some extra functions can be added to Dispatch via the following libraries:
 
-* [dispatch-extras](http://github.com/noodlehaus/dispatch-extras)
-* [dispatch-mustache](http://github.com/noodlehaus/dispatch-mustache)
+* [dispatch-extras](https://github.com/noodlehaus/dispatch-extras)
+* [dispatch-mustache](https://github.com/noodlehaus/dispatch-mustache)
+* [dispatch-handlebars](https://github.com/GiggleboxStudios/dispatch-handlebars)
 
 ## About the Author
 
