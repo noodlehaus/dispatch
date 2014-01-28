@@ -800,20 +800,6 @@ function on($method, $path, $callback = null) {
 
   // state (routes and cache util)
   static $routes = array();
-  static $rcache = null;
-
-  // do this just once per request
-  if (!$rcache) {
-    if (extension_loaded('apc')) {
-      $rcache = function ($a, $b = null) {
-        if ($b == null)
-          return apc_fetch($a);
-        apc_store($a, $b);
-      };
-    } else {
-      $rcache = function ($a, $b = null) { return null; };
-    }
-  }
 
   $regexp = null;
   $path = trim($path, '/');
@@ -821,13 +807,9 @@ function on($method, $path, $callback = null) {
   // a callback was passed, so we create a route definition
   if (is_callable($callback)) {
 
-    $regexp = $rcache("route:{$path}");
-    if (!$regexp) {
-      $regexp = preg_replace('@:(\w+)@', '(?<\1>[^/]+)', $path);
-      $rcache("route:{$path}", $regexp);
-    }
-
+    $regexp = preg_replace('@:(\w+)@', '(?<\1>[^/]+)', $path);
     $method = array_map('strtoupper', (array) $method);
+
     foreach ($method as $m)
       $routes[$m]['@^'.$regexp.'$@'] = $callback;
 
@@ -836,44 +818,27 @@ function on($method, $path, $callback = null) {
 
   // setup method and rexp for dispatch
   $method = strtoupper($method);
-  $regexp = $rcache("call:{$method}:{$path}");
 
-  if ($regexp) {
+  // cache miss, do a lookup
+  $finder = function ($routes, $path) {
+    $found = false;
+    foreach ($routes as $regexp => $callback) {
+      if (preg_match($regexp, $path, $values))
+        return array($regexp, $callback, $values);
+    }
+    return array(null, null, null);
+  };
 
-    // cache hit, run the expr
-    $callback = $routes[$method][$regexp];
-    preg_match($regexp, $path, $values);
+  // lookup a matching route
+  if (isset($routes[$method]))
+    list($regexp, $callback, $values) = $finder($routes[$method], $path);
 
-  } else {
-
-    // cache miss, do a lookup
-    $finder = function ($routes, $path) {
-      $found = false;
-      foreach ($routes as $regexp => $callback) {
-        if (!preg_match($regexp, $path, $values))
-          continue;
-        $found = true;
-        break;
-      }
-      if (!$found)
-        return array(null, null, null);
-      return array($regexp, $callback, $values);
-    };
-
-    // lookup a matching route
-    if (isset($routes[$method]))
-      list($regexp, $callback, $values) = $finder($routes[$method], $path);
-
-    // if no match, try the any-method handlers
-    if (!$regexp && isset($routes['*']))
-      list($regexp, $callback, $values) = $finder($routes['*'], $path);
-  }
+  // if no match, try the any-method handlers
+  if (!$regexp && isset($routes['*']))
+    list($regexp, $callback, $values) = $finder($routes['*'], $path);
 
   // we got a match
   if ($regexp) {
-
-    // cache it
-    $rcache("call:{$method}:{$path}", $regexp);
 
     // construct the params for the callback
     $tokens = array_filter(array_keys($values), 'is_string');
