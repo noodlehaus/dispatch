@@ -728,7 +728,7 @@ function before() {
 
   // remap args for clarity
   $verb = $rexp;
-  $path = $func;
+  $path = substr($func, 1);
 
   // let's run regexp callbacks first
   foreach ($regexp_callbacks as $rexp => $func)
@@ -851,7 +851,7 @@ function on($method, $path, $callback = null) {
     ob_start();
     params($values);
     filter($values);
-    before($method, $path);
+    before($method, "@{$path}");
     call_user_func_array($callback, array_values(bind($values)));
     after($method, $path);
     $buff = ob_get_clean();
