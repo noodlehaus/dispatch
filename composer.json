@@ -55,6 +55,11 @@
       "name": "Ross Masters",
       "role": "Contributor",
       "homepage": "https://github.com/rmasters"
+    },
+    {
+      "name": "scan",
+      "role": "Contributor",
+      "homepage": "https://github.com/scan"
     }
   ],
   "require": {
