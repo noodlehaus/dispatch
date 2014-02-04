@@ -390,6 +390,8 @@ function send($path, $filename, $sec_expires = 0) {
   // make sure buffer's clean
   ob_clean();
   flush();
+  // Switch off buffering
+  ob_end_flush();
 
   // stream it
   readfile($path);
