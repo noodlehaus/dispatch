@@ -387,13 +387,12 @@ function send($path, $filename, $sec_expires = 0) {
   header('Content-Type: '.$mime);
   header('Content-Length: '.$size);
 
-  // try to read and flush
-  while (!feof($fp = fopen($path, 'r'))) {
-    echo fread($fp, 65536);
-    flush();
-  }
+  // make sure buffer's clean
+  ob_clean();
+  flush();
 
-  fclose($fp);
+  // stream it
+  readfile($path);
 }
 
 /**
