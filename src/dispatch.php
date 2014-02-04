@@ -387,14 +387,18 @@ function send($path, $filename, $sec_expires = 0) {
   header('Content-Type: '.$mime);
   header('Content-Length: '.$size);
 
-  // make sure buffer's clean
+  // no time limit, clear buffers
+  set_time_limit(0);
   ob_clean();
-  flush();
-  // Switch off buffering
-  ob_end_flush();
 
-  // stream it
-  readfile($path);
+  // dump the file
+  $fp = fopen($path, 'rb');
+  while (!feof($fp)) {
+    echo fread($fp, 1024*8);
+    ob_flush();
+    flush();
+  }
+  fclose($fp);
 }
 
 /**
@@ -857,7 +861,6 @@ function on($method, $path, $callback = null) {
     after($method, $path);
     $buff = ob_get_clean();
 
-    // output only when not HEAD
     if ($method !== 'HEAD')
       echo $buff;
 
