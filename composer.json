@@ -72,7 +72,7 @@
   },
   "autoload": {
     "files": [
-      "src/dispatch.php"
+      "dispatch.php"
     ]
   },
   "extra": {

@@ -1,5 +1,5 @@
 <?php
-include '../../src/dispatch.php';
+include '../../dispatch.php';
 
 before(function () {
   scope('object', ['name' => 'Dispatch', 'type' => 'Framework']);

@@ -1,5 +1,5 @@
 <?php
-include __DIR__.'/../src/dispatch.php';
+include __DIR__.'/../dispatch.php';
 
 // settings
 config('dispatch.flash_cookie', '_F');

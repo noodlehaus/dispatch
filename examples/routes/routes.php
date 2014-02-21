@@ -1,5 +1,5 @@
 <?php
-include '../../src/dispatch.php';
+include '../../dispatch.php';
 
 on('GET', '/index', function () {
   echo "GET /index invoked";

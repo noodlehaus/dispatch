@@ -1,5 +1,5 @@
 <?php
-include '../../src/dispatch.php';
+include '../../dispatch.php';
 
 error(404, function () {
   redirect('/index', 301);

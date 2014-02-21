@@ -1,5 +1,5 @@
 <?php
-include __DIR__.'/../src/dispatch.php';
+include __DIR__.'/../dispatch.php';
 include __DIR__.'/helpers.php';
 
 define('URL', 'http://localhost:1234');

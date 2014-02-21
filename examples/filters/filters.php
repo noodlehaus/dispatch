@@ -1,5 +1,5 @@
 <?php
-include '../../src/dispatch.php';
+include '../../dispatch.php';
 
 before(function () {
   echo "before()<br>";
