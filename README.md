@@ -478,6 +478,9 @@ To fetch a value from a request without regard to wether it comes from `$_GET`,
 `$_POST`, or the route symbols, use `params($name)`. This is just like Rails'
 `params` hash.
 
+The `params()` function creates a combined hash of `$_GET`, `$_POST`, and the route
+symbols. Final values in this hash are overwritten in the same order as well.
+
 ```php
 <?php
 // get 'name' from $_GET, $_POST or the route symbols
