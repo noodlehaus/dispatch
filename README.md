@@ -80,6 +80,21 @@ config([
 ?>
 ```
 
+Config files are treated like PHP's .ini file. If there are named sections, for instance:
+
+```
+[globals]    
+  param1 = val1    
+  param2 = val2    
+```
+
+Then a multi-dimensional array is created. When this is read with a statement like `$x = config('globals')`
+then the following is returned:
+
+```php
+array('globals' => array('param1' => 'val1', 'param2' => 'val2'))
+```
+
 ## Routing
 Application routes are created via calls to `on($method, $path, $callback)`.
 The `$method` parameter can be a single method, an array of methods, or `*`
