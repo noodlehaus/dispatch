@@ -89,8 +89,8 @@ param1 = val1
 param2 = val2    
 ```
 
-Then a multi-dimensional array is created. When this is read with a statement like `$x = config('globals')`
-then the following is returned:
+Then a multi-dimensional array is created. When this is read with a statement like `$x = config('globals');`
+then the following structure is returned:
 
 ```php
 array('globals' => array('param1' => 'val1', 'param2' => 'val2'))
