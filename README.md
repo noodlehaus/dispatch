@@ -83,9 +83,10 @@ config([
 Config files are treated like PHP's .ini file. If there are named sections, for instance:
 
 ```
+;globals section...
 [globals]    
-  param1 = val1    
-  param2 = val2    
+param1 = val1    
+param2 = val2    
 ```
 
 Then a multi-dimensional array is created. When this is read with a statement like `$x = config('globals')`
@@ -94,6 +95,8 @@ then the following is returned:
 ```php
 array('globals' => array('param1' => 'val1', 'param2' => 'val2'))
 ```
+
+Calling `config()` with no parameters resets the configuration back to an empty state.
 
 ## Routing
 Application routes are created via calls to `on($method, $path, $callback)`.
