@@ -72,6 +72,11 @@ function config($key = null, $value = null) {
     $config = array_merge($config, parse_ini_file($value, true));
     return;
   }
+  //reset configuration to default
+  if ($key === null){
+    $config = array();
+    return;
+  }
 
   // for all other string keys, set or get
   if (is_string($key)) {
@@ -80,8 +85,9 @@ function config($key = null, $value = null) {
     return ($config[$key] = $value);
   }
 
-  // setting multiple settings
-  $config = array_merge($config, $key);
+  // setting multiple settings. merge together if $key is array.
+  if(is_array($key))
+    $config = array_merge($config, $key);
 }
 
 /**
