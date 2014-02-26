@@ -84,9 +84,9 @@ Config files are treated like PHP's .ini file. If there are named sections, for 
 
 ```
 ;globals section...
-[globals]    
-param1 = val1    
-param2 = val2    
+[globals]
+param1 = val1
+param2 = val2
 ```
 
 Then a multi-dimensional array is created. When this is read with a statement like `$x = config('globals');`
@@ -660,6 +660,7 @@ Thanks to the following contributors for helping improve this tool :)
 * Amin By [xielingwang](https://github.com/xielingwang)
 * Ross Masters [rmasters](https://github.com/rmasters)
 * scan [scan](https://github.com/scan)
+* nmcgann [nmcgann](https://github.com/nmcgann)
 
 ## LICENSE
 MIT <http://noodlehaus.mit-license.org/>

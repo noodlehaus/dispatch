@@ -88,7 +88,7 @@ function config($key = null, $value = null) {
 
   // setting multiple settings. merge together if $key is array.
   if (is_array($key)) {
-    $keys = array_filter(array_keys($key));
+    $keys = array_filter(array_keys($key), 'is_string');
     $keys = array_intersect_key($key, array_flip($keys));
     $config = array_merge($config, $keys);
   }
