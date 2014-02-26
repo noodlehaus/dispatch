@@ -23,8 +23,14 @@ test('config() - array of keys', function () {
     'name' => 'noodlehaus',
     'project' => 'dispatch'
   ));
+  assert(config('one') === 1);
   assert(config('name') === 'noodlehaus');
   assert(config('project') === 'dispatch');
+});
+
+test('config() - reset', function () {
+  config();
+  assert(config('name') === null);
 });
 
 test('url()', function () {
