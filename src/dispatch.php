@@ -461,8 +461,8 @@ function files($name) {
  * passed, the value currently mapped against $name will be
  * returned instead (or null if nothing mapped).
  * 
- * If $name is null all the store will be cleared.  
- *
+ * If $name is null all the store will be cleared.
+ * 
  * @param string $name name of variable to store.
  * @param mixed $value optional, value to store against $name
  *
@@ -480,7 +480,6 @@ function scope($name = null, $value = null) {
     $stash = array();
     return;
   }
-  
   //set new $value
   if(is_string($name))
     return ($stash[$name] = $value);
