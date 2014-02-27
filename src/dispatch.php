@@ -459,21 +459,30 @@ function files($name) {
  * A utility for passing values between scopes. If $value
  * is passed, $name will be set to $value. If $value is not
  * passed, the value currently mapped against $name will be
- * returned instead.
- *
+ * returned instead (or null if nothing mapped).
+ * 
+ * If $name is null all the store will be cleared.
+ * 
  * @param string $name name of variable to store.
  * @param mixed $value optional, value to store against $name
  *
  * @return mixed value mapped to $name
  */
-function scope($name, $value = null) {
+function scope($name = null, $value = null) {
 
   static $stash = array();
 
-  if ($value === null)
+  if (is_string($name) && $value === null)
     return isset($stash[$name]) ? $stash[$name] : null;
 
-  return ($stash[$name] = $value);
+  //if no $name clear $stash
+  if(is_null($name)) {
+    $stash = array();
+    return;
+  }
+  //set new $value
+  if(is_string($name))
+    return ($stash[$name] = $value);
 }
 
 /**
