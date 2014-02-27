@@ -140,9 +140,8 @@ on('GET','/show/:slug@[a-zA-Z][a-zA-Z0-9_-]{0,}',function($s){
 });
 
 // This route matches a normal named parameter first then anything else following 
-// will match i.e. /show/any/thing/will/match. Also, there doesn't have to be a second
-// parameter as the "*" means optional. Note that the second arg will return a null 
-// if it isn't there in the path
+// will match i.e. /show/any/thing/will/match. There has to be a second parameter
+//present, but it can be anything. (the backet option shown next can make it optional)
 on('GET','/show/:first/:second@*',function($f,$s){
     echo "First arg = $f, second arg = $s. Named = ".params('first').' and '.params('second')."\n";
 });
