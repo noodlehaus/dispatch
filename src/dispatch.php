@@ -36,14 +36,18 @@ function error($code, $callback = null) {
     (int) $code
   );
 
-  // bail early if no handler is set
-  !isset($error_callbacks[$code]) && die("{$code} {$message}");
-
   // if we got callbacks, try to invoke
-  if (isset($error_callbacks[$code]))
+  if (isset($error_callbacks[$code])) {
     call_user_func($error_callbacks[$code], $code);
+    $message = '';
+  }
+  else {
+    //set default exit message
+    $message = "{$code} {$message}";
+  }
 
-  exit;
+  exit ($message);
+
 }
 
 /**
@@ -906,6 +910,11 @@ function dispatch() {
   if ($base = config('dispatch.url')) {
     $base = rtrim(parse_url($base, PHP_URL_PATH), '/');
     $path = preg_replace('@^'.preg_quote($base).'@', '', $path);
+  }
+  else {
+    //improved base directory detection if no config specified
+    $base = rtrim(strtr(dirname($_SERVER['SCRIPT_NAME']),'\\','/' ) ,'/');		
+    $path = preg_replace('@^'.preg_quote($base).'@', '', $path);    
   }
 
   // remove router file from URI
