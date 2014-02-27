@@ -563,11 +563,14 @@ setting/fetching values cross-scope.
 // get the client's ip
 $ip = ip();
 
-// store a value that can be fetched later
+// store a value that can be fetched later (can be variables, arrays and objects)
 scope('user', $user);
 
-// fetch a stored value
+// fetch a stored value (returns null if key not found)
 scope('user');
+
+// clear all values in the store
+scope();
 
 // client's IP
 $ip = client_ip();
