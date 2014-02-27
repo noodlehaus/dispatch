@@ -124,6 +124,36 @@ on(['GET', 'POST'], '/greet', function () {
 on('*', '/multi', function () {
   echo "it works!\n";
 });
+
+// More complex routes are easily possible, for instance:
+
+// A GET route with named parameter and regex match (@denotes the start of the regex). 
+// Version here requires named parameter to be at least one digit for the route to be matched.
+on('GET','/edit/:num@\d+',function($n){
+    echo "Number is $n as function argument. Named parameter is also ".params('num')."\n";
+});
+
+// This route matches an example of a "slug". Note that ( ) and * have special meanings
+// so use alternatives where possible.
+on('GET','/show/:slug@[a-zA-Z][a-zA-Z0-9_-]{0,}',function($s){
+    echo "Slug is $s as function argument. Named parameter is also ".params('slug')."\n";
+});
+
+// This route matches a normal named parameter first then anything else following 
+// will match i.e. /show/any/thing/will/match. Also, there doesn't have to be a second
+// parameter as the "*" means optional. Note that the second arg will return a null 
+// if it isn't there in the path
+on('GET','/show/:first/:second@*',function($f,$s){
+    echo "First arg = $f, second arg = $s. Named = ".params('first').' and '.params('second')."\n";
+});
+
+// This route has three optional parameters where the third also has to be at least one digit.
+// Matches patterns like /list or /list/anything or /list/anything/else or /list/anything/else/42
+// Regexes can apply to any of the named parameters. The missing parameters return null.
+on('GET','/list(/:one(/:two(/:three@\d+)))',function($one,$two,$three){
+    echo "First arg = $one, second arg = $two, third arg = $three \n";
+});
+
 ?>
 ```
 

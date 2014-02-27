@@ -822,7 +822,23 @@ function on($method, $path, $callback = null) {
   // a callback was passed, so we create a route definition
   if (is_callable($callback)) {
 
-    $regexp = preg_replace('@:(\w+)@', '(?<\1>[^/]+)', $path);
+  //add bracketed optional sections and "match anything"
+  $path = str_replace(array(')','*'), array(')?','.*?'), $path); 
+  
+  //revised regex that allows named capture groups with optional regexes 
+  // (uses @ to separate param name and regex)
+  $regexp = preg_replace_callback (
+    '#:([\w]+)(@([^/\(\)]*))?#',
+    function($matches) {
+      if (isset($matches[3])) //2 versions of named capture groups - with and without a following regex.
+      {
+        return '(?P<'.$matches[1].'>'.$matches[3].')'; //...with
+      }
+        return '(?P<'.$matches[1].'>[^/]+)'; //...without
+      },
+      $path
+    );
+
     $method = array_map('strtoupper', (array) $method);
 
     foreach ($method as $m)
@@ -867,6 +883,16 @@ function on($method, $path, $callback = null) {
     params($values);
     filter($values);
     before($method, "@{$path}");
+
+    //adjust $values array to suit the number of args that the callback is expecting.
+    //null padding is added to the array to stop error if optional args don't match 
+    //the number of parameters.
+    $ref = new ReflectionFunction($callback);
+    $num_args_expected = $ref->getNumberOfParameters();
+    
+    //append filler array. (note: can't call array_fill with zero quantity - throws error)
+    $values += (($diff = $num_args_expected - count($values)) > 0) ? array_fill(0,$diff,null) : array();
+
     call_user_func_array($callback, array_values(bind($values)));
     after($method, $path);
     $buff = ob_get_clean();
