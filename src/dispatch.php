@@ -811,6 +811,33 @@ function after($method_or_cb = null, $path = null) {
 }
 
 /**
+ * Group all routes created within $cb under the $name prefix.
+ *
+ * @param string $name required. string to prepend to routes created in $cb
+ * @param callable $cb required. function containing route calls
+ *
+ * @return void
+ */
+function prefix($name = null, $cb = null) {
+
+  static $paths = array();
+
+  // this is used by the system to get the current route
+  if (($nargs = func_num_args()) == 0)
+    return implode('/', $paths);
+
+  // outside of sys calls, always require 2 params
+  if ($nargs < 2)
+    trigger_error("Invalid call to prefix()", E_USER_ERROR);
+
+  // push, routine, pop so we can nest
+  array_push($paths, trim($name, '/'));
+  call_user_func($cb);
+  array_pop($paths);
+}
+
+
+/**
  * Maps a callback or invokes a callback for requests
  * on $pattern. If $callback is not set, $pattern
  * is matched against all routes for $method, and the
@@ -834,6 +861,10 @@ function on($method, $path, $callback = null) {
 
   // a callback was passed, so we create a route definition
   if (is_callable($callback)) {
+
+    // if we're inside a resouce, use the path
+    if (strlen($pref = prefix()))
+      $path = trim("{$pref}/{$path}", '/');
 
     // add bracketed optional sections and "match anything"
     $path = str_replace(

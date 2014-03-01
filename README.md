@@ -127,7 +127,7 @@ on('*', '/multi', function () {
 
 // More complex routes are easily possible, for instance:
 
-// A GET route with named parameter and regex match (@denotes the start of the regex). 
+// A GET route with named parameter and regex match (@denotes the start of the regex).
 // Version here requires named parameter to be at least one digit for the route to be matched.
 on('GET','/edit/:num@\d+',function($n){
     echo "Number is $n as function argument. Named parameter is also ".params('num')."\n";
@@ -139,7 +139,7 @@ on('GET','/show/:slug@[a-zA-Z][a-zA-Z0-9_-]{0,}',function($s){
     echo "Slug is $s as function argument. Named parameter is also ".params('slug')."\n";
 });
 
-// This route matches a normal named parameter first then anything else following 
+// This route matches a normal named parameter first then anything else following
 // will match i.e. /show/any/thing/will/match. There has to be a second parameter
 //present, but it can be anything. (the backet option shown next can make it optional)
 on('GET','/show/:first/:second@*',function($f,$s){
@@ -155,6 +155,37 @@ on('GET','/list(/:one(/:two(/:three@\d+)))',function($one,$two,$three){
 
 ?>
 ```
+
+-## Grouped Routes (Resources)
+-When working on APIs, you tend to create routes that resemble resources.
+-You can do this by including the resource name in your route, or by scoping
+-your route creation with a `prefix($path, $routine)` call, where `$path`
+-contains the name of the resource, and `$routine` is a callable that contains
+-routing calls.
+-
+```php
+<?php
+// let's create a users resource
+prefix('users', function () {
+
+  on('GET', '/index', function () {
+    // show list of users
+  });
+
+  on('GET', '/:username/show', function () {
+    // show user details
+  });
+});
+
+// this is a route created outside of users
+on('GET', '/about', function () {
+  // about page
+});
+?>
+```
+
+From the code sample, routes `/users/index` and `/users/:username/show` will be
+made. Then outside of the `users` resource, a `/about` route is also made.
 
 ## Site Path and URL Rewriting
 If your app resides in a subfolder, include this path in your `dispatch.url`
