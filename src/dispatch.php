@@ -40,9 +40,8 @@ function error($code, $callback = null) {
   if (isset($error_callbacks[$code])) {
     call_user_func($error_callbacks[$code], $code);
     $message = '';
-  }
-  else {
-    //set default exit message
+  } else {
+    // set default exit message
     $message = "{$code} {$message}";
   }
 
@@ -464,9 +463,9 @@ function files($name) {
  * is passed, $name will be set to $value. If $value is not
  * passed, the value currently mapped against $name will be
  * returned instead (or null if nothing mapped).
- * 
+ *
  * If $name is null all the store will be cleared.
- * 
+ *
  * @param string $name name of variable to store.
  * @param mixed $value optional, value to store against $name
  *
@@ -479,13 +478,14 @@ function scope($name = null, $value = null) {
   if (is_string($name) && $value === null)
     return isset($stash[$name]) ? $stash[$name] : null;
 
-  //if no $name clear $stash
-  if(is_null($name)) {
+  // if no $name clear $stash
+  if (is_null($name)) {
     $stash = array();
     return;
   }
-  //set new $value
-  if(is_string($name))
+
+  // set new $value
+  if (is_string($name))
     return ($stash[$name] = $value);
 }
 
@@ -835,25 +835,29 @@ function on($method, $path, $callback = null) {
   // a callback was passed, so we create a route definition
   if (is_callable($callback)) {
 
-  //add bracketed optional sections and "match anything"
-  $path = str_replace(array(')','*'), array(')?','.*?'), $path); 
-  
-  //revised regex that allows named capture groups with optional regexes 
-  // (uses @ to separate param name and regex)
-  $regexp = preg_replace_callback (
-    '#:([\w]+)(@([^/\(\)]*))?#',
-    function($matches) {
-      if (isset($matches[3])) //2 versions of named capture groups - with and without a following regex.
-      {
-        return '(?P<'.$matches[1].'>'.$matches[3].')'; //...with
-      }
-        return '(?P<'.$matches[1].'>[^/]+)'; //...without
+    // add bracketed optional sections and "match anything"
+    $path = str_replace(
+      array(')', '*'),
+      array(')?', '.*?'),
+      $path
+    );
+
+    // revised regex that allows named capture groups with optional regexes
+    // (uses @ to separate param name and regex)
+    $regexp = preg_replace_callback(
+      '#:([\w]+)(@([^/\(\)]*))?#',
+      function ($matches) {
+        // 2 versions of named capture groups:
+        // with and without a following regex.
+        if (isset($matches[3]))
+          return '(?P<'.$matches[1].'>'.$matches[3].')';
+        else
+          return '(?P<'.$matches[1].'>[^/]+)';
       },
       $path
     );
 
     $method = array_map('strtoupper', (array) $method);
-
     foreach ($method as $m)
       $routes[$m]['@^'.$regexp.'$@'] = $callback;
 
@@ -897,14 +901,14 @@ function on($method, $path, $callback = null) {
     filter($values);
     before($method, "@{$path}");
 
-    //adjust $values array to suit the number of args that the callback is expecting.
-    //null padding is added to the array to stop error if optional args don't match 
-    //the number of parameters.
+    // adjust $values array to suit the number of args that the callback is expecting.
+    // null padding is added to the array to stop error if optional args don't match
+    // the number of parameters.
     $ref = new ReflectionFunction($callback);
     $num_args_expected = $ref->getNumberOfParameters();
-    
-    //append filler array. (note: can't call array_fill with zero quantity - throws error)
-    $values += (($diff = $num_args_expected - count($values)) > 0) ? array_fill(0,$diff,null) : array();
+
+    // append filler array. (note: can't call array_fill with zero quantity - throws error)
+    $values += (($diff = $num_args_expected - count($values)) > 0) ? array_fill(0, $diff, null) : array();
 
     call_user_func_array($callback, array_values(bind($values)));
     after($method, $path);
@@ -947,9 +951,9 @@ function dispatch() {
     $path = preg_replace('@^'.preg_quote($base).'@', '', $path);
   }
   else {
-    //improved base directory detection if no config specified
-    $base = rtrim(strtr(dirname($_SERVER['SCRIPT_NAME']),'\\','/' ) ,'/');		
-    $path = preg_replace('@^'.preg_quote($base).'@', '', $path);    
+    // improved base directory detection if no config specified
+    $base = rtrim(strtr(dirname($_SERVER['SCRIPT_NAME']), '\\', '/'), '/');
+    $path = preg_replace('@^'.preg_quote($base).'@', '', $path);
   }
 
   // remove router file from URI
@@ -961,4 +965,3 @@ function dispatch() {
   // dispatch it
   on($method, $path);
 }
-?>
