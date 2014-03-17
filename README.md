@@ -152,17 +152,16 @@ on('GET','/show/:first/:second@*',function($f,$s){
 on('GET','/list(/:one(/:two(/:three@\d+)))',function($one,$two,$three){
     echo "First arg = $one, second arg = $two, third arg = $three \n";
 });
-
 ?>
 ```
 
--## Grouped Routes (Resources)
--When working on APIs, you tend to create routes that resemble resources.
--You can do this by including the resource name in your route, or by scoping
--your route creation with a `prefix($path, $routine)` call, where `$path`
--contains the name of the resource, and `$routine` is a callable that contains
--routing calls.
--
+## Grouped Routes (Resources)
+When working on APIs, you tend to create routes that resemble resources.
+You can do this by including the resource name in your route, or by scoping
+your route creation with a `prefix($path, $routine)` call, where `$path`
+contains the name of the resource, and `$routine` is a callable that contains
+routing calls.
+
 ```php
 <?php
 // let's create a users resource
