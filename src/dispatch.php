@@ -531,6 +531,17 @@ function content($value = null) {
 }
 
 /**
+ * Set or retrive the current context in the template
+ * it's usefull for the helper function used in template.
+ *
+ * @param array $value
+ * @return array
+ */
+function context($ctx = null) {
+  return is_null($ctx) ? scope('$ctx$') : scope('$ctx$', $ctx);
+}
+
+/**
  * Returns the contents of the template $view, using
  * $locals (optional).
  *
@@ -543,6 +554,8 @@ function template($view, $locals = null) {
 
   if (($view_root = config('dispatch.views')) == null)
     trigger_error("config('dispatch.views') is not set.", E_USER_ERROR);
+
+  context((array) $locals);
 
   extract((array) $locals, EXTR_SKIP);
 
