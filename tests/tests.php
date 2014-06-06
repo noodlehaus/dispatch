@@ -23,8 +23,14 @@ test('config() - array of keys', function () {
     'name' => 'noodlehaus',
     'project' => 'dispatch'
   ));
+  assert(config('one') === 1);
   assert(config('name') === 'noodlehaus');
   assert(config('project') === 'dispatch');
+});
+
+test('config() - reset', function () {
+  config();
+  assert(config('name') === null);
 });
 
 test('url()', function () {
@@ -264,6 +270,15 @@ test('inline() - with locals', function () {
 test('inline() - with callback', function () {
   $res = curl('GET', URL.'/inline/callback');
   assert(preg_match('/name=dispatch/i', $res));
+});
+
+test('prefix()', function () {
+  $res1 = curl('GET', URL.'/books/list');
+  $res2 = curl('GET', URL.'/books/chapters/list');
+  $res3 = curl('GET', URL.'/list');
+  assert(preg_match('/book list/', $res1));
+  assert(preg_match('/chapter list/', $res2));
+  assert(preg_match('/different list/', $res3));
 });
 
 test_summary();

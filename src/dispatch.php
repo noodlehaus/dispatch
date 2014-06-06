@@ -36,14 +36,17 @@ function error($code, $callback = null) {
     (int) $code
   );
 
-  // bail early if no handler is set
-  !isset($error_callbacks[$code]) && die("{$code} {$message}");
-
   // if we got callbacks, try to invoke
-  if (isset($error_callbacks[$code]))
+  if (isset($error_callbacks[$code])) {
     call_user_func($error_callbacks[$code], $code);
+    $message = '';
+  } else {
+    // set default exit message
+    $message = "{$code} {$message}";
+  }
 
-  exit;
+  exit ($message);
+
 }
 
 /**
@@ -73,6 +76,12 @@ function config($key = null, $value = null) {
     return;
   }
 
+  // reset configuration to default
+  if ($key === null){
+    $config = array();
+    return;
+  }
+
   // for all other string keys, set or get
   if (is_string($key)) {
     if ($value === null)
@@ -80,8 +89,12 @@ function config($key = null, $value = null) {
     return ($config[$key] = $value);
   }
 
-  // setting multiple settings
-  $config = array_merge($config, $key);
+  // setting multiple settings. merge together if $key is array.
+  if (is_array($key)) {
+    $keys = array_filter(array_keys($key), 'is_string');
+    $keys = array_intersect_key($key, array_flip($keys));
+    $config = array_merge($config, $keys);
+  }
 }
 
 /**
@@ -449,21 +462,31 @@ function files($name) {
  * A utility for passing values between scopes. If $value
  * is passed, $name will be set to $value. If $value is not
  * passed, the value currently mapped against $name will be
- * returned instead.
+ * returned instead (or null if nothing mapped).
+ *
+ * If $name is null all the store will be cleared.
  *
  * @param string $name name of variable to store.
  * @param mixed $value optional, value to store against $name
  *
  * @return mixed value mapped to $name
  */
-function scope($name, $value = null) {
+function scope($name = null, $value = null) {
 
   static $stash = array();
 
-  if ($value === null)
+  if (is_string($name) && $value === null)
     return isset($stash[$name]) ? $stash[$name] : null;
 
-  return ($stash[$name] = $value);
+  // if no $name clear $stash
+  if (is_null($name)) {
+    $stash = array();
+    return;
+  }
+
+  // set new $value
+  if (is_string($name))
+    return ($stash[$name] = $value);
 }
 
 /**
@@ -788,6 +811,33 @@ function after($method_or_cb = null, $path = null) {
 }
 
 /**
+ * Group all routes created within $cb under the $name prefix.
+ *
+ * @param string $name required. string to prepend to routes created in $cb
+ * @param callable $cb required. function containing route calls
+ *
+ * @return void
+ */
+function prefix($name = null, $cb = null) {
+
+  static $paths = array();
+
+  // this is used by the system to get the current route
+  if (($nargs = func_num_args()) == 0)
+    return implode('/', $paths);
+
+  // outside of sys calls, always require 2 params
+  if ($nargs < 2)
+    trigger_error("Invalid call to prefix()", E_USER_ERROR);
+
+  // push, routine, pop so we can nest
+  array_push($paths, trim($name, '/'));
+  call_user_func($cb);
+  array_pop($paths);
+}
+
+
+/**
  * Maps a callback or invokes a callback for requests
  * on $pattern. If $callback is not set, $pattern
  * is matched against all routes for $method, and the
@@ -812,9 +862,33 @@ function on($method, $path, $callback = null) {
   // a callback was passed, so we create a route definition
   if (is_callable($callback)) {
 
-    $regexp = preg_replace('@:(\w+)@', '(?<\1>[^/]+)', $path);
-    $method = array_map('strtoupper', (array) $method);
+    // if we're inside a resouce, use the path
+    if (strlen($pref = prefix()))
+      $path = trim("{$pref}/{$path}", '/');
 
+    // add bracketed optional sections and "match anything"
+    $path = str_replace(
+      array(')', '*'),
+      array(')?', '.*?'),
+      $path
+    );
+
+    // revised regex that allows named capture groups with optional regexes
+    // (uses @ to separate param name and regex)
+    $regexp = preg_replace_callback(
+      '#:([\w]+)(@([^/\(\)]*))?#',
+      function ($matches) {
+        // 2 versions of named capture groups:
+        // with and without a following regex.
+        if (isset($matches[3]))
+          return '(?P<'.$matches[1].'>'.$matches[3].')';
+        else
+          return '(?P<'.$matches[1].'>[^/]+)';
+      },
+      $path
+    );
+
+    $method = array_map('strtoupper', (array) $method);
     foreach ($method as $m)
       $routes[$m]['@^'.$regexp.'$@'] = $callback;
 
@@ -857,6 +931,16 @@ function on($method, $path, $callback = null) {
     params($values);
     filter($values);
     before($method, "@{$path}");
+
+    // adjust $values array to suit the number of args that the callback is expecting.
+    // null padding is added to the array to stop error if optional args don't match
+    // the number of parameters.
+    $ref = new ReflectionFunction($callback);
+    $num_args_expected = $ref->getNumberOfParameters();
+
+    // append filler array. (note: can't call array_fill with zero quantity - throws error)
+    $values += (($diff = $num_args_expected - count($values)) > 0) ? array_fill(0, $diff, null) : array();
+
     call_user_func_array($callback, array_values(bind($values)));
     after($method, $path);
     $buff = ob_get_clean();
@@ -897,6 +981,11 @@ function dispatch() {
     $base = rtrim(parse_url($base, PHP_URL_PATH), '/');
     $path = preg_replace('@^'.preg_quote($base).'@', '', $path);
   }
+  else {
+    // improved base directory detection if no config specified
+    $base = rtrim(strtr(dirname($_SERVER['SCRIPT_NAME']), '\\', '/'), '/');
+    $path = preg_replace('@^'.preg_quote($base).'@', '', $path);
+  }
 
   // remove router file from URI
   if ($stub = config('dispatch.router')) {
@@ -907,4 +996,3 @@ function dispatch() {
   // dispatch it
   on($method, $path);
 }
-?>

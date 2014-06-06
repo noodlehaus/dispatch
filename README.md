@@ -80,6 +80,24 @@ config([
 ?>
 ```
 
+Config files are treated like PHP's .ini file. If there are named sections, for instance:
+
+```
+;globals section...
+[globals]
+param1 = val1
+param2 = val2
+```
+
+Then a multi-dimensional array is created. When this is read with a statement like `$x = config('globals');`
+then the following structure is returned:
+
+```php
+array('globals' => array('param1' => 'val1', 'param2' => 'val2'))
+```
+
+Calling `config()` with no parameters resets the configuration back to an empty state.
+
 ## Routing
 Application routes are created via calls to `on($method, $path, $callback)`.
 The `$method` parameter can be a single method, an array of methods, or `*`
@@ -106,8 +124,67 @@ on(['GET', 'POST'], '/greet', function () {
 on('*', '/multi', function () {
   echo "it works!\n";
 });
+
+// More complex routes are easily possible, for instance:
+
+// A GET route with named parameter and regex match (@denotes the start of the regex).
+// Version here requires named parameter to be at least one digit for the route to be matched.
+on('GET','/edit/:num@\d+',function($n){
+    echo "Number is $n as function argument. Named parameter is also ".params('num')."\n";
+});
+
+// This route matches an example of a "slug". Note that ( ) and * have special meanings
+// so use alternatives where possible.
+on('GET','/show/:slug@[a-zA-Z][a-zA-Z0-9_-]{0,}',function($s){
+    echo "Slug is $s as function argument. Named parameter is also ".params('slug')."\n";
+});
+
+// This route matches a normal named parameter first then anything else following
+// will match i.e. /show/any/thing/will/match. There has to be a second parameter
+//present, but it can be anything. (the backet option shown next can make it optional)
+on('GET','/show/:first/:second@*',function($f,$s){
+    echo "First arg = $f, second arg = $s. Named = ".params('first').' and '.params('second')."\n";
+});
+
+// This route has three optional parameters where the third also has to be at least one digit.
+// Matches patterns like /list or /list/anything or /list/anything/else or /list/anything/else/42
+// Regexes can apply to any of the named parameters. The missing parameters return null.
+on('GET','/list(/:one(/:two(/:three@\d+)))',function($one,$two,$three){
+    echo "First arg = $one, second arg = $two, third arg = $three \n";
+});
 ?>
 ```
+
+## Grouped Routes (Resources)
+When working on APIs, you tend to create routes that resemble resources.
+You can do this by including the resource name in your route, or by scoping
+your route creation with a `prefix($path, $routine)` call, where `$path`
+contains the name of the resource, and `$routine` is a callable that contains
+routing calls.
+
+```php
+<?php
+// let's create a users resource
+prefix('users', function () {
+
+  on('GET', '/index', function () {
+    // show list of users
+  });
+
+  on('GET', '/:username/show', function () {
+    // show user details
+  });
+});
+
+// this is a route created outside of users
+on('GET', '/about', function () {
+  // about page
+});
+?>
+```
+
+From the code sample, routes `/users/index` and `/users/:username/show` will be
+made. Then outside of the `users` resource, a `/about` route is also made.
 
 ## Site Path and URL Rewriting
 If your app resides in a subfolder, include this path in your `dispatch.url`
@@ -478,6 +555,9 @@ To fetch a value from a request without regard to wether it comes from `$_GET`,
 `$_POST`, or the route symbols, use `params($name)`. This is just like Rails'
 `params` hash.
 
+The `params()` function creates a combined hash of `$_GET`, `$_POST`, and the route
+symbols. Final values in this hash are overwritten in the same order as well.
+
 ```php
 <?php
 // get 'name' from $_GET, $_POST or the route symbols
@@ -542,11 +622,14 @@ setting/fetching values cross-scope.
 // get the client's ip
 $ip = ip();
 
-// store a value that can be fetched later
+// store a value that can be fetched later (can be variables, arrays and objects)
 scope('user', $user);
 
-// fetch a stored value
+// fetch a stored value (returns null if key not found)
 scope('user');
+
+// clear all values in the store
+scope();
 
 // client's IP
 $ip = client_ip();
@@ -639,6 +722,7 @@ Thanks to the following contributors for helping improve this tool :)
 * Amin By [xielingwang](https://github.com/xielingwang)
 * Ross Masters [rmasters](https://github.com/rmasters)
 * scan [scan](https://github.com/scan)
+* nmcgann [nmcgann](https://github.com/nmcgann)
 
 ## LICENSE
 MIT <http://noodlehaus.mit-license.org/>
