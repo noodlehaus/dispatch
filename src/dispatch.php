@@ -325,7 +325,7 @@ function is_xhr() {
     if(strtolower(request_headers('x-requested-with')) === 'xmlhttprequest') {
       $is_xhr = true;
     } else {
-      $is_xht = false;
+      $is_xhr = false;
     }
   }
 
