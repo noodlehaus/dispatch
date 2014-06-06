@@ -6,11 +6,11 @@ before(function () {
 });
 
 on('GET', '/json', function () {
-  json_out(scope('object'));
+  json(scope('object'));
 });
 
 on('GET', '/jsonp', function () {
-  json_out(scope('object'), 'callback');
+  json(scope('object'), 'callback');
 });
 
 dispatch();
