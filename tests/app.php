@@ -205,5 +205,16 @@ on('GET', '/admin/:stub', function ($stub) {
   echo "{$stub}\n";
 });
 
+prefix('books', function () {
+  on('GET', '/list', function () {
+    echo "book list";
+  });
+  prefix('chapters', function () {
+    on('GET', '/list', function () {
+      echo "chapter list";
+    });
+  });
+});
+
 dispatch();
 ?>
