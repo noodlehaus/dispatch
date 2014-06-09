@@ -201,6 +201,14 @@ on('GET', '/list', function () {
   echo "different list";
 });
 
+on('GET', '/ajax', function () {
+  if(is_xhr()) {
+    json(array('ajax' => true));
+  } else {
+    echo "Not AJAX";
+  }
+});
+
 on('GET', '/admin/:stub', function ($stub) {
   echo "{$stub}\n";
 });

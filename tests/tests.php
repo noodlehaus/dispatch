@@ -155,6 +155,18 @@ test('json() - JSON-P response', function () {
   assert(preg_match('/'.preg_quote($val).'/', $res));
 });
 
+test('is_xhr(), true', function () {
+  $res = curl('GET', URL.'/ajax', array(), array(
+    CURLOPT_HTTPHEADER => array('X-Requested-With: XMLHttpRequest'),
+  ));
+  assert(preg_match('/application\/json/', $res));
+});
+
+test('is_xhr(), false', function () {
+  $res = curl('GET', URL.'/ajax');
+  assert(preg_match('/text\/html/', $res));
+});
+
 test('redirect()', function () {
   $res = curl('GET', URL.'/redirect/302');
   assert(preg_match('/302 found/i', $res));
