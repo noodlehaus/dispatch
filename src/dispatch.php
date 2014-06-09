@@ -312,6 +312,27 @@ function request_headers($key = null) {
 }
 
 /**
+ * Convenience function for a quick check if the headers indicate a XHR (AJAX) request.
+ * Basically checks the `x-requested-with` header.
+ *
+ * @return bool true if the current request is an XHR request, false otherwise
+ */
+function is_xhr() {
+
+  static $is_xhr = null;
+
+  if($is_xhr === null) {
+    if(strtolower(request_headers('x-requested-with')) === 'xmlhttprequest') {
+      $is_xhr = true;
+    } else {
+      $is_xhr = false;
+    }
+  }
+
+  return $is_xhr;
+}
+
+/**
  * Convenience function for reading in the request body. JSON
  * and form-urlencoded content are automatically parsed and returned
  * as arrays.
