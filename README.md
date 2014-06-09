@@ -639,6 +639,9 @@ html('Marley & Me');
 
 // make a string url-safe
 url('http://noodlehaus.github.com/dispatch');
+
+// returns true if the X-Requested-With-Header is set to XMLHttpRequest
+$ajax = is_xhr();
 ?>
 ```
 
@@ -681,6 +684,7 @@ function flash($key, $msg = null, $now = false)
 function url($str)
 function html($str, $flags = ENT_QUOTES, $enc = 'UTF-8')
 function ip()
+function is_xhr()
 
 // entry point
 function dispatch()
