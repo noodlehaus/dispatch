@@ -72,7 +72,7 @@ function config($key = null, $value = null) {
         E_USER_ERROR
       );
     }
-    $config = array_merge($config, parse_ini_file($value, true));
+    $config = array_replace_recursive($config, parse_ini_file($value, true));
     return;
   }
 
@@ -93,7 +93,7 @@ function config($key = null, $value = null) {
   if (is_array($key)) {
     $keys = array_filter(array_keys($key), 'is_string');
     $keys = array_intersect_key($key, array_flip($keys));
-    $config = array_merge($config, $keys);
+    $config = array_replace_recursive($config, $keys);
   }
 }
 
