@@ -564,14 +564,14 @@ function content($value = null) {
  *
  * @throws ErrorException if dispatch.views is not set in config or the view file is not found
  */
-function template($view, $locals = null) {
+function template($view, $locals = null, $type = 'html') {
 
   if (($view_root = config('dispatch.views')) == null)
     throw new ErrorException("config('dispatch.views') is not set.");
 
   extract((array) $locals, EXTR_SKIP);
 
-  $view = $view_root.DIRECTORY_SEPARATOR.$view.'.html.php';
+  $view = $view_root . DIRECTORY_SEPARATOR . $view . ($type ? '.' . $type : '') . '.php';
   $html = '';
 
   if (file_exists($view)) {
