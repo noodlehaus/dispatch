@@ -59,6 +59,8 @@ function error($code, $callback = null) {
  * @param string $value optional, If present, sets $key to this $value.
  *
  * @return mixed|null value
+ *
+ * @throws ErrorException if the config file cannot be found.
  */
 function config($key = null, $value = null) {
 
@@ -67,9 +69,8 @@ function config($key = null, $value = null) {
   // if key is source, load ini file and return
   if ($key === 'source') {
     if (!file_exists($value)) {
-      trigger_error(
-        "File passed to config('source') not found",
-        E_USER_ERROR
+      throw new ErrorException(
+        "File passed to config('source') not found"
       );
     }
     $config = array_replace_recursive($config, parse_ini_file($value, true));
@@ -220,6 +221,8 @@ function params($name = null, $default = null) {
  *   unset the variable from the session.
  *
  * @return mixed value for the session variable
+ *
+ * @throws ErrorException if sessions were not activated in the php.ini
  */
 function session($name, $value = null) {
 
@@ -229,9 +232,8 @@ function session($name, $value = null) {
   if ($session_active === false) {
 
     if (($current = ini_get('session.use_trans_sid')) === false) {
-      trigger_error(
-        'Call to session() requires that sessions be enabled in PHP',
-        E_USER_ERROR
+      throw new ErrorException(
+        'Call to session() requires that sessions be enabled in PHP'
       );
     }
 
@@ -559,11 +561,13 @@ function content($value = null) {
  * @param array $locals optional, hash to load as scope variables
  *
  * @return string content of the partial.
+ *
+ * @throws ErrorException if dispatch.views is not set in config or the view file is not found
  */
 function template($view, $locals = null) {
 
   if (($view_root = config('dispatch.views')) == null)
-    trigger_error("config('dispatch.views') is not set.", E_USER_ERROR);
+    throw new ErrorException("config('dispatch.views') is not set.");
 
   extract((array) $locals, EXTR_SKIP);
 
@@ -575,7 +579,7 @@ function template($view, $locals = null) {
     require $view;
     $html = ob_get_clean();
   } else {
-    trigger_error("Template [{$view}] not found.", E_USER_ERROR);
+    throw new ErrorException("Template [{$view}] not found.");
   }
 
   return $html;
@@ -838,6 +842,8 @@ function after($method_or_cb = null, $path = null) {
  * @param callable $cb required. function containing route calls
  *
  * @return void
+ *
+ * @throws ErrorException if the number of arguments is exactly one.
  */
 function prefix($name = null, $cb = null) {
 
@@ -849,7 +855,7 @@ function prefix($name = null, $cb = null) {
 
   // outside of sys calls, always require 2 params
   if ($nargs < 2)
-    trigger_error("Invalid call to prefix()", E_USER_ERROR);
+    throw new ErrorException("Invalid call to prefix()");
 
   // push, routine, pop so we can nest
   array_push($paths, trim($name, '/'));
