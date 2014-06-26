@@ -725,7 +725,7 @@ Thanks to the following contributors for helping improve this tool :)
 * darkalemanbr [darkalemanbr](https://github.com/darkalemanbr)
 * Amin By [xielingwang](https://github.com/xielingwang)
 * Ross Masters [rmasters](https://github.com/rmasters)
-* scan [scan](https://github.com/scan)
+* Tom Streller [scan](https://github.com/scan)
 * nmcgann [nmcgann](https://github.com/nmcgann)
 
 ## LICENSE
