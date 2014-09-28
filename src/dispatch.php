@@ -677,7 +677,7 @@ function json($obj, $func = null) {
   nocache();
   if (!$func) {
     header('Content-type: application/json');
-    echo json_encode($obj);
+    echo json_encode($obj, config('dispatch.json'));
   } else {
     header('Content-type: application/javascript');
     echo ";{$func}(".json_encode($obj).");";
