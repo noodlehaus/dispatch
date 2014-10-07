@@ -248,7 +248,7 @@ require __DIR__.'/../dispatch.php';
   dispatch('dargs1', 'dargs2');
 }
 
-echo "Done running tests. No errors mean all's good.\n";
+echo "Done running tests. If you don't see errors, it means all's ok.\n";
 
 # helper for getting and resetting headers
 function headers_get_clean() {
