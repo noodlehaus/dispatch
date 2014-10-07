@@ -363,8 +363,9 @@ expires headers for you.
 # print out JSON data
 json(['name' => 'noodlehaus']);
 
-# print out JSON and don't let them cache it
-nocache(json(['name' => 'noodlehaus']));
+# print out no-cache headers, and json data
+nocache();
+json(['name' => 'noodlehaus']));
 ```
 
 ### Views and Helpers
