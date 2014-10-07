@@ -13,6 +13,20 @@ require __DIR__.'/../dispatch.php';
   assert(settings('settings.two') == 2);
   assert(settings('settings.three') == 3);
   assert(settings('settings.invalid') == null);
+
+  # unsupported type
+  try {
+    settings('@settings.conf');
+  } catch (Exception $e) {
+    assert($e instanceof InvalidArgumentException);
+  }
+
+  # invalid data
+  try {
+    settings('@'.__DIR__.'/fixtures/settings-invalid.php');
+  } catch (Exception $e) {
+    assert($e instanceof InvalidArgumentException);
+  }
 }
 
 # utility functions
@@ -46,6 +60,13 @@ require __DIR__.'/../dispatch.php';
 
 # header functions
 {
+  # invalid call
+  try {
+    headers();
+  } catch (Exception $e) {
+    assert($e instanceof BadFunctionCallException);
+  }
+
   # fake request headers
   $_SERVER['CONTENT_LENGTH'] = 1024;
   $_SERVER['CONTENT_TYPE'] = 'application/x-www-form-urlencoded';
@@ -200,6 +221,13 @@ require __DIR__.'/../dispatch.php';
   map('cb7');
   assert($routes['all'] === 'cb7');
 
+  # invalid map call
+  try {
+    map();
+  } catch (Exception $e) {
+    assert($e instanceof BadFunctionCallException);
+  }
+
   # hook mapping tests
   hook('id', 'hook1');
   assert($routes['hooks']['id'] === 'hook1');
@@ -256,6 +284,13 @@ require __DIR__.'/../dispatch.php';
 
   # dispatch
   dispatch('dargs1', 'dargs2');
+
+  # test invalid error trigger
+  try {
+    error();
+  } catch (Exception $e) {
+    assert($e instanceof BadFunctionCallException);
+  }
 }
 
 echo "Done running tests. If you don't see errors, it means all's ok.\n";

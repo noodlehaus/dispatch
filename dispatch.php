@@ -14,9 +14,9 @@ function settings($path) {
 
     # we only check the filename, let existence errors float out
     if (!preg_match('/\.(ini|php)$/', $path, $type)) {
-      return trigger_error(
-        __FUNCTION__.": File not supported [{$path}].",
-        E_USER_ERROR
+      throw new InvalidArgumentException(
+        "File type supported [{$path}].",
+        500
       );
     }
 
@@ -36,9 +36,9 @@ function settings($path) {
         $temp = call_user_func($temp);
 
       if (!is_array($temp)) {
-        return trigger_error(
-          __FUNCTION__.": Settings file [{$path}] is invalid.",
-          E_USER_ERROR
+        throw new InvalidArgumentException(
+          "File contents invalid [{$path}].",
+          500
         );
       }
     }
@@ -116,9 +116,9 @@ function headers() {
 
   # error case
   if ($argc < 1) {
-    return trigger_error(
-      __FUNCTION__.': Invalid number of arguments.',
-      E_USER_ERROR
+    throw new BadFunctionCallException(
+      'Invalid number of arguments.',
+      500
     );
   }
 
@@ -282,9 +282,9 @@ function json() {
 
   # trigger a user error for failed encodings
   if ($err !== JSON_ERROR_NONE) {
-    return trigger_error(
-      __FUNCTION__.": JSON encoding failed [{$err}].",
-      E_USER_ERROR
+    throw new RuntimeException(
+      "JSON encoding failed [{$err}].",
+      500
     );
   }
 
@@ -341,9 +341,9 @@ function map() {
 
     # everything else
     default:
-      return trigger_error(
-        __FUNCTION__.': Invalid number of arguments.',
-        E_USER_ERROR
+      throw new BadFunctionCallException(
+        'Invalid number of arguments.',
+        500
       );
   }
 }
@@ -360,9 +360,9 @@ function error() {
   $argv = func_get_args();
 
   if (!$argc) {
-    return trigger_error(
-      __FUNCTION__.': Invalid number of arguments.',
-      E_USER_ERROR
+    throw new BadFunctionCallException(
+      'Invalid number of arguments.',
+      500
     );
   }
 
