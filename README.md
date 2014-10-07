@@ -1,720 +1,469 @@
-# Dispatch
+# DISPATCH 5.x
 
-Dispatch is another PHP micro-framework. It's very small and very simple
-to use. No classes, no namespaces.
+Dispatch is a PHP micro-framework. It has just enough PHP for getting small
+apps up and running quickly.
 
 ## Requirements
-Officially, Dispatch requires **PHP 5.4**. Unofficially though, it can run with
-**PHP 5.3** and up. Anything lower, you'll have to change things.
 
-No strict version check is being done by Dispatch, other than the requirements
-imposed by `composer.json`. Functions specific to 5.4 are only used when
-available.
+* php 5.4
+* php-xdebug (for running complete tests)
 
-To run the tests though, you'll need PHP 5.4 as it makes use of PHP's built-in
-web server.
+## Running Tests
 
-## Code
-Get the code on GitHub: <http://github.com/noodlehaus/dispatch>.
+Dispatch makes use of ad hoc tests using PHP's `assert()` function. Run the
+following command to run them.
 
-## Installation
-To install using `composer`, have the following lines to `composer.json`.
+```
+php tests/dispatch-tests.php
+```
 
-```javascript
-{
-  "require": {
-    "php": ">= 5.4.0",
-    ...
-    "dispatch/dispatch": "dev-master",
+If you don't have `php-xdebug` installed, some of the tests will be skipped
+(specifically, the header tests).
+
+## Short Example
+
+```php
+<?php
+require __DIR__.'/dispatch.php';
+
+# handle specific error codes
+map([400, 404, 500], function ($code) {
+
+  $code = intval($code);
+
+  switch ($code) {
+
+  case 404:
+    echo "Page not found";
+    break;
+
+  case 400:
+    echo "Bad request";
+    break;
+
+  default:
+    echo "Internal server error";
+    break;
   }
-}
-```
+});
 
-Then do a `composer install` or `composer update` to install the package.
+# hook for transforming value for {uid}
+hook('uid', function ($uid, $db) {
+  $uid = strtolower(trim($uid));
+  return isset($db[$uid]) ? $db[$uid] : null;
+});
 
-If you don't use `composer`, just download and include `dispatch.php` directly
-in your application.
+# map route handler for any method
+map('/users/{uid}', function ($args, $db) {
 
-Note that Dispatch functions are all loaded into the global namespace.
+  # $args['uid'] has the db row (from the hook) or null
+  if ($row = $args['uid'])
+    return print "user: {$row[0]}, {$row[1]}, {$row[2]}\n";
 
-If you have access to `mod_rewrite`, make sure to redirect all your PHP
-requests to your app.
+  # trigger our 404 handler
+  return error(404);
+});
 
-```
-<IfModule mod_rewrite.c>
-  RewriteEngine on
-  # in this case, our app bootstrap file is index.php
-  RewriteRule !\.(js|html|ico|gif|jpg|png|css)$ index.php
-</IfModule>
-```
-
-## Configuration Variables
-
-Some settings are needed by Dispatch, and they can be set via `config()`.
-
-```php
-<?php
-// REQUIRED, base path for your views
-config('dispatch.views', '../views');
-
-// OPTIONAL, layout file to use (defaults to 'layout')
-config('dispatch.layout', 'layout');
-
-// OPTIONAL, cookie for flash messages (defaults to '_F')
-config('dispatch.flash_cookie', '_F');
-
-// OPTIONAL, specify your app's full URL
-config('dispatch.url', 'http://somedomain.com/someapp/path');
-
-// OPTIONAL, routing file to be taken off of the request URI
-config('dispatch.router', 'index.php');
-
-// you can also just pass a hash of settings in one call
-config([
-  'dispatch.views' => '../views',
-  'dispatch.layout' => 'layout',
-  'dispatch.flash_cookie' => '_F',
-  'dispatch.url' => 'http://somedomain.com/somapp/path',
-  'dispatch.router' => 'index.php'
+# arguments to dispatch() gets forwarded too
+dispatch($db = [
+  'u01' => ['anna', 28, 'f'],
+  'u02' => ['rein', 33, 'f'],
+  'u03' => ['john', 27, 'm'],
+  'u04' => ['tina', 31, 'f'],
+  'u05' => ['alex', 36, 'm']
 ]);
-?>
 ```
 
-Config files are treated like PHP's .ini file. If there are named sections, for instance:
+## Changes from 4.x to 5.x
 
-```
-;globals section...
-[globals]
-param1 = val1
-param2 = val2
-```
+Below is a comprehensive list of changes from Dispatch 4.x to 5.x. For
+complete information, please read the rest of this document.
 
-Then a multi-dimensional array is created. When this is read with a statement like `$x = config('globals');`
-then the following structure is returned:
+* `error()` no longer maps error handlers, just triggers http errors
+* `config()` replaced with `settings()`
+* `flash()` removed
+* `html()` replaced with `ent()`, directly maps to `htmlentities()`
+* `params()` removed, replaced by `array` argument for routes symbols
+* `cookie()` renamed to `cookies()`, better maps to `setcookie()`
+* `request_headers()` merged into `headers()`
+* `is_xhr()` removed
+* `request_body()` replaced by `input()`
+* `files()` replaced by `attachments()`
+* `send()` removed
+* `scope()` removed
+* `redirect()` 3rd argument no longer a condition, but a halt flag
+* `content()` removed
+* `template()` removed
+* `render()` removed
+* `inline()` removed
+* `partial()` replaced by `phtml()`
+* `nocache()` now requires parameter for the content
+* `json()` no longer supports the `$func` parameter
+* `filter()` and `bind()` removed, replaced by `hook()`
+* `before()` removed
+* `after()` removed
+* `on()` renamed to `map()`, and changes in behavior
+* `dispatch()` changed to no longer accept method and URI
+
+All in all, apps written in 4.x will no longer work in 5.x.
+
+## API Documentation
+
+### Mapping Route and Error Handlers
+
+Create routes using the `map()` function. The following are valid
+examples.
 
 ```php
-array('globals' => array('param1' => 'val1', 'param2' => 'val2'))
+# standard route -- a method, a path, an action
+map('GET', '/index', 'index_action');
+
+# multiple methods on a path
+map(['GET', 'POST'], '/index', 'index_action');
+
+# any method against a path
+map('/index', 'index_action');
+
+# action for any method and path
+map('catch_all_action');
+
+# multiple paths against an action
+map(['/index', '/about'], 'index_action');
+
+# route symbols are placed into $args
+map('GET', '/greet/{name}', function ($args) {});
 ```
 
-Calling `config()` with no parameters resets the configuration back to an empty state.
-
-## Routing
-Application routes are created via calls to `on($method, $path, $callback)`.
-The `$method` parameter can be a single method, an array of methods, or `*`
-(for all methods).
+Error handlers can be created with `map()` as well. Call it with
+two arguments -- an array of codes, or a single code, and the callable.
 
 ```php
-<?php
-// get route for /
-on('GET', '/', function () {
-  echo "hello, world!\n";
+# single code against a routine
+map(404, 'not_found');
+
+# multiple codes against a routine
+map([401, 402, 403], 'request_error');
+```
+
+### Route Symbol Hooks
+
+Route symbols can have hooks that modify their value during dispatch.
+These hooks can be created with `hook()`.
+
+```php
+# call when matching route has the url_id symbol
+hook('url_id', function ($url_id) {
+  # what we return is used as the new value
+  return md5($url_id);
 });
 
-// get route for /index
-on('GET', '/index', function () {
-  echo "hello, world!\n";
+# route that triggers the url_id hook
+map('GET', '/urls/{url_id}', function ($args) {
+  # the value for url_id has been updated by our hook
+  $url_id = $args['url_id'];
+  print("{$url_id} is the md5() of the original \$url_id");
+});
+```
+
+### Triggering HTTP Errors
+
+To trigger an http error code and execute any mapped error handlers, return
+`error()` from within your action, passing to it the http error code
+you want to trip, along with whatever parameters you want to pass.
+
+```php
+# example 404 error handler
+map(404, function () {
+
+  $argv = func_get_args();
+  $code = array_shift($argv);
+
+  # $argv now has all other args other than the http code
 });
 
-// support the route for multiple methods
-on(['GET', 'POST'], '/greet', function () {
-  echo "hello, world!\n";
+# route handler that triggers a 404
+map('/not-found', function ($di) {
+
+  # let's trip the 404 handler, and pass the $di var
+  return error(404, $di);
 });
 
-// handle any method
-on('*', '/multi', function () {
-  echo "it works!\n";
+# our fake di container is just an array, passed during dispatch
+dispatch($di = array());
+```
+
+### Dispatching and Dependency Passing
+
+Once you have your actions and error handlers in place, you can serve the
+current request via `dispatch()`.
+
+```php
+# basic dispatch
+dispatch();
+
+# dispatch with dependencies passed around
+dispatch($arg1, $arg2, ...$argN);
+```
+
+DISPATCH allows you to pass dependencies to your route handlers, error
+handlers, and hooks. To pass a dependency, use it as an argument to
+`dispatch()`.
+
+For actions/route handlers, if the route has symbol values, the `$args`
+hash get injected first, then the arguments from `dispatch()` get passed
+next.
+
+```php
+# route has a symbol, so we get $parmas first, then the dispatch() args
+map('GET', '/greet/{name}', function ($args, $config) {
+  # ...
 });
 
-// More complex routes are easily possible, for instance:
+# ex. we have a config object as a dependency
+$config = parse_ini_file('config.ini');
 
-// A GET route with named parameter and regex match (@denotes the start of the regex).
-// Version here requires named parameter to be at least one digit for the route to be matched.
-on('GET','/edit/:num@\d+',function($n){
-    echo "Number is $n as function argument. Named parameter is also ".params('num')."\n";
+# pass it along
+dispatch($config);
+```
+
+For symbol hooks, you will get the symbol value as first argument, then
+the injected dependencies next.
+
+```php
+# sample hook that gets the value first, then the injected ones
+hook('name', function ($name, $config, $db) {
+  # ...
 });
 
-// This route matches an example of a "slug". Note that ( ) and * have special meanings
-// so use alternatives where possible.
-on('GET','/show/:slug@[a-zA-Z][a-zA-Z0-9_-]{0,}',function($s){
-    echo "Slug is $s as function argument. Named parameter is also ".params('slug')."\n";
+# sample config dependency
+$config = parse_ini_file('config.ini');
+
+# sample db dependency
+$db = db_connect($config);
+
+# pass dependencies around
+dispatch($config, $db);
+```
+
+For error handlers, we get the error code first, then the injected args
+next.
+
+```php
+# we get the http error code first, then the injected ones
+hook(404, function ($code, $db) {
+  # ...
 });
 
-// This route matches a normal named parameter first then anything else following
-// will match i.e. /show/any/thing/will/match. There has to be a second parameter
-//present, but it can be anything. (the backet option shown next can make it optional)
-on('GET','/show/:first/:second@*',function($f,$s){
-    echo "First arg = $f, second arg = $s. Named = ".params('first').' and '.params('second')."\n";
-});
+# ex. we have a db connection
+$db = db_connect();
 
-// This route has three optional parameters where the third also has to be at least one digit.
-// Matches patterns like /list or /list/anything or /list/anything/else or /list/anything/else/42
-// Regexes can apply to any of the named parameters. The missing parameters return null.
-on('GET','/list(/:one(/:two(/:three@\d+)))',function($one,$two,$three){
-    echo "First arg = $one, second arg = $two, third arg = $three \n";
-});
-?>
+# pass along the db
+dispatch($db);
 ```
 
-## Grouped Routes (Resources)
-When working on APIs, you tend to create routes that resemble resources.
-You can do this by including the resource name in your route, or by scoping
-your route creation with a `prefix($path, $routine)` call, where `$path`
-contains the name of the resource, and `$routine` is a callable that contains
-routing calls.
+Note that the order in which the dependencies are passed around is the
+same as when they were passed to `dispatch()`. You can also choose to
+ignore these arguments from the right, as php allows it.
+
+### Redirects
+
+Redirect headers can be sent via the `redirect()` function. This
+function only sends out the HTTP headers and doesn't stop your script from
+executing, but has the option to behave like so.
 
 ```php
-<?php
-// let's create a users resource
-prefix('users', function () {
+# just dump the headers with a custom code
+redirect('/index', 302);
 
-  on('GET', '/index', function () {
-    // show list of users
-  });
-
-  on('GET', '/:username/show', function () {
-    // show user details
-  });
-});
-
-// this is a route created outside of users
-on('GET', '/about', function () {
-  // about page
-});
-?>
+# or send the headers and halt the execution
+redirect('/index', 302, $halt = true);
 ```
 
-From the code sample, routes `/users/index` and `/users/:username/show` will be
-made. Then outside of the `users` resource, a `/about` route is also made.
+### Cookies, Session, Files, and Headers
 
-## Site Path and URL Rewriting
-If your app resides in a subfolder, include this path in your `dispatch.url`
-setting, so Dispatch knows which parts of the `REQUEST_URI` need to be removed.
+To access values from `$_COOKIE`, `$_SESSION`, `$_FILES`, and the request
+headers, you can do so with `cookies()`, `session()`,
+`attachments()`, and `headers()`, respectively. If the value
+is not present, you'll get a `null` back.
 
 ```php
-<?php
-// our app lives in /mysite
-config('dispatch.url', 'http://somehost.com/mysite');
+# get a cookie
+$name = cookies('name');
 
-on('GET', '/users', function () {
-  echo "listing users...";
-});
+# get a session var
+$name = session('name');
 
-// requested URI = http://somehost.com/mysite/users
-// response = "listing users..."
-?>
+# get a header (header keys are converted to lowercase)
+$type = headers('content-type');
 ```
 
-If you don't have access to URL rewrites, and are using a file router
-(ie. /index.php/some/action), you need to specify this via `dispatch.router`.
-The string you set this to gets stripped off of the `REQUEST_URI` before
-Dispatch routes the request.
+For file uploads, DISPATCH will re-organize and group together the file
+attributes if the file matching the name is an array.
 
 ```php
-<?php
-// strip index.php from all route requests
-config('dispatch.router', 'index.php');
-
-on('GET', '/users', function () {
-  echo "listing users...";
-});
-
-// requested URI = /index.php/users
-// response = "listing users..."
-?>
-```
-
-## HTTP Redirects
-Redirects are done via `redirect($path, $code = 302, $condition = true)`. The
-third parameter, `$condition`, is useful if you want your redirects to happen
-depending on the result of an expression.
-
-```php
-<?php
-// basic redirect
-redirect('/index');
-
-// with a custom code
-redirect('/new-url', 301);
-
-// redirect if authenticated() is false
-redirect('/denied', 302, !authenticated());
-?>
-```
-
-## Request Method Overrides
-Method overrides set either via the `_method` form field or the
-'X-Http-Method-Override' header are supported. If either of these two are
-present in the request, their values are respected. Below is the particular
-code that describes how this is handled.
-
-```php
-<?php
-// actual dispatch code that checks for a method override
-if ($method == 'POST') {
-  if (isset($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE']))
-    $method = $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'];
-  else
-    $method = params('_method') ? params('_method') : $method;
-}
-?>
-```
-
-## Request Headers
-Dispatch provides a  convenience function for accessing request headers via
-`request_headers($name = null)`. When called without parameters, it returns
-an associative array of all the request headers. If given a `$name` parameter,
-returns the value for that header or null if it doesn't exist.
-
-```php
-<?php
-// get all of it
-$headers = request_headers();
-
-// or just one
-$accept_encoding = request_headers('accept-encoding');
-?>
-```
-
-## Request Body in PUTs or JSON POSTs
-In cases where you're handling PUT requests or JSON posts and you need access
-to the raw http request body contents, you can use `request_body($load = true)`.
-
-For content of type `application/json` and `application/x-www-form-urlencoded`,
-the content are automatically parsed and returned as arrays.
-
-```php
-<?php
-// this returns the actual content (expensive for big uploads)
-$data = request_body();
-
-// this writes the body into a temp file and returns the path
-$path = request_body($load = file);
-?>
-```
-
-## Route Symbol Bindings and Filters
-Named parameters or symbols in routes can have callbacks associated with it.
-With these callbacks, you can perform routines like data loading, or value
-filtering/transforms. Functions that let you do this are
-`bind($symbol, $callback = null)` and `filter($symbol, $callback = null)`.
-
-Callbacks mapped using `bind()` transform the final value that gets passed
-to your route handler.
-
-```php
-<?php
-// bind() callbacks need to return a value
-bind('hashable', function ($hashable) {
-  return md5($hashable);
-});
-
-// the value received for $hash is already
-// transformed by our bind() callback
-on('GET', '/md5/:hashable', function ($hash) {
-  echo $hash . '-' . params('hashable');
-});
-?>
-```
-
-For callbacks mapped using `filter()`, they are not required to have
-a return value, and if they do, the return value does not transform
-the parameter value passed to the route handler.
-
-```php
-<?php
-// preload blog entry whenever a matching route has :blog_id in it
-filter('blog_id', function ($blog_id) {
-  $blog = Blog::findOne($blog_id);
-  // scope() lets you store stuff for later use (NOT a cache)
-  scope('blog', $blog);
-});
-
-// here, we have :blog_id in the route, so our preloader gets run
-on('GET', '/blogs/:blog_id', function ($blog_id) {
-  // $blog_id is still the original, but
-  // we can pick up what we stored with scope()
-  $blog = scope('blog');
-  render('blogs/show', array('blog' => $blog);
-});
-?>
-```
-
-## Before and After Callbacks
-To setup routines to be run before and after a request, use
-`before($cb_or_rx, $cb = null)` and `after($cb_or_rx, $cb = null)`
-respectively. The callback routines will receive two arguments - the
-`REQUEST_METHOD`, and the `REQUEST_URI`.
-
-```php
-<?php
-// setup a function to be called before each request
-before(function ($method, $path) {
-  // setup stuff
-});
-
-// setup a function to be called only if the URI matches the regex
-before('^admin/', function ($method, $path) {
-  // do some admin checks, for example
-});
-
-// setup a function to be called after each request
-after(function ($method, $path) {
-  // clean up stuff
-});
-
-// setup a function to be called only if the URI matches the regex
-after('^transcode/', function ($method, $path) {
-  // clean up temp files, for example
-});
-?>
-```
-
-## HTTP Errors and Error Handling
-You can create custom HTTP error handlers and trigger them as well via calls to
-`error($code, $callback_or_string = null)`.
-
-```php
-<?php
-// create a 404 handler
-error(404, function () {
-  echo "Oops!\n";
-});
-
-// trigger the error
-error(404);
-
-// trigger another error, with a custom message
-error(500, "Something broke!");
-?>
-```
-
-## Layout, Views and Partials
-For Dispatch to work with layouts, views and partials, you need three settings:
-
-* `dispatch.views` - where to find all the views
-* `dispatch.layout` - the layout file to use (without .html.php)
-* your layout, views and partials should end with `.html.php`
-
-The layout file you specify needs to contain a call to `content()`. This will
-plug in the contents of your view into your layout file.
-
-```php
-<!DOCTYPE html>
-<html>
-<head><title>My Layout File</title></head>
-<body>
-
-<!-- this call will plug in the contents of your view -->
-<?= content() ?>
-
-</body>
-</html>
-```
-
-With these set, you can then call `render()` in the following ways:
-
-```php
-<?php
-// render a view with locals using the configured layout file
-render('index', ['name' => 'joe']);
-
-// render a view using a different layout file (mobile-layout.html.php)
-render('index', ['name' => 'bob'], 'mobile-layout');
-
-// render a view without using a layout file
-render('index', ['name' => 'bob'], false);
-?>
-```
-
-If you just want to fetch the results of a template using some locales, without
-echoing the results, you can make a call to `template()` instead.
-
-```php
-<?php
-$page = template('index', ['name' => 'bob']);
-?>
-```
-
-For partials, the files are expected to begin with the `_` character, and can
-be loaded via `partial($path, $locals = [])`.
-
-```php
-<?php
-// underscore on the filename is added automatically by partial()
-$html = partial('users/profile_page', array('data' => $data));
-?>
-```
-
-If you don't really need to do anything but to render a template for a route,
-and maybe use some local variables and a layout, you can use
-`inline($file, $locals = array(), $layout = null)` instead. `inline()` creates
-a route handler for you that does nothing but render the view specified using
-the scope variables, and layout file, if any, when the route is invoked.
-
-```php
-<?php
-// just render the about-us template for the route
-on('GET', '/about-us', inline('about-us'));
-
-// render a template with some locals
-on('GET', '/contact-us', inline(
-  'contact-us',
-  array('email' => 'support@blah.com')
-));
-
-// render using a different template
-on('GET', '/faq', inline('faq', array(), 'faq-layout'));
-?>
-```
-
-## JSON and JSONP Responses
-JSON and JSONP responses are done via `json($obj, $func = null)`.
-
-```php
-<?php
-// object to dump
-$obj = ['name' => 'noodlehaus', 'age' => 34];
-
-// non-cacheable json response
-json($obj);
-
-...
-
-// jsonp callback name
-$fxn = 'parseResponse';
-
-// non-cacheable jsonp response
-json($obj, $fxn);
-?>
-```
-
-## No-Cache
-If you want to output non-cacheable content, you can do this by calling
-`nocache()` before outputting any content.
-
-```php
-<?php
-// output nocache headers
-nocache();
-
-echo "comes fresh, everytime!";
-?>
-```
-
-## Cookies and Sessions
-Get and set cookie values via
-`cookie($name, $value = null, $expire = 0, $path = '/')`.
-
-```php
-<?php
-// set a cookie
-cookie('user_id', 'user-12345');
-
-// get a cookie
-$user_id = cookie('user_id');
-?>
-```
-
-For getting and setting session values, use `session($name, $value = null)`.
-Calls to `session()` will fail and raise an error if you have sessions
-disabled in your `php.ini`.
-
-If sessions are enabled, `session_start()` is called automatically for you.
-
-```php
-<?php
-// set a session value
-session('authenticated', false);
-
-// get a session value
-$authenticated = session('authenticated');
-
-// remove a session variable
-session('authenticated', null);
-?>
-```
-
-## Cross-Request Messages (Flash)
-Cross-request messages, or flash messages, can be done via
-`flash($name, $message = null, $now = false)`.
-
-```php
-<?php
-// set an error message to show after a redirect
-flash('error', 'You did something wrong!');
-redirect('/some-page');
-
-// .. then on your other page ..
-
-$message = flash('error');
-?>
-```
-
-## $\_GET, $\_POST Values and Route Symbols
-To fetch a value from a request without regard to wether it comes from `$_GET`,
-`$_POST`, or the route symbols, use `params($name)`. This is just like Rails'
-`params` hash.
-
-The `params()` function creates a combined hash of `$_GET`, `$_POST`, and the route
-symbols. Final values in this hash are overwritten in the same order as well.
-
-```php
-<?php
-// get 'name' from $_GET, $_POST or the route symbols
-$name = params('name');
-
-// get 'name', set a default value if not found
-$name = params('name', 'stranger');
-?>
-```
-
-## File Downloads (Content-Disposition)
-You can push a file to the client using the `Content-Disposition` header via
-`send($path, $filename, $lifespan = 0)`. `$path` points to the
-filesystem path of the file to push, `$filename` will be the filename to be
-used in the header, and `$sec_expire` will be the cache lifespan of the file
-in seconds.
-
-```php
-<?php
-// push a pdf that can be cached for 180 days
-send('/path/to/file/to/push.pdf', 'ebook.pdf', 60*60*24*180);
-?>
-```
-
-## $\_FILES Values
-During file uploads, to get consolidated info on the file, call
-`files($name)`, where `$name` is the name of the file input field. If
-the file input field is an array, info is grouped conveniently by file and
-returned as an array.
-
-```php
-<?php
-// get info on an uploaded file
+# get an uploaded file
 $file = files('photo');
-?>
 ```
 
-## Loading INI Files
-You can make use of ini files for configuration by calling
-`config('source', 'myconfig.ini')`.
+For setting values, you also use the same functions but with extra
+parameters for the values (and other options).
+
+For `cookies()`, the arguments map directly to PHP's `setcookie()`
+function. For `session()`, it's just the variable name and the
+value.
 
 ```php
-<?php
-// load the contents of my-settings.ini into config()
-config('source', 'my-settings.ini');
+# set a cookie value that expires after a year
+cookies('name', 'noodlehaus', time() + 60 * 60 * 24 * 365, '/');
 
-// load another ini file, merge it with the previous one
-config('source', 'my-other-settings.ini');
-
-// get a config value from the loaded configs
-$secret = config('some.setting');
-?>
+# set a session var
+session('name', 'noodlehaus');
 ```
 
-## Utility Functions
-Some utility functions are also provided - for getting the client's IP,
-for making a string HTML-safe, for making a string URL-safe, and for
-setting/fetching values cross-scope.
+For `headers()`, it's a bit similar to PHP's `header()` function,
+the difference is it doesn't allow non-key-value pair headers (ie.
+`HTTP/1.0 200 Ok`), and the key and the value need to be passed separately.
 
 ```php
-<?php
-// get the client's ip
+# set a response header
+headers('content-type', 'text/html');
+
+# set a header and use the rest of header()'s options
+headers('location', '/index', $replace = true, $code = 301);
+```
+
+### Raw Request Body
+
+If you need the raw data for a request (ie. for `PUT` requests), you can
+use `input()` to either get the file containing the data, or to
+receive the data contents (for small sizes). This returns an array in the
+`[content-type, path_or_data]` structure.
+
+```php
+# receive the type and the contents
+list($type, $data) = input($load = true);
+
+# receive the type and path to the file
+list($type, $path) = input($load = false);
+```
+
+When getting the data directly, be sure to keep the data size in mind.
+
+### Caching and JSON Responses
+
+Use `json()` to send out JSON responses. This encodes the
+object the object you pass to it, and prints out the appropriate headers
+for the response.
+
+If you want the client NOT to cache this response (or any response), you
+can wrap it with `nocache()`, and it will print the appropriate
+expires headers for you.
+
+```php
+# print out JSON data
+json(['name' => 'noodlehaus']);
+
+# print out JSON and don't let them cache it
+nocache(json(['name' => 'noodlehaus']));
+```
+
+### Views and Helpers
+
+To render PHP-based template files, use `phtml()`. This accepts
+a filename, and hash that will be `extract()`ed into the template's scope.
+
+```php
+# load the template
+$page = phtml('views/index.php', ['name' => 'noodlehaus']);
+```
+
+In forms, we usually have the need to pre-populate a set of fields safely
+by doing calls to `isset()`. For this, you can use `blanks()` to
+create a hash of blanks for your form values.
+
+```php
+# create a hash of empty strings with the following keys
+$fields = blanks('name', 'email', 'username');
+```
+
+Functions `ent()` and `url()` are available as shortcuts to commonly-used
+template functions `htmlentities()` and `urlencode()`. The arguments to these
+functions map directly to the arguments of their target PHP functions.
+
+```php
+$encoded = ent('Tom & Jerry', ENT_COMPAT, 'utf-8');
+$urlsafe = url('/redirect/target');
+```
+
+### Client IP
+
+To get the remote IP address, use `ip()`.
+
+```php
 $ip = ip();
-
-// store a value that can be fetched later (can be variables, arrays and objects)
-scope('user', $user);
-
-// fetch a stored value (returns null if key not found)
-scope('user');
-
-// clear all values in the store
-scope();
-
-// client's IP
-$ip = client_ip();
-
-// escape a string's entities
-html('Marley & Me');
-
-// make a string url-safe
-url('http://noodlehaus.github.com/dispatch');
-
-// returns true if the X-Requested-With-Header is set to XMLHttpRequest
-$ajax = is_xhr();
-?>
 ```
 
-## Function Catalog
-Below's the list of functions provided by Dispatch.
+### PHP Configuration Files
+
+To load `.ini` or `.php` configuration files, load and access their
+contents using the `settings()` function.
+
+To load a settings file, specify a filename as an argument prefixed by
+the `@` symbol. Everytime `settings()` is called this way, all new values
+are merged in using PHP's `array_replace_recursive()`.
 
 ```php
-<?php
-// routing functions
-function on($method, $path, $callback)
-function resource($name, $cb)
-function error($code, $callback = null)
-function before($rx_or_cb, $cb = null)
-function after($rx_or_cb, $cb = null)
-function bind($symbol, $callback = null)
-function filter($symbol, $callback)
-function redirect($path, $code = 302, $condition = true)
-
-// views, templates and responses
-function render($view, $locals = null, $layout = null)
-function template($view, $locals = null)
-function partial($view, $locals = null)
-function json($obj, $func = null)
-function nocache()
-
-// request data helpers
-function params($name = null, $default = null)
-function cookie($name, $value = null, $expire = 0, $path = '/')
-function scope($name, $value = null)
-function files($name)
-function send($path, $filename, $sec_expire = 0)
-function request_headers($name = null)
-function request_body($load = true)
-
-// configurations and settings
-function config($key, $value = null)
-
-// misc helpers
-function flash($key, $msg = null, $now = false)
-function url($str)
-function html($str, $flags = ENT_QUOTES, $enc = 'UTF-8')
-function ip()
-function is_xhr()
-
-// entry point
-function dispatch()
-?>
+# initialize settings store
+settings('@config.ini');
 ```
 
-## Suggested Libraries
+When using `.php` files, the file must return either an `array` or a
+callable that returns one.
 
-Some extra functions can be added to Dispatch via the following libraries:
+```php
+# example array config
+return [
+  'app.hostname' => 'localhost',
+  'app.environment' => 'development'
+];
+```
+```php
+# example callable config
+return function () {
+  return [
+    'app.hostname' => 'localhost',
+    'app.environment' => 'development'
+  ];
+};
+```
 
-* [dispatch-extras](https://github.com/noodlehaus/dispatch-extras)
-* [dispatch-mustache](https://github.com/noodlehaus/dispatch-mustache)
-* [dispatch-handlebars](https://github.com/GiggleboxStudios/dispatch-handlebars)
+## API List
 
-## About the Author
+```
+function map(...$args)
+function hook($name, $func)
+function error($code, ...$args)
+function redirect($path, $code = 302, $halt = false)
+function dispatch(...$args)
+function settings($name)
+function ent($str, ...$args)
+function url($str)
+function phtml($path, $vars = [])
+function blanks(...$args)
+function ip()
+function headers($name, $data = null)
+function cookies()
+function session($name, $value = null)
+function attachments($name)
+function input($load = false)
+function nocache($content = null)
+function json($obj, ...$args)
+```
 
-Dispatch is written by [Jesus A. Domingo].
+## Contributors
 
-[Jesus A. Domingo]: http://noodlehaus.github.io/
-
-## Credits and Contributors
-
-The following projects served as both references and inspirations for Dispatch:
-
-* [ExpressJS](http://expressjs.com)
-* [Sinatra](http://sinatrarb.com)
-* [BreezePHP](http://breezephp.com)
-* [Klein.php](http://github.com/chriso/klein.php)
-
-Thanks to the following contributors for helping improve this tool :)
+The current, and previous versions of Dispatch make use of code
+contributed by the following persons.
 
 * Kafene [kafene](https://github.com/kafene)
 * Martin Angelov [martingalv](https://github.com/martinaglv)

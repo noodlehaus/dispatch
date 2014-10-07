@@ -23,7 +23,7 @@
     },
     {
       "name": "Lars",
-      "role": "Developer",
+      "role": "Contributor",
       "homepage": "https://github.com/larsbo"
     },
     {
@@ -60,24 +60,27 @@
       "name": "Tom Streller",
       "role": "Contributor",
       "homepage": "https://github.com/scan"
+    },
+    {
+      "name": "Ciprian Danea",
+      "role": "Contributor",
+      "homepage": "https://github.com/cdanea"
     }
   ],
   "require": {
-    "php": ">= 5.3.0"
+    "php": ">= 5.4.0"
   },
-  "suggest": {
-    "dispatch/dispatch-extras": "Encryption, caching and more, for dispatch",
-    "dispatch/dispatch-mustache": "mustache template support within dispatch",
-    "giggleboxstudios/dispatch-handlebars": "handlebars template support within dispatch"
+  "require-dev": {
+    "ext-xdebug": ">= 2.1"
   },
   "autoload": {
     "files": [
-      "src/dispatch.php"
+      "dispatch.php"
     ]
   },
   "extra": {
     "branch-alias": {
-      "dev-master": "4.x-dev"
+      "dev-master": "5.x-dev"
     }
   }
 }
