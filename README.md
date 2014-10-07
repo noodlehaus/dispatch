@@ -476,6 +476,7 @@ contributed by the following persons.
 * Ross Masters [rmasters](https://github.com/rmasters)
 * Tom Streller [scan](https://github.com/scan)
 * nmcgann [nmcgann](https://github.com/nmcgann)
+* Ciprian Danea [cdanea](https://github.com/cdanea)
 
 ## LICENSE
 MIT <http://noodlehaus.mit-license.org/>
