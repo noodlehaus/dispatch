@@ -260,10 +260,10 @@ function nocache($content = null) {
 function json() {
 
   $json = call_user_func_array('json_encode', func_get_args());
-  $jerr = json_last_error();
+  $err = json_last_error();
 
   # trigger a user error for failed encodings
-  if ($jerr !== JSON_ERROR_NONE) {
+  if ($err !== JSON_ERROR_NONE) {
     return trigger_error(
       __FUNCTION__.": JSON encoding failed [{$err}].",
       E_USER_ERROR
