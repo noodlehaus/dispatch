@@ -477,6 +477,7 @@ contributed by the following persons.
 * Tom Streller [scan](https://github.com/scan)
 * nmcgann [nmcgann](https://github.com/nmcgann)
 * Ciprian Danea [cdanea](https://github.com/cdanea)
+* Roman Ožana [OzzyCzech](https://github.com/OzzyCzech)
 
 ## LICENSE
 MIT <http://noodlehaus.mit-license.org/>
