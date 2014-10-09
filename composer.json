@@ -65,6 +65,11 @@
       "name": "Ciprian Danea",
       "role": "Contributor",
       "homepage": "https://github.com/cdanea"
+    },
+    {
+      "name": "Roman Ožana",
+      "role": "Contributor",
+      "homepage": "https://github.com/OzzyCzech"
     }
   ],
   "require": {
