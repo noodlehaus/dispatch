@@ -3,7 +3,7 @@
   "type": "library",
   "description": "a microframework/front-controller",
   "keywords": ["framework", "router", "microframework", "micro", "microphp"],
-  "homepage": "http://noodlehaus.github.io/dispatch/",
+  "homepage": "http://github.com/noodlehaus/dispatch/",
   "license": "MIT",
   "authors": [
     {
