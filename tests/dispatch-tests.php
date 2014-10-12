@@ -33,6 +33,15 @@ require __DIR__.'/../dispatch.php';
   assert(ip() === $_SERVER['HTTP_X_FORWARDED_FOR']);
   $_SERVER['HTTP_CLIENT_IP'] = '127.0.0.3';
   assert(ip() === $_SERVER['HTTP_CLIENT_IP']);
+
+  # stash tests
+  stash('name', 'dispatch');
+  assert(stash('name') === 'dispatch');
+  stash('name', null);
+  assert(stash('name') === null);
+  stash('name', 'dispatch');
+  stash();
+  assert(stash('name') === null);
 }
 
 # header functions
