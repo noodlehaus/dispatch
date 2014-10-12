@@ -87,6 +87,24 @@ function ip() {
   return $_SERVER['REMOTE_ADDR'];
 }
 
+# in-request store for values
+function stash($name = null, $value = null) {
+
+  $data = &$GLOBALS['noodlehaus\dispatch']['stash'];
+  $argc = func_num_args();
+
+  # value fetch
+  if ($argc === 1)
+    return isset($data[$name]) ? $data[$name] : null;
+
+  # stash reset
+  if ($argc === 0)
+    return ($data = []);
+
+  # value assignment
+  return ($data[$name] = $value);
+}
+
 # returns the value for an http request header, or sets an http
 # response header (maps to php's header function)
 function headers() {
@@ -452,6 +470,7 @@ function dispatch() {
 # state (routes, handlers, etc)
 $GLOBALS['noodlehaus\dispatch'] = [
   'settings' => [],
+  'stash' => [],
   'request_headers' => [],
   'routes' => [
     'all'       => null,

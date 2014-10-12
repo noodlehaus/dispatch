@@ -90,7 +90,7 @@ complete information, please read the rest of this document.
 * `request_body()` replaced by `input()`
 * `files()` replaced by `attachments()`
 * `send()` removed
-* `scope()` removed
+* `scope()` replaced by `stash()`
 * `redirect()` 3rd argument no longer a condition, but a halt flag
 * `content()` removed
 * `template()` removed
@@ -396,6 +396,22 @@ $encoded = ent('Tom & Jerry', ENT_COMPAT, 'utf-8');
 $urlsafe = url('/redirect/target');
 ```
 
+### Using the Stash for Values
+
+Use `stash()` to store and use values across function scopes.
+
+```php
+# stash a value
+function foo() {
+  stash('name', 'dispatch');
+}
+
+# fetch the value here
+function bar() {
+  $name = stash('name');
+}
+```
+
 ### Client IP
 
 To get the remote IP address, use `ip()`.
@@ -452,6 +468,7 @@ function url($str)
 function phtml($path, $vars = [])
 function blanks(...$args)
 function ip()
+function stash($name = null, $value = null)
 function headers($name, $data = null)
 function cookies()
 function session($name, $value = null)
