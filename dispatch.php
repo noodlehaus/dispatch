@@ -300,7 +300,7 @@ function map() {
       foreach ((array) $argv[0] as $verb) {
         if (isset($settings['url'])) {
             $data['explicit'][strtoupper($verb)][] = [
-              $settings['url'] . '/'.trim($argv[1], '/'),
+              $settings['url'] . trim($argv[1], '/'),
               $argv[2]
             ];
         } else {
@@ -322,7 +322,7 @@ function map() {
       } else {
         foreach ($argv[0] as $path)
            if (isset($settings['url'])) {
-              $data['any'][] = [$settings['url'] . '/'.trim($path, '/'), $argv[1]];
+              $data['any'][] = [$settings['url'] . trim($path, '/'), $argv[1]];
           } else {
               $data['any'][] = ['/'.trim($path, '/'), $argv[1]];
           }

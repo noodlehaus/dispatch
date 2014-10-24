@@ -460,6 +460,10 @@ function nocache($content = null)
 function json($obj, ...$args)
 ```
 
+## Settings List
+
+* `url` specify your app's full URL (optional)
+
 ## Contributors
 
 The current, and previous versions of Dispatch make use of code
