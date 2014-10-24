@@ -65,8 +65,13 @@ function url($str) {
 # php template loader
 function phtml($path, $vars = []) {
   extract($vars, EXTR_SKIP);
+  $data = &$GLOBALS['noodlehaus\dispatch']['settings'];
   ob_start();
-  require $path;
+  if (isset($data['views'])){
+      require $data['views'] . $path;
+  } else {
+      require $path;
+  }
   return ob_get_clean();
 }
 

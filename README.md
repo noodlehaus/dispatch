@@ -463,6 +463,7 @@ function json($obj, ...$args)
 ## Settings List
 
 * `url` specify your app's full URL (optional)
+* `views` specify your app's view directory (optional)
 
 ## Contributors
 
