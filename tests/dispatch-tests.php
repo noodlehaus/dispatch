@@ -59,10 +59,10 @@ require __DIR__.'/../dispatch.php';
 
     # test header setting
     headers('x-powered-by', 'dispatch', true);
-    headers('content-type', 'text/plain', true);
+    headers('x-authored-by', 'noodlehaus', true);
     assert(headers_get_clean() === [
       'x-powered-by: dispatch',
-      'content-type: text/plain'
+      'x-authored-by: noodlehaus'
     ]);
 
     # cookie fetch
@@ -108,6 +108,7 @@ require __DIR__.'/../dispatch.php';
 
   } else {
     echo "Xdebug module is not available. Header tests skipped.\n";
+
   }
 }
 
