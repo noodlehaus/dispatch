@@ -302,7 +302,7 @@ attributes if the file matching the name is an array.
 
 ```php
 # get an uploaded file
-$file = files('photo');
+$file = attachments('photo');
 ```
 
 For setting values, you also use the same functions but with extra
@@ -478,6 +478,11 @@ function nocache($content = null)
 function json($obj, ...$args)
 ```
 
+## Settings List
+
+* `url` specify your app's full URL (optional)
+* `views` specify your app's view directory (optional)
+
 ## Contributors
 
 The current, and previous versions of Dispatch make use of code
@@ -496,6 +501,7 @@ contributed by the following persons.
 * nmcgann [nmcgann](https://github.com/nmcgann)
 * Ciprian Danea [cdanea](https://github.com/cdanea)
 * Roman Ožana [OzzyCzech](https://github.com/OzzyCzech)
+* Bryan Haskin [bhhaskin] (https://github.com/bhhaskin)
 
 ## LICENSE
 MIT <http://noodlehaus.mit-license.org/>

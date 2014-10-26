@@ -65,8 +65,13 @@ function url($str) {
 # php template loader
 function phtml($path, $vars = []) {
   extract($vars, EXTR_SKIP);
+  $data = &$GLOBALS['noodlehaus\dispatch']['settings'];
   ob_start();
-  require $path;
+  if (isset($data['views'])){
+      require $data['views'] . $path;
+  } else {
+      require $path;
+  }
   return ob_get_clean();
 }
 
@@ -308,6 +313,7 @@ function map() {
 
   $argv = func_get_args();
   $data = &$GLOBALS['noodlehaus\dispatch']['routes'];
+  $settings = &$GLOBALS['noodlehaus\dispatch']['settings'];
 
   # try to figure out how we were called
   switch (count($argv)) {
@@ -315,10 +321,18 @@ function map() {
     # complete params (method, path, handler)
     case 3:
       foreach ((array) $argv[0] as $verb) {
-        $data['explicit'][strtoupper($verb)][] = [
-          '/'.trim($argv[1], '/'),
-          $argv[2]
-        ];
+        if (isset($settings['url'])) {
+            $data['explicit'][strtoupper($verb)][] = [
+              $settings['url'] . trim($argv[1], '/'),
+              $argv[2]
+            ];
+        } else {
+            $data['explicit'][strtoupper($verb)][] = [
+              '/'.trim($argv[1], '/'),
+              $argv[2]
+            ];
+        }
+
       }
       break;
 
@@ -330,7 +344,11 @@ function map() {
           $data['errors'][intval($code)] = $argv[1];
       } else {
         foreach ($argv[0] as $path)
-          $data['any'][] = ['/'.trim($path, '/'), $argv[1]];
+           if (isset($settings['url'])) {
+              $data['any'][] = [$settings['url'] . trim($path, '/'), $argv[1]];
+          } else {
+              $data['any'][] = ['/'.trim($path, '/'), $argv[1]];
+          }
       }
       break;
 
