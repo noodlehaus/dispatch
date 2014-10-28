@@ -8,6 +8,10 @@ apps up and running quickly.
 * php 5.4
 * php-xdebug (for running complete tests)
 
+## Backward Compatibility to 4.x
+
+Apps written using Dispatch 4.x will no longer work with 5+.
+
 ## Running Tests
 
 Dispatch makes use of ad hoc tests using PHP's `assert()` function. Run the
@@ -73,39 +77,6 @@ dispatch($db = [
   'u05' => ['alex', 36, 'm']
 ]);
 ```
-
-## Changes from 4.x to 5.x
-
-Below is a comprehensive list of changes from Dispatch 4.x to 5.x. For
-complete information, please read the rest of this document.
-
-* `error()` no longer maps error handlers, just triggers http errors
-* `config()` replaced with `settings()`
-* `flash()` removed
-* `html()` replaced with `ent()`, directly maps to `htmlentities()`
-* `params()` removed, replaced by `array` argument for routes symbols
-* `cookie()` renamed to `cookies()`, better maps to `setcookie()`
-* `request_headers()` merged into `headers()`
-* `is_xhr()` removed
-* `request_body()` replaced by `input()`
-* `files()` replaced by `attachments()`
-* `send()` removed
-* `scope()` replaced by `stash()`
-* `redirect()` 3rd argument no longer a condition, but a halt flag
-* `content()` removed
-* `template()` removed
-* `render()` removed
-* `inline()` removed
-* `partial()` replaced by `phtml()`
-* `nocache()` now requires parameter for the content
-* `json()` no longer supports the `$func` parameter
-* `filter()` and `bind()` removed, replaced by `hook()`
-* `before()` removed
-* `after()` removed
-* `on()` renamed to `map()`, and changes in behavior
-* `dispatch()` changed to no longer accept method and URI
-
-All in all, apps written in 4.x will no longer work in 5.x.
 
 ## API Documentation
 
@@ -477,6 +448,37 @@ function input($load = false)
 function nocache($content = null)
 function json($obj, ...$args)
 ```
+
+## Changes from 4.x to 5.x
+
+Below is a comprehensive list of changes from Dispatch 4.x to 5.x. For
+complete information, please read the rest of this document.
+
+* `error()` no longer maps error handlers, just triggers http errors
+* `config()` replaced with `settings()`
+* `flash()` removed
+* `html()` replaced with `ent()`, directly maps to `htmlentities()`
+* `params()` removed, replaced by `array` argument for routes symbols
+* `cookie()` renamed to `cookies()`, better maps to `setcookie()`
+* `request_headers()` merged into `headers()`
+* `is_xhr()` removed
+* `request_body()` replaced by `input()`
+* `files()` replaced by `attachments()`
+* `send()` removed
+* `scope()` replaced by `stash()`
+* `redirect()` 3rd argument no longer a condition, but a halt flag
+* `content()` removed
+* `template()` removed
+* `render()` removed
+* `inline()` removed
+* `partial()` replaced by `phtml()`
+* `nocache()` now accepts an optional content parameter
+* `json()` no longer supports the `$func` parameter
+* `filter()` and `bind()` removed, replaced by `hook()`
+* `before()` removed
+* `after()` removed
+* `on()` renamed to `map()`, and changes in behavior
+* `dispatch()` changed to no longer accept method and URI
 
 ## Contributors
 
