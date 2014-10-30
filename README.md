@@ -86,6 +86,7 @@ Create routes using the `map()` function. The following are valid
 examples.
 
 ```php
+<?php
 # standard route -- a method, a path, an action
 map('GET', '/index', 'index_action');
 
@@ -109,6 +110,7 @@ Error handlers can be created with `map()` as well. Call it with
 two arguments -- an array of codes, or a single code, and the callable.
 
 ```php
+<?php
 # single code against a routine
 map(404, 'not_found');
 
@@ -122,6 +124,7 @@ Route symbols can have hooks that modify their value during dispatch.
 These hooks can be created with `hook()`.
 
 ```php
+<?php
 # call when matching route has the url_id symbol
 hook('url_id', function ($url_id) {
   # what we return is used as the new value
@@ -143,6 +146,7 @@ To trigger an http error code and execute any mapped error handlers, return
 you want to trip, along with whatever parameters you want to pass.
 
 ```php
+<?php
 # example 404 error handler
 map(404, function () {
 
@@ -169,6 +173,7 @@ Once you have your actions and error handlers in place, you can serve the
 current request via `dispatch()`.
 
 ```php
+<?php
 # basic dispatch
 dispatch();
 
@@ -185,6 +190,7 @@ hash get injected first, then the arguments from `dispatch()` get passed
 next.
 
 ```php
+<?php
 # route has a symbol, so we get $parmas first, then the dispatch() args
 map('GET', '/greet/{name}', function ($args, $config) {
   # ...
@@ -201,6 +207,7 @@ For symbol hooks, you will get the symbol value as first argument, then
 the injected dependencies next.
 
 ```php
+<?php
 # sample hook that gets the value first, then the injected ones
 hook('name', function ($name, $config, $db) {
   # ...
@@ -220,6 +227,7 @@ For error handlers, we get the error code first, then the injected args
 next.
 
 ```php
+<?php
 # we get the http error code first, then the injected ones
 hook(404, function ($code, $db) {
   # ...
@@ -243,6 +251,7 @@ function only sends out the HTTP headers and doesn't stop your script from
 executing, but has the option to behave like so.
 
 ```php
+<?php
 # just dump the headers with a custom code
 redirect('/index', 302);
 
@@ -258,6 +267,7 @@ headers, you can do so with `cookies()`, `session()`,
 is not present, you'll get a `null` back.
 
 ```php
+<?php
 # get a cookie
 $name = cookies('name');
 
@@ -272,6 +282,7 @@ For file uploads, DISPATCH will re-organize and group together the file
 attributes if the file matching the name is an array.
 
 ```php
+<?php
 # get an uploaded file
 $file = files('photo');
 ```
@@ -284,6 +295,7 @@ function. For `session()`, it's just the variable name and the
 value.
 
 ```php
+<?php
 # set a cookie value that expires after a year
 cookies('name', 'noodlehaus', time() + 60 * 60 * 24 * 365, '/');
 
@@ -296,6 +308,7 @@ the difference is it doesn't allow non-key-value pair headers (ie.
 `HTTP/1.0 200 Ok`), and the key and the value need to be passed separately.
 
 ```php
+<?php
 # set a response header
 headers('content-type', 'text/html');
 
@@ -311,6 +324,7 @@ receive the data contents (for small sizes). This returns an array in the
 `[content-type, path_or_data]` structure.
 
 ```php
+<?php
 # receive the type and the contents
 list($type, $data) = input($load = true);
 
@@ -331,6 +345,7 @@ can wrap it with `nocache()`, and it will print the appropriate
 expires headers for you.
 
 ```php
+<?php
 # print out JSON data
 json(['name' => 'noodlehaus']);
 
@@ -345,6 +360,7 @@ To render PHP-based template files, use `phtml()`. This accepts
 a filename, and hash that will be `extract()`ed into the template's scope.
 
 ```php
+<?php
 # load the template
 $page = phtml('views/index.php', ['name' => 'noodlehaus']);
 ```
@@ -354,6 +370,7 @@ by doing calls to `isset()`. For this, you can use `blanks()` to
 create a hash of blanks for your form values.
 
 ```php
+<?php
 # create a hash of empty strings with the following keys
 $fields = blanks('name', 'email', 'username');
 ```
@@ -363,6 +380,7 @@ template functions `htmlentities()` and `urlencode()`. The arguments to these
 functions map directly to the arguments of their target PHP functions.
 
 ```php
+<?php
 $encoded = ent('Tom & Jerry', ENT_COMPAT, 'utf-8');
 $urlsafe = url('/redirect/target');
 ```
@@ -372,6 +390,7 @@ $urlsafe = url('/redirect/target');
 Use `stash()` to store and use values across function scopes.
 
 ```php
+<?php
 # stash a value
 function foo() {
   stash('name', 'dispatch');
@@ -388,6 +407,7 @@ function bar() {
 To get the remote IP address, use `ip()`.
 
 ```php
+<?php
 $ip = ip();
 ```
 
@@ -401,6 +421,7 @@ the `@` symbol. Everytime `settings()` is called this way, all new values
 are merged in using PHP's `array_replace_recursive()`.
 
 ```php
+<?php
 # initialize settings store
 settings('@config.ini');
 ```
@@ -409,6 +430,7 @@ When using `.php` files, the file must return either an `array` or a
 callable that returns one.
 
 ```php
+<?php
 # example array config
 return [
   'app.hostname' => 'localhost',
@@ -416,6 +438,7 @@ return [
 ];
 ```
 ```php
+<?php
 # example callable config
 return function () {
   return [
