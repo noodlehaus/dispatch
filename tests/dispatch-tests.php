@@ -34,10 +34,24 @@ require __DIR__.'/../dispatch.php';
   # ent() and url()
   assert(ent('john & marsha') === 'john &amp; marsha');
   assert(url('=') === '%3D');
-  assert('<h1>dispatch</h1>' == trim(phtml(
-    __DIR__.'/fixtures/template.phtml',
+
+  # phtml()
+  assert('<h1>dispatch</h1>' === trim(phtml(
+    __DIR__.'/fixtures/template',
+    ['name' => 'dispatch'],
+    null
+  )));
+
+  # load views config
+  settings('@'.__DIR__.'/fixtures/templates.ini');
+
+  # test page rendering using layout and dispatch.views
+  assert('<h1>dispatch</h1>' === trim(phtml(
+    'template',
     ['name' => 'dispatch']
   )));
+
+  # form blanks
   assert(['name' => '', 'email' => ''] === blanks('name', 'email'));
 
   # ip() - least priority first
@@ -255,34 +269,28 @@ require __DIR__.'/../dispatch.php';
     assert($d2 === 'dargs2');
   });
 
-  # invalid mapping setup (will also trigger 404)
-  map('GET', '/disp2', 'foo');
-
   # setup fake request
   $_SERVER = [
     'REQUEST_URI' => '/disp1/param1',
     'REQUEST_METHOD' => 'POST'
   ];
-
-  # dispatch
   dispatch('dargs1', 'dargs2');
+
+  # invalid mapping setup (will also trigger 404)
+  map('GET', '/disp2', 'foo');
 
   # setup fake failing request
   $_SERVER = [
     'REQUEST_URI' => '/not-found',
     'REQUEST_METHOD' => 'GET'
   ];
-
-  # dispatch
   dispatch('dargs1', 'dargs2');
 
-  # setup fake request for invalid mapping
+  # fake request for invalid mapping
   $_SERVER = [
     'REQUEST_URI' => '/disp2',
     'REQUEST_METHOD' => 'GET'
   ];
-
-  # dispatch
   dispatch('dargs1', 'dargs2');
 
   # test invalid error trigger
@@ -291,6 +299,37 @@ require __DIR__.'/../dispatch.php';
   } catch (Exception $e) {
     assert($e instanceof BadFunctionCallException);
   }
+
+  # test router and url settings
+  settings('@'.__DIR__.'/fixtures/url-and-router.ini');
+
+  # fake request with router file and sub dir (url)
+  $_SERVER = [
+    'REQUEST_URI' => '/test-app/index.php/disp1/param1',
+    'REQUEST_METHOD' => 'POST'
+  ];
+  dispatch('dargs1', 'dargs2');
+
+  # test method override
+  map('PUT', '/disp3/{p1}', function ($params) {
+    assert($params['p1'] === 'PARAM1');
+  });
+
+  # fake request with method override header
+  $_SERVER = [
+    'REQUEST_URI' => '/disp3/param1',
+    'REQUEST_METHOD' => 'POST',
+    'HTTP_X_HTTP_METHOD_OVERRIDE' => 'PUT'
+  ];
+  dispatch('dargs1', 'dargs2');
+
+  # fake request with method override _method var
+  $_SERVER = [
+    'REQUEST_URI' => '/disp3/param1',
+    'REQUEST_METHOD' => 'POST',
+    '_method' => 'PUT'
+  ];
+  dispatch('dargs1', 'dargs2');
 }
 
 echo "Done running tests. If you don't see errors, it means all's ok.\n";
