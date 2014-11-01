@@ -8,6 +8,48 @@ apps up and running quickly.
 * php 5.4
 * php-xdebug (for running complete tests)
 
+## Rewrite Rules
+
+Dispatch requires that all requests be routed through a front controller.
+With Apache, you can do this via `mod_rewrite` and with the following config
+with `index.php` as your front-controller.
+
+```
+<IfModule mod_rewrite.c>
+  RewriteEngine on
+  # in this case, our app bootstrap file is index.php
+  RewriteRule !\.(js|html|ico|gif|jpg|png|css)$ index.php
+</IfModule>
+```
+
+For Nginx, your server block can use a similar setup as the following.
+
+```
+server {
+  location = / {
+    try_files @site @site;
+  }
+
+  location / {
+    try_files $uri $uri/ @site;
+  }
+
+  #return 404 for all php files as we do have a front controller
+  location ~ \.php$ {
+    return 404;
+  }
+
+  # forward the requests to php-fpm
+  location @site {
+    fastcgi_pass unix:/var/run/php-fpm/www.sock;
+    include fastcgi_params;
+    fastcgi_param SCRIPT_FILENAME $document_root/index.php;
+    #uncomment when running via https
+    #fastcgi_param HTTPS on;
+  }
+}
+```
+
 ## Backward Compatibility to 4.x
 
 Apps written using Dispatch 4.x will no longer work with 5+.
