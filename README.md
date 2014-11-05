@@ -122,6 +122,31 @@ dispatch($db = [
 
 ## API Documentation
 
+### Library Settings
+
+Dispatch only has the following settings that can be changed via the
+config files, loaded through the `settings()` function.
+
+```ini
+; path for the location of the templates
+templates = ../views
+
+; url for the application (in case it's in a subdir)
+url = http://localhost/myapp
+
+; if you don't have rewrite functionality
+router = index.php
+```
+
+`templates` tells Dispatch to look inside this path when loading `.phtml`
+files via `phtml()`.
+
+`url` tells Dispatch about your app's base URL and starts routing from
+that path (strips out any subdirectory before routing).
+
+`router` tells Dispatch to remove the routing file from the requests, for
+cases where you can't make use of rewrites (ie. `/index.php/foo/bar`).
+
 ### Mapping Route and Error Handlers
 
 Create routes using the `map()` function. The following are valid
@@ -159,6 +184,16 @@ map(404, 'not_found');
 # multiple codes against a routine
 map([401, 402, 403], 'request_error');
 ```
+
+### Method Overrides
+
+Methods other than `POST` and `GET` are not yet well-supported by browsers.
+To get around this, Dispatch also lets you use method overrides, either via
+the `X-Http-Method-Override` request header, or the `$_POST['_method']`
+request value.
+
+Note that `X-Http-Method-Override` takes precedence over the `_method`
+approach.
 
 ### Route Symbol Hooks
 
@@ -398,13 +433,17 @@ json(['name' => 'noodlehaus']));
 
 ### Views and Helpers
 
-To render PHP-based template files, use `phtml()`. This accepts
-a filename, and hash that will be `extract()`ed into the template's scope.
+To render PHP-based template files, use `phtml()`. This accepts a file path
+without the `.phtml` extension. If you have `templates` configured, the file
+will be loaded from that path.
+
+The hash argument will be `extract()`ed into the template's scope as it is
+rendered.
 
 ```php
 <?php
-# load the template
-$page = phtml('views/index.php', ['name' => 'noodlehaus']);
+# loads views/index.phtml
+$page = phtml('views/index', ['name' => 'noodlehaus']);
 ```
 
 In forms, we usually have the need to pre-populate a set of fields safely
@@ -563,6 +602,7 @@ contributed by the following persons.
 * nmcgann [nmcgann](https://github.com/nmcgann)
 * Ciprian Danea [cdanea](https://github.com/cdanea)
 * Roman Ožana [OzzyCzech](https://github.com/OzzyCzech)
+* Bryan Haskin [bhhaskin](https://github.com/bhhaskin)
 
 ## LICENSE
 MIT <http://noodlehaus.mit-license.org/>
