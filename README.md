@@ -602,6 +602,7 @@ contributed by the following persons.
 * nmcgann [nmcgann](https://github.com/nmcgann)
 * Ciprian Danea [cdanea](https://github.com/cdanea)
 * Roman Ožana [OzzyCzech](https://github.com/OzzyCzech)
+* Bryan Haskin [bhhaskin](https://github.com/bhhaskin)
 
 ## LICENSE
 MIT <http://noodlehaus.mit-license.org/>
