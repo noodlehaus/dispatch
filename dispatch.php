@@ -63,11 +63,23 @@ function url($str) {
 }
 
 # php template loader
-function phtml($path, $vars = []) {
-  extract($vars, EXTR_SKIP);
+function phtml($__n, $__v = [], $__l = 'layout') {
+
+  # if we have templates set, use it as view base path
+  if (($__d = settings('templates')) !== null)
+    $__n = "{$__d}/{$__n}";
+
+  # extract locals (__v), require template (__n)
+  extract($__v, EXTR_SKIP);
   ob_start();
-  require $path;
-  return ob_get_clean();
+  require "{$__n}.phtml";
+  $__b = ob_get_clean();
+
+  # if we have a layout file, render it
+  if (!empty($__l) && is_string($__l))
+    $__b = phtml($__l, ['body' => $__b] + $__v, null);
+
+  return $__b;
 }
 
 # returns hash containing args as keys, mapped to '' as values
@@ -386,10 +398,34 @@ function dispatch() {
   $argv = func_get_args();
   $data = &$GLOBALS['noodlehaus\dispatch']['routes'];
 
-  # normalize current request method and uri
   $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
   $path = trim($path, '/');
+
+  # strip url from request URI
+  if ($base = settings('url')) {
+    $base = trim(parse_url($base, PHP_URL_PATH), '/');
+    $path = preg_replace('@^'.preg_quote($base).'@', '', $path);
+  }
+
+  # if no rewrite, strip router file from request URI
+  if ($stub = settings('router')) {
+    $path = preg_replace(
+      '@^/?'.preg_quote(trim($stub, '/')).'@i',
+      '',
+      $path
+    );
+  }
+
+  $path = trim($path, '/');
   $verb = strtoupper($_SERVER['REQUEST_METHOD']);
+
+  # for POST requests, check for method override header or _method
+  if ($verb == 'POST') {
+    if (isset($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE']))
+      $verb = $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'];
+    else
+      $verb = isset($_POST['_method']) ? $_POST['_method'] : $verb;
+  }
 
   # set any mapping as base, then append exp_mapping if any
   $maps = $data['any'];
