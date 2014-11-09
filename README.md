@@ -442,8 +442,14 @@ rendered.
 
 ```php
 <?php
-# loads views/index.phtml
+# loads views/index.phtml as a partial
+$page = phtml('views/index', ['name' => 'noodlehaus'], $layout = false);
+
+# loads views/index.phtml inside views/layout.phtml through 'body'
 $page = phtml('views/index', ['name' => 'noodlehaus']);
+
+# templates = ./views, using default layout
+$page = phtml('index', ['name' => 'noodlehaus']);
 ```
 
 In forms, we usually have the need to pre-populate a set of fields safely
@@ -540,7 +546,7 @@ function dispatch(...$args)
 function settings($name)
 function ent($str, ...$args)
 function url($str)
-function phtml($path, $vars = [])
+function phtml($path, $vars = [], $layout = 'layout')
 function blanks(...$args)
 function ip()
 function stash($name = null, $value = null)
