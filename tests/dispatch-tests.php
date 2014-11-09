@@ -35,7 +35,7 @@ require __DIR__.'/../dispatch.php';
   assert(ent('john & marsha') === 'john &amp; marsha');
   assert(url('=') === '%3D');
 
-  # phtml()
+  # bare phtml()
   assert('<h1>dispatch</h1>' === trim(phtml(
     __DIR__.'/fixtures/template',
     ['name' => 'dispatch'],
