@@ -1,5 +1,20 @@
 # DISPATCH API
 
+## table of contents
+
+- [application entry point](#application-entry-point)
+- [handlers](#handlers)
+- [method overrides](#method-overrides)
+- [error handlers](#error-handlers)
+- [redirects](#redirects)
+- [route parameters](#route-parameters)
+- [route parameter hooks](#route-parameter-hooks)
+- [page rendering](#page-rendering)
+- [settings and config files](#settings-and-config-files)
+- [headers, cookies, session, and uploads](#headers-cookies-session-and-uploads)
+- [miscellaneous](#miscellaneous)
+- [url rewriting](#url-rewriting)
+
 ### application entry point
 
 ```php
