@@ -12,8 +12,8 @@ Pass variables to your handlers by passing them as arguments to `dispatch()`.
 
 ```php
 <?php
-# map a handler that expects the db conn (params is always the first arg)
-map('GET', '/users/list', function ($params, $db) {
+# map a handler that expects the db conn
+map('GET', '/users/list', function ($db) {
   # ... do something with $db
 });
 
@@ -86,10 +86,18 @@ return redirect('/new-location', 301, $halt = true);
 
 ```php
 <?php
-# passed as a hash as the first argument to your handler
+# if you have route symbols, a hash of their values will be passed first
 map('GET', '/users/{id}', function ($params) {
   $id = $params['id'];
 });
+
+# if you have args from dispatch(), they will come after the params hash
+map('GET', '/topics/{id}', function ($params, $db) {
+  $id = $params['id'];
+});
+
+# pass an argument during dispatch
+dispatch($db);
 ```
 
 #### route parameter hooks
