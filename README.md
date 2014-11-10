@@ -1,6 +1,6 @@
-## DISPATCH API
+# DISPATCH API
 
-#### application entry point
+### application entry point
 
 ```php
 <?php
@@ -24,7 +24,7 @@ $db = new Connection();
 dispatch($db);
 ```
 
-#### handlers
+### handlers
 
 ```php
 <?php
@@ -40,12 +40,12 @@ map(['/about', '/contact'], function () {});
 map(function () {});
 ```
 
-#### method overrides
+### method overrides
 
 For `POST` requests, If you have `x-http-method-override` set, that will be
 used. If not, it checks for `$_POST['_method']` and uses that if found.
 
-#### error handlers
+### error handlers
 
 ```php
 <?php
@@ -71,7 +71,7 @@ map(404, function ($code, $res) {
 error(404, $some_resource);
 ```
 
-#### redirects
+### redirects
 
 ```php
 <?php
@@ -82,7 +82,7 @@ return redirect('/new-location');
 return redirect('/new-location', 301, $halt = true);
 ```
 
-#### route parameters
+### route parameters
 
 ```php
 <?php
@@ -100,7 +100,7 @@ map('GET', '/topics/{id}', function ($params, $db) {
 dispatch($db);
 ```
 
-#### route parameter hooks
+### route parameter hooks
 
 ```php
 <?php
@@ -115,7 +115,7 @@ map('GET', '/users/{id}', function ($params) {
 });
 ```
 
-#### page rendering
+### page rendering
 
 ```php
 # render partial file hello.phtml
@@ -149,7 +149,7 @@ $partial = phtml('hello', ['name' => 'stranger'], false);
 echo phtml('hello', ['name' => 'stranger'], 'layout');
 ```
 
-#### settings and config files
+### settings and config files
 
 ```ini
 some_setting_1 = yes
@@ -177,7 +177,7 @@ router = index.php
 templates = ./views
 ```
 
-#### headers, cookies, session, and uploads
+### headers, cookies, session, and uploads
 
 ```php
 <?php
@@ -213,7 +213,7 @@ $info = input($load = true);
 # $info[1] - content body (watch out for big uploads)
 ```
 
-#### miscellaneous
+### miscellaneous
 
 ```php
 <?php
@@ -249,7 +249,7 @@ function bar() {
 }
 ```
 
-#### url rewriting
+### url rewriting
 
 ```
 # apache
