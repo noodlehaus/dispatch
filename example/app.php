@@ -14,8 +14,9 @@ map('GET', '/index', function ($db) {
 map('GET', '/posts/{id}', function ($args, $db) {
   foreach (file($db) as $post) {
     $post = unserialize($post);
-    if ($post['id'] != $args['id'])
+    if ($post['id'] != $args['id']) {
       continue;
+    }
     return print phtml('post', ['post' => $post]);
   }
 });
