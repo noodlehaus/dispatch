@@ -2,54 +2,37 @@
 # @author Jesus A. Domingo
 # @license MIT <http://noodlehaus.mit-license.org>
 
-# loads settings from a php file
-function settings($path) {
+# config settings
+function config($name, $info = null) {
 
-  $data = &$GLOBALS['noodlehaus\dispatch']['settings'];
+  $data = &$GLOBALS['noodlehaus\dispatch']['config'];
 
-  # file load
-  if ($path[0] === '@') {
+  if (func_num_args() === 1) {
 
-    $path = substr($path, 1);
+    # value fetch
+    if (is_string($name)) {
+      return isset($data[$name]) ? $data[$name] : null;
+    }
 
-    # we only check the filename, let existence errors float out
-    if (!preg_match('/\.(ini|php)$/', $path, $type)) {
+    # multi-key/nested value setting
+    if (is_array($name)) {
+
+      $k = array_keys($name);
+      $n = count($k);
+
+      if (count(array_filter($k, 'is_string')) == $n) {
+        $data = array_replace_recursive($data, $name);
+        return;
+      }
+
       throw new InvalidArgumentException(
-        "File type supported [{$path}].",
+        "Associative array expected as first argument",
         500
       );
     }
-
-    # new data temp
-    $temp = null;
-
-    # for now, only php and ini files
-    if (strtolower($type[1]) === 'ini') {
-      $temp = parse_ini_file($path, true);
-    } else {
-
-      # assume we get an array
-      $temp = require $path;
-
-      # if we get a function, we want the return value
-      if (is_callable($temp))
-        $temp = call_user_func($temp);
-
-      if (!is_array($temp)) {
-        throw new InvalidArgumentException(
-          "File contents invalid [{$path}].",
-          500
-        );
-      }
-    }
-
-    # merge new with old
-    $data = array_replace_recursive($data, $temp);
-
-    return;
   }
 
-  return isset($data[$path]) ? $data[$path] : null;
+  return ($data[$name] = $info);
 }
 
 # wrapper for htmlentities()
@@ -66,7 +49,7 @@ function url($str) {
 function phtml($__n, $__v = [], $__l = 'layout') {
 
   # if we have templates set, use it as view base path
-  if (($__d = settings('templates')) !== null)
+  if (($__d = config('templates')) !== null)
     $__n = "{$__d}/{$__n}";
 
   # extract locals (__v), require template (__n)
@@ -402,13 +385,13 @@ function dispatch() {
   $path = trim($path, '/');
 
   # strip url from request URI
-  if ($base = settings('url')) {
+  if ($base = config('url')) {
     $base = trim(parse_url($base, PHP_URL_PATH), '/');
     $path = preg_replace('@^'.preg_quote($base).'@', '', $path);
   }
 
   # if no rewrite, strip router file from request URI
-  if ($stub = settings('router')) {
+  if ($stub = config('router')) {
     $path = preg_replace(
       '@^/?'.preg_quote(trim($stub, '/')).'@i',
       '',
@@ -505,7 +488,7 @@ function dispatch() {
 
 # state (routes, handlers, etc)
 $GLOBALS['noodlehaus\dispatch'] = [
-  'settings' => [],
+  'config' => [],
   'stash' => [],
   'request_headers' => [],
   'routes' => [

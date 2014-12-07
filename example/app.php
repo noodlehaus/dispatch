@@ -37,7 +37,7 @@ map('POST', '/create', function ($db) {
 });
 
 # load contents of config.ini
-settings('@config.ini');
+config(parse_ini_file(__DIR__.'/config.ini'));
 
 # prep the db
 !file_exists($db = __DIR__.'/posts.txt') && touch($db);
