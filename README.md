@@ -1,21 +1,20 @@
 # DISPATCH API
 
-## table of contents
+## Table of Contents
 
-- [application entry point](#application-entry-point)
-- [handlers](#handlers)
-- [method overrides](#method-overrides)
-- [error handlers](#error-handlers)
-- [redirects](#redirects)
-- [route parameters](#route-parameters)
-- [route parameter hooks](#route-parameter-hooks)
-- [page rendering](#page-rendering)
-- [configuration files](#configuration-files)
-- [headers, cookies, session, and uploads](#headers-cookies-session-and-uploads)
-- [miscellaneous](#miscellaneous)
-- [url rewriting](#url-rewriting)
+- [Application Entry Point](#application-entry-point)
+- [Handlers](#handlers)
+- [Error Handlers](#error-handlers)
+- [Redirects](#redirects)
+- [Route Parameters](#route-parameters)
+- [Route Parameter Hooks](#route-parameter-hooks)
+- [PHP Templates](#php-templates)
+- [Configurations](#configurations)
+- [Headers, Cookies, Session, Uploads](#headers-cookies-session-uploads)
+- [Miscellaneious](#miscellaneous)
+- [URL Rewriting](#url-rewriting)
 
-### application entry point
+### Application Entry Point
 
 ```php
 <?php
@@ -39,7 +38,7 @@ $db = new Connection();
 dispatch($db);
 ```
 
-### handlers
+### Handlers
 
 ```php
 <?php
@@ -55,12 +54,10 @@ map(['/about', '/contact'], function () {});
 map(function () {});
 ```
 
-### method overrides
-
 For `POST` requests, If you have `x-http-method-override` set, that will be
 used. If not, it checks for `$_POST['_method']` and uses that if found.
 
-### error handlers
+### Error Handlers
 
 ```php
 <?php
@@ -86,7 +83,7 @@ map(404, function ($code, $res) {
 error(404, $some_resource);
 ```
 
-### redirects
+### Redirects
 
 ```php
 <?php
@@ -97,7 +94,7 @@ return redirect('/new-location');
 return redirect('/new-location', 301, $halt = true);
 ```
 
-### route parameters
+### Route Parameters
 
 ```php
 <?php
@@ -115,7 +112,7 @@ map('GET', '/topics/{id}', function ($params, $db) {
 dispatch($db);
 ```
 
-### route parameter hooks
+### Route Parameter Hooks
 
 ```php
 <?php
@@ -130,13 +127,26 @@ map('GET', '/users/{id}', function ($params) {
 });
 ```
 
-### page rendering
+### PHP Templates
+
+Render PHP templates using the `phtml()` function. This function assumes
+your that your templates end in `.phtml`.
 
 ```php
 # render partial file hello.phtml
 $partial = phtml(__DIR__.'/views/hello', ['name' => 'stranger'], false);
+```
 
-# render hello.phtml inside layout layout.phtml
+To use layout templates, provide a section in your template that prints
+out the contents of `$body`.
+
+```php
+<!-- views/layout.phtml -->
+<body><?php echo $body ?></body>
+```
+
+```php
+# render hello.phtml inside layout.phtml
 echo phtml(
   __DIR__.'/views/hello',
   ['name' => 'stranger'],
@@ -144,8 +154,8 @@ echo phtml(
 );
 ```
 
-Put `templates = <views dir>` in a config file and load it via `config()`
-to tell dispatch where to find your templates.
+For convenience, you can Tell dispatch where to find templates by setting
+the `templates` setting via `config()`.
 
 ```ini
 ; config.ini
@@ -164,9 +174,15 @@ $partial = phtml('hello', ['name' => 'stranger'], false);
 echo phtml('hello', ['name' => 'stranger'], 'layout');
 ```
 
-### configuration files
+### Configurations
+
+Load, set and access configuration settings via the `config()` function.
+Pass a hash to `config()` to set multiple settings at once, a string
+to fetch the configuration value for that key, or a string and a value,
+to set the value for that configuration key.
 
 ```ini
+; config.ini
 some_setting_1 = yes
 some_setting_2 = foo
 ```
@@ -177,9 +193,13 @@ config(parse_ini_file('config.ini'));
 
 $some_setting_1 = config('some_setting_1');
 $some_setting_2 = config('some_setting_2');
+
+config('my_custom_config', 'foobar');
+
+$my_custom_config = config('my_custom_config');
 ```
 
-The following configuration entries change how some of Dispatch's behavior.
+The following configuration entries change some of Dispatch's behavior.
 
 ```ini
 ; your applications base URL
@@ -192,7 +212,10 @@ router = index.php
 templates = ./views
 ```
 
-### headers, cookies, session, and uploads
+### Headers, Cookies, Session, and Uploads
+
+Get, set headers and cookies via `headers()` and `cookies()`, respectively.
+To access file upload information, use `attachment()`.
 
 ```php
 <?php
@@ -228,7 +251,9 @@ $info = input($load = true);
 # $info[1] - content body (watch out for big uploads)
 ```
 
-### miscellaneous
+### Miscellaneous
+
+Other frequently used functionalities wrapped for convenience.
 
 ```php
 <?php
@@ -258,13 +283,13 @@ function foo() {
   stash('name', 'foo');
 }
 
-# get what foo() set
+# get what foo() stored
 function bar() {
   $name = stash('name');
 }
 ```
 
-### url rewriting
+### URL Rewriting
 
 ```
 # apache
@@ -274,6 +299,7 @@ function bar() {
   RewriteRule !\.(js|html|ico|gif|jpg|png|css)$ index.php
 </IfModule>
 ```
+
 ```
 # nginx
 server {
