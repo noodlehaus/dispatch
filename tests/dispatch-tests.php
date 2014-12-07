@@ -1,29 +1,29 @@
 <?php
 require __DIR__.'/../dispatch.php';
 
-# settings tests
+# config tests
 {
   # load 3 files - ini, callable php, array php
-  settings('@'.__DIR__.'/fixtures/settings-example.ini');
-  settings('@'.__DIR__.'/fixtures/settings-array.php');
-  settings('@'.__DIR__.'/fixtures/settings-callable.php');
+  config(parse_ini_file(__DIR__.'/fixtures/settings-example.ini'));
+  config(require __DIR__.'/fixtures/settings-array.php');
+  config(call_user_func(require __DIR__.'/fixtures/settings-callable.php'));
 
   # loose equality, since ini parsing returns strings for nums
-  assert(settings('settings.one') == 1);
-  assert(settings('settings.two') == 2);
-  assert(settings('settings.three') == 3);
-  assert(settings('settings.invalid') == null);
+  assert(config('settings.one') == 1);
+  assert(config('settings.two') == 2);
+  assert(config('settings.three') == 3);
+  assert(config('settings.invalid') == null);
 
   # unsupported type
   try {
-    settings('@settings.conf');
+    config(['one', 'two', 'three']);
   } catch (Exception $e) {
     assert($e instanceof InvalidArgumentException);
   }
 
   # invalid data
   try {
-    settings('@'.__DIR__.'/fixtures/settings-invalid.php');
+    config(require __DIR__.'/fixtures/settings-invalid.php');
   } catch (Exception $e) {
     assert($e instanceof InvalidArgumentException);
   }
@@ -43,7 +43,7 @@ require __DIR__.'/../dispatch.php';
   )));
 
   # load views config
-  settings('@'.__DIR__.'/fixtures/templates.ini');
+  config(parse_ini_file(__DIR__.'/fixtures/templates.ini'));
 
   # test page rendering using layout and dispatch.views
   assert('<h1>dispatch</h1>' === trim(phtml(
@@ -301,7 +301,7 @@ require __DIR__.'/../dispatch.php';
   }
 
   # test router and url settings
-  settings('@'.__DIR__.'/fixtures/url-and-router.ini');
+  config(parse_ini_file(__DIR__.'/fixtures/url-and-router.ini'));
 
   # fake request with router file and sub dir (url)
   $_SERVER = [

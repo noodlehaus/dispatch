@@ -10,7 +10,7 @@
 - [route parameters](#route-parameters)
 - [route parameter hooks](#route-parameter-hooks)
 - [page rendering](#page-rendering)
-- [settings and config files](#settings-and-config-files)
+- [configuration files](#configuration-files)
 - [headers, cookies, session, and uploads](#headers-cookies-session-and-uploads)
 - [miscellaneous](#miscellaneous)
 - [url rewriting](#url-rewriting)
@@ -144,7 +144,7 @@ echo phtml(
 );
 ```
 
-Put `templates = <views dir>` in a config file and load it via `settings()`
+Put `templates = <views dir>` in a config file and load it via `config()`
 to tell dispatch where to find your templates.
 
 ```ini
@@ -155,7 +155,7 @@ templates = ./views
 ```php
 <?php
 # load config
-settings('@config.ini');
+config(parse_ini_file('config.ini'));
 
 # get a partial
 $partial = phtml('hello', ['name' => 'stranger'], false);
@@ -164,7 +164,7 @@ $partial = phtml('hello', ['name' => 'stranger'], false);
 echo phtml('hello', ['name' => 'stranger'], 'layout');
 ```
 
-### settings and config files
+### configuration files
 
 ```ini
 some_setting_1 = yes
@@ -173,13 +173,13 @@ some_setting_2 = foo
 
 ```php
 <?php
-settings('@config.ini');
+config(parse_ini_file('config.ini'));
 
-$some_setting_1 = settings('some_setting_1');
-$some_setting_2 = settings('some_setting_2');
+$some_setting_1 = config('some_setting_1');
+$some_setting_2 = config('some_setting_2');
 ```
 
-The following settings entries change how some of Dispatch's behavior.
+The following configuration entries change how some of Dispatch's behavior.
 
 ```ini
 ; your applications base URL
