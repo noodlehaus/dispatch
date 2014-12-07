@@ -253,8 +253,8 @@ function input($load = false, $pipe = 'php://input') {
   return [$content_type, $path];
 }
 
-# prints out no-cache headers before dumping passed content
-function nocache($content = null) {
+# prints out no-cache headers
+function nocache() {
 
   $stamp = gmdate('D, d M Y H:i:s', $_SERVER['REQUEST_TIME']).' GMT';
 
@@ -264,9 +264,6 @@ function nocache($content = null) {
   header('Cache-Control: no-store, no-cache, must-revalidate');
   header('Cache-Control: post-check=0, pre-check=0', false);
   header('Pragma: no-cache');
-
-  # if you have content, dump it
-  return $content && strlen($content) && (print $content);
 }
 
 # maps directly to json_encode, but renders JSON headers as well
@@ -284,7 +281,7 @@ function json() {
   }
 
   header('Content-type: application/json');
-  return print $json;
+  print $json;
 }
 
 # shortcut for http_response_code()
