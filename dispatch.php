@@ -49,8 +49,9 @@ function url($str) {
 function phtml($__n, $__v = [], $__l = 'layout') {
 
   # if we have templates set, use it as view base path
-  if (($__d = config('templates')) !== null)
+  if (($__d = config('templates')) !== null) {
     $__n = "{$__d}/{$__n}";
+  }
 
   # extract locals (__v), require template (__n)
   extract($__v, EXTR_SKIP);
@@ -59,8 +60,9 @@ function phtml($__n, $__v = [], $__l = 'layout') {
   $__b = ob_get_clean();
 
   # if we have a layout file, render it
-  if (!empty($__l) && is_string($__l))
+  if (!empty($__l) && is_string($__l)) {
     $__b = phtml($__l, ['body' => $__b] + $__v, null);
+  }
 
   return $__b;
 }
@@ -73,11 +75,13 @@ function blanks() {
 # returns the best-guess remote address
 function ip() {
 
-  if (isset($_SERVER['HTTP_CLIENT_IP']))
+  if (isset($_SERVER['HTTP_CLIENT_IP'])) {
     return $_SERVER['HTTP_CLIENT_IP'];
+  }
 
-  if (isset($_SERVER['HTTP_X_FORWARDED_FOR']))
+  if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
     return $_SERVER['HTTP_X_FORWARDED_FOR'];
+  }
 
   return $_SERVER['REMOTE_ADDR'];
 }
@@ -89,12 +93,14 @@ function stash($name = null, $value = null) {
   $argc = func_num_args();
 
   # value fetch
-  if ($argc === 1)
+  if ($argc === 1) {
     return isset($data[$name]) ? $data[$name] : null;
+  }
 
   # stash reset
-  if ($argc === 0)
+  if ($argc === 0) {
     return ($data = []);
+  }
 
   # value assignment
   return ($data[$name] = $value);
@@ -165,8 +171,9 @@ function cookies() {
   $argv = func_get_args();
 
   # cookie fetch, get from $_COOKIE, or null
-  if ($argc == 1)
+  if ($argc == 1) {
     return isset($_COOKIE[$argv[0]]) ? $_COOKIE[$argv[0]] : null;
+  }
 
   # set, just map to setcookie()
   return call_user_func_array('setcookie', $argv);
@@ -176,8 +183,9 @@ function cookies() {
 function session($name, $value = null) {
 
   # session var set
-  if (func_num_args() == 2)
+  if (func_num_args() == 2) {
     return ($_SESSION[$name] = $value);
+  }
 
   # session var get
   return isset($_SESSION[$name]) ? $_SESSION[$name] : null;
@@ -191,15 +199,18 @@ function attachments($name) {
   static $cache = [];
 
   # return cached copy
-  if (isset($cache[$name]))
+  if (isset($cache[$name])) {
     return $cache[$name];
+  }
 
-  if (!isset($_FILES[$name]))
+  if (!isset($_FILES[$name])) {
     return null;
+  }
 
   # single-file attachment (no need to cache)
-  if (!is_array($_FILES[$name]['name']))
+  if (!is_array($_FILES[$name]['name'])) {
     return $_FILES[$name];
+  }
 
   # attachment is an array
   $result = [];
@@ -219,8 +230,9 @@ function input($load = false, $pipe = 'php://input') {
   static $cache = null;
 
   # if called before, just return previous data
-  if ($cache)
+  if ($cache) {
     return $cache;
+  }
 
   # do a best guess
   $content_type = (
@@ -401,16 +413,18 @@ function dispatch() {
 
   # for POST requests, check for method override header or _method
   if ($verb == 'POST') {
-    if (isset($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE']))
+    if (isset($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'])) {
       $verb = $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'];
-    else
+    } else {
       $verb = isset($_POST['_method']) ? $_POST['_method'] : $verb;
+    }
   }
 
   # set any mapping as base, then append exp_mapping if any
   $maps = $data['any'];
-  if (isset($data['explicit'][$verb]))
+  if (isset($data['explicit'][$verb])) {
     $maps = array_merge($data['explicit'][$verb], $maps);
+  }
 
   $rexp = null;
   $func = null;
@@ -424,8 +438,9 @@ function dispatch() {
     $rexp = trim($rexp, '/');
     $rexp = preg_replace('@\{(\w+)\}@', '(?<\1>[^/]+)', $rexp);
 
-    if (!preg_match('@^'.$rexp.'$@', $path, $vals))
+    if (!preg_match('@^'.$rexp.'$@', $path, $vals)) {
       continue;
+    }
 
     $func = $call;
     break;
@@ -452,8 +467,9 @@ function dispatch() {
 
         foreach ($vals as $key => $val) {
 
-          if (!isset($data['hooks'][$key]))
+          if (!isset($data['hooks'][$key])) {
             continue;
+          }
 
           $hook = $data['hooks'][$key];
 
