@@ -262,7 +262,7 @@ require __DIR__.'/../dispatch.php';
     return strtoupper($p1);
   });
 
-  # route to test
+  # named parameter + dependency passing
   map('POST', '/disp1/{p1}', function ($params, $d1, $d2) {
     assert($params['p1'] === 'PARAM1');
     assert($d1 === 'dargs1');
@@ -275,6 +275,19 @@ require __DIR__.'/../dispatch.php';
     'REQUEST_METHOD' => 'POST'
   ];
   dispatch('dargs1', 'dargs2');
+
+  # named parameter + regexp
+  map('POST', '/disp3/{value:p\d{3}}', function ($params) {
+    assert($params['value'] === 'p123');
+  });
+  
+  # setup fake request
+  $_SERVER = [
+    'REQUEST_URI' => '/disp3/p123',
+    'REQUEST_METHOD' => 'POST'
+  ];
+  dispatch('dargs1', 'dargs2');
+
 
   # invalid mapping setup (will also trigger 404)
   map('GET', '/disp2', 'foo');

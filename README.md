@@ -103,6 +103,11 @@ map('GET', '/users/{id}', function ($params) {
   $id = $params['id'];
 });
 
+# you can attach regex rules to your route symbols as well
+map('GET', '/users/{id:\d{2,5}}', function ($params) {
+  # {id} will match 12, but not 1, or 123456
+});
+
 # if you have args from dispatch(), they will come after the params hash
 map('GET', '/topics/{id}', function ($params, $db) {
   $id = $params['id'];
