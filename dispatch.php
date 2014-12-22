@@ -414,9 +414,9 @@ function dispatch() {
   # for POST requests, check for method override header or _method
   if ($verb == 'POST') {
     if (isset($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'])) {
-      $verb = $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'];
+      $verb = strtoupper($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE']);
     } else {
-      $verb = isset($_POST['_method']) ? $_POST['_method'] : $verb;
+      $verb = isset($_POST['_method']) ? strtoupper($_POST['_method']) : $verb;
     }
   }
 
