@@ -513,10 +513,10 @@ $GLOBALS['noodlehaus\dispatch'] = [
   'stash' => [],
   'request_headers' => [],
   'routes' => [
-    'all'       => null,
-    'any'       => [],
-    'hooks'     => [],
-    'explicit'  => [],
-    'errors'    => []
+    'all' => null,
+    'any' => [],
+    'hooks' => [],
+    'explicit' => [],
+    'errors' => []
   ]
 ];
