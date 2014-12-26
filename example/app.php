@@ -5,9 +5,10 @@ error_reporting(E_ALL|E_STRICT);
 
 map('GET', '/index', function ($db) {
   $posts = '';
-  foreach (file($db) as $post)
+  foreach (file($db) as $post) {
     $posts .= phtml('post', ['post' => unserialize(trim($post))], false);
-  return print phtml('index', ['posts' => $posts]);
+  }
+  print phtml('index', ['posts' => $posts]);
 });
 
 # show a post
@@ -17,7 +18,7 @@ map('GET', '/posts/{id}', function ($args, $db) {
     if ($post['id'] != $args['id']) {
       continue;
     }
-    return print phtml('post', ['post' => $post]);
+    print phtml('post', ['post' => $post]);
   }
 });
 
