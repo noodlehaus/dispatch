@@ -104,7 +104,7 @@ map('GET', '/users/{id}', function ($params) {
 });
 
 # you can attach regex rules to your route symbols as well
-map('GET', '/users/{id:\d{2,5}}', function ($params) {
+map('GET', '/users/{id:\d+}', function ($params) {
   # {id} will match 12, but not 1, or 123456
 });
 
