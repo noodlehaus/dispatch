@@ -44,7 +44,7 @@ dispatch($db);
 <?php
 # map handler against method(s) + route
 map('POST', '/users/create', function () {});
-map(['HEAD', 'GET', 'OPTIONS'], '/users/{id}', function () {});
+map(['HEAD', 'GET', 'OPTIONS'], '/users/<id>', function () {});
 
 # map handler against a route(s)
 map('/about', function () {});
@@ -99,17 +99,17 @@ return redirect('/new-location', 301, $halt = true);
 ```php
 <?php
 # if you have route symbols, a hash of their values will be passed first
-map('GET', '/users/{id}', function ($params) {
+map('GET', '/users/<id>', function ($params) {
   $id = $params['id'];
 });
 
 # you can attach regex rules to your route symbols as well
-map('GET', '/users/{id:\d{2,5}}', function ($params) {
+map('GET', '/users/<id:\d{2,5}>', function ($params) {
   # {id} will match 12, but not 1, or 123456
 });
 
 # if you have args from dispatch(), they will come after the params hash
-map('GET', '/topics/{id}', function ($params, $db) {
+map('GET', '/topics/<id>', function ($params, $db) {
   $id = $params['id'];
 });
 
@@ -127,7 +127,7 @@ hook('id', function ($id) {
 });
 
 # handler can expect modified data
-map('GET', '/users/{id}', function ($params) {
+map('GET', '/users/<id>', function ($params) {
   list($id, $id_md5) = $params['id'];
 });
 ```

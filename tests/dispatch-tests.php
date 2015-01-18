@@ -263,7 +263,7 @@ require __DIR__.'/../dispatch.php';
   });
 
   # named parameter + dependency passing
-  map('POST', '/disp1/{p1}', function ($params, $d1, $d2) {
+  map('POST', '/disp1/<p1>', function ($params, $d1, $d2) {
     assert($params['p1'] === 'PARAM1');
     assert($d1 === 'dargs1');
     assert($d2 === 'dargs2');
@@ -277,10 +277,10 @@ require __DIR__.'/../dispatch.php';
   dispatch('dargs1', 'dargs2');
 
   # named parameter + regexp
-  map('POST', '/disp3/{value:p\d{3}}', function ($params) {
+  map('POST', '/disp3/<value:p\d{3}>', function ($params) {
     assert($params['value'] === 'p123');
   });
-  
+
   # setup fake request
   $_SERVER = [
     'REQUEST_URI' => '/disp3/p123',
@@ -324,7 +324,7 @@ require __DIR__.'/../dispatch.php';
   dispatch('dargs1', 'dargs2');
 
   # test method override
-  map('PUT', '/disp3/{p1}', function ($params) {
+  map('PUT', '/disp3/<p1>', function ($params) {
     assert($params['p1'] === 'PARAM1');
   });
 
