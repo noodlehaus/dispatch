@@ -12,7 +12,7 @@ map('GET', '/index', function ($db) {
 });
 
 # show a post
-map('GET', '/posts/{id}', function ($args, $db) {
+map('GET', '/posts/<id>', function ($args, $db) {
   foreach (file($db) as $post) {
     $post = unserialize($post);
     if ($post['id'] != $args['id']) {
