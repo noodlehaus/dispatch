@@ -1,5 +1,9 @@
 # DISPATCH API
 
+## Breaking Changes in 7.0.0
+
+- Route parameter delimeters have been changed to `<>`, from `{}`
+
 ## Table of Contents
 
 - [Application Entry Point](#application-entry-point)
