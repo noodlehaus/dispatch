@@ -444,7 +444,7 @@ function dispatch() {
     list($rexp, $call) = $temp;
 
     $rexp = trim($rexp, '/');
-    $rexp = preg_replace_callback('@\{([^:]+)(:(.+))?\}@U', $rxcb, $rexp);
+    $rexp = preg_replace_callback('@\{([^:\}]+)(:([^\}]+))?\}@U', $rxcb, $rexp);
 
     if (!preg_match('@^'.$rexp.'$@', $path, $vals)) {
       continue;
