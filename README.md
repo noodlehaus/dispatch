@@ -352,6 +352,7 @@ server {
 * Ciprian Danea [cdanea](https://github.com/cdanea)
 * Roman Ožana [OzzyCzech](https://github.com/OzzyCzech)
 * Bryan Haskin [bhhaskin](https://github.com/bhhaskin)
+* Olav Schettler [oschettler](https://github.com/oschettler)
 
 ## LICENSE
 
