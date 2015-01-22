@@ -430,21 +430,25 @@ function dispatch() {
   $func = null;
   $vals = null;
 
-  # replace named params (support regex formats)
-  $rxcb = function ($matches) {
-    if (isset($matches[3])) {
-      return "(?<{$matches[1]}>{$matches[3]})";
-    }
-    return "(?<{$matches[1]}>[^/]+)";
-  };
-
   # try to see if we have any matching route
   foreach ($maps as $temp) {
 
     list($rexp, $call) = $temp;
 
     $rexp = trim($rexp, '/');
-    $rexp = preg_replace_callback('@<([^:]+)(:(.+))?>@U', $rxcb, $rexp);
+
+    # replace named params (support regex formats)
+    $rexp = preg_replace(
+      [
+        '@<([^:]+)>@U', # <param> => <param>[^/]+
+        '@<([^:]+)(:(.+))?>@U', # <param:...> => (?<param>...)
+      ],
+      [
+        '<$1:[^/]+>',
+        '(?<$1>$3)',
+      ],
+      $rexp
+    );
 
     if (!preg_match('@^'.$rexp.'$@', $path, $vals)) {
       continue;
