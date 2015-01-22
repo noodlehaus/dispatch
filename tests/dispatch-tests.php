@@ -288,6 +288,19 @@ require __DIR__.'/../dispatch.php';
   ];
   dispatch('dargs1', 'dargs2');
 
+  # two named parameters + regexp
+  map('POST', '/disp4/<value>/<rest:.*>', function ($params) {
+    assert($params['value'] === 'p123');
+    assert($params['rest'] === 'p456/p789');
+    return "disp4 matched";
+  });
+
+  # setup fake request
+  $_SERVER = [
+      'REQUEST_URI' => '/disp4/p123/p456/p789',
+      'REQUEST_METHOD' => 'POST'
+  ];
+  assert(dispatch('dargs1', 'dargs2') == 'disp4 matched');
 
   # invalid mapping setup (will also trigger 404)
   map('GET', '/disp2', 'foo');
