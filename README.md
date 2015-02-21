@@ -10,6 +10,8 @@
 
 ## Table of Contents
 
+- [Requirements](#requirements)
+- [Installation](#installation)
 - [Application Entry Point](#application-entry-point)
 - [Handlers](#handlers)
 - [Error Handlers](#error-handlers)
@@ -21,6 +23,19 @@
 - [Headers, Cookies, Session, Uploads](#headers-cookies-session-uploads)
 - [Miscellaneious](#miscellaneous)
 - [URL Rewriting](#url-rewriting)
+
+### Requirements
+
+Dispatch requires **PHP 5.4+** to run.
+
+### Installation
+
+Download and include the file `dispatch.php` directly or install it using
+composer:
+
+```sh
+$ composer require badphp/dispatch
+```
 
 ### Application Entry Point
 
