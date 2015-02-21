@@ -1,15 +1,15 @@
 {
-  "name": "dispatch/dispatch",
+  "name": "badphp/dispatch",
   "type": "library",
   "description": "a microframework/front-controller",
   "keywords": ["framework", "router", "microframework", "micro", "microphp"],
-  "homepage": "http://github.com/noodlehaus/dispatch/",
+  "homepage": "http://github.com/badphp/dispatch",
   "license": "MIT",
   "authors": [
     {
       "name": "Jesus A. Domingo",
       "role": "Developer",
-      "homepage": "http://noodlehaus.github.io/"
+      "homepage": "http://github.com/noodlehaus/"
     },
     {
       "name": "Kafene",
