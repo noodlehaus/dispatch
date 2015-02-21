@@ -1,5 +1,9 @@
 # DISPATCH API
 
+## Breaking Changes in 8.0.0
+
+- Package name changed to `badphp/dispatch`
+
 ## Breaking Changes in 7.0.0
 
 - Route parameter delimeters have been changed to `<>`, from `{}`
