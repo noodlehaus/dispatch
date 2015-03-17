@@ -39,16 +39,16 @@ $ composer require badphp/dispatch
 
 ### Application Entry Point
 
+Request handling and route matching starts after you call `dispatch()`.
+
 ```php
-<?php
 # serve request
 dispatch();
 ```
 
-Pass variables to your handlers by passing them as arguments to `dispatch()`.
+You can pass variables to your handlers by passing them as arguments to `dispatch()`.
 
 ```php
-<?php
 # map a handler that expects the db conn
 map('GET', '/users/list', function ($db) {
   # ... do something with $db
@@ -63,13 +63,14 @@ dispatch($db);
 
 ### Handlers
 
+Route handlers are mapped using the `map()` function.
+
 ```php
-<?php
 # map handler against method(s) + route
 map('POST', '/users/create', function () {});
 map(['HEAD', 'GET', 'OPTIONS'], '/users/<id>', function () {});
 
-# map handler against a route(s)
+# map handler against a route(s) + any method
 map('/about', function () {});
 map(['/about', '/contact'], function () {});
 
@@ -80,47 +81,12 @@ map(function () {});
 For `POST` requests, If you have `x-http-method-override` set, that will be
 used. If not, it checks for `$_POST['_method']` and uses that if found.
 
-### Error Handlers
-
-```php
-<?php
-# map handler against error codes, first argument is the error code
-map(404, function ($code) {});
-map([400, 401, 403, 404], function ($code) {});
-
-# trigger an error handler for the code
-error(404);
-```
-
-Pass arguments to your error handler by appending them to the
-`error()` arguments.
-
-```php
-<?php
-# expect a resource (2nd argument) in your error handler
-map(404, function ($code, $res) {
-  # ... do something with $res
-});
-
-# trigger an error handler while passing an argument
-error(404, $some_resource);
-```
-
-### Redirects
-
-```php
-<?php
-# default, redirect with 302 and don't end execution
-return redirect('/new-location');
-
-# redirect with a specific code, and terminate
-return redirect('/new-location', 301, $halt = true);
-```
-
 ### Route Parameters
 
+Routes can have parameter values. When specified, their matching values
+are passed into your handler via a hash.
+
 ```php
-<?php
 # if you have route symbols, a hash of their values will be passed first
 map('GET', '/users/<id>', function ($params) {
   $id = $params['id'];
@@ -142,9 +108,11 @@ dispatch($db);
 
 ### Route Parameter Hooks
 
+In some cases, we want to preload some data associated with a route
+parameter value. We can do this with route parameter hooks via `hook()`.
+
 ```php
-<?php
-# if {id} is in the matching route, replace it
+# if <id> is in the matching route, replace it
 hook('id', function ($id) {
   return [$id, md5($id)];
 });
@@ -153,6 +121,51 @@ hook('id', function ($id) {
 map('GET', '/users/<id>', function ($params) {
   list($id, $id_md5) = $params['id'];
 });
+```
+
+### Error Handlers
+
+HTTP error handlers are mapped using the same `map()` function, but instead
+of the usual method + route + action arguments, you just pass the http code
+and action.
+
+```php
+# map handler against error codes, first argument is the error code
+map(404, function ($code) {});
+map([400, 401, 403, 404], function ($code) {});
+```
+
+You can then trigger the HTTP error handler with `error()`.
+
+```php
+# trigger an error handler for the code
+error(404);
+```
+
+You can also pass arguments to your error handler by passing them along in
+your `error()` call.
+
+```php
+# expect a resource (2nd argument) in your error handler
+map(404, function ($code, $res) {
+  # ... do something with $res
+});
+
+# trigger an error handler while passing an argument
+error(404, $some_resource);
+```
+
+### Redirects
+
+Page redirects are done with `redirect()`, which can also finish script
+execution if `$halt` is `true`.
+
+```php
+# default, redirect with 302 and don't end execution
+return redirect('/new-location');
+
+# redirect with a specific code, and terminate
+return redirect('/new-location', 301, $halt = true);
 ```
 
 ### PHP Templates
@@ -215,16 +228,19 @@ some_setting_1 = yes
 some_setting_2 = foo
 ```
 
+We then load the values in the following way:
+
 ```php
 <?php
+# initialize the config container
 config(parse_ini_file('config.ini'));
 
-$some_setting_1 = config('some_setting_1');
-$some_setting_2 = config('some_setting_2');
-
+# set a config value
 config('my_custom_config', 'foobar');
 
-$my_custom_config = config('my_custom_config');
+# fetch some values
+$some_setting_1 = config('some_setting_1');
+$some_setting_2 = config('some_setting_2');
 ```
 
 The following configuration entries change some of Dispatch's behavior.
@@ -318,6 +334,9 @@ function bar() {
 ```
 
 ### URL Rewriting
+
+Dispatch relies on URL rewrites being enabled. Here are some configurations
+for seting them up on Apache and Nginx.
 
 ```
 # apache
