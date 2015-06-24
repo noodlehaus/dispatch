@@ -469,7 +469,7 @@ function dispatch() {
 
       # extract any route symbol values
       $toks = array_filter(array_keys($vals), 'is_string');
-      $vals = array_map('urldecode', array_intersect_key(
+      $vals = array_map('rawurldecode', array_intersect_key(
         $vals,
         array_flip($toks)
       ));
