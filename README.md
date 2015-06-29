@@ -391,6 +391,7 @@ server {
 * Roman Ožana [OzzyCzech](https://github.com/OzzyCzech)
 * Bryan Haskin [bhhaskin](https://github.com/bhhaskin)
 * Olav Schettler [oschettler](https://github.com/oschettler)
+* Marc Capdevielle [yalp](https://github.com/yalp)
 
 ## LICENSE
 
