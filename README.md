@@ -20,7 +20,7 @@
 - [Route Parameter Hooks](#route-parameter-hooks)
 - [PHP Templates](#php-templates)
 - [Configurations](#configurations)
-- [Headers, Cookies, Session, Uploads](#user-content-headers-cookies-session-and-uploads)
+- [Headers, Cookies, Session, Uploads](#headers-cookies-session-and-uploads)
 - [Miscellaneious](#miscellaneous)
 - [URL Rewriting](#url-rewriting)
 
