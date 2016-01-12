@@ -1,8 +1,8 @@
 {
   "name": "badphp/dispatch",
   "type": "library",
-  "description": "a microframework/front-controller",
-  "keywords": ["framework", "router", "microframework", "micro", "microphp"],
+  "description": "a micro-routing library for PHP",
+  "keywords": ["microframework", "router", "micro", "microphp"],
   "homepage": "http://github.com/badphp/dispatch",
   "license": "MIT",
   "authors": [
@@ -73,19 +73,11 @@
     }
   ],
   "require": {
-    "php": ">= 5.4.0"
-  },
-  "require-dev": {
-    "ext-xdebug": ">= 2.1"
+    "php": ">= 5.6.0"
   },
   "autoload": {
     "files": [
       "dispatch.php"
     ]
-  },
-  "extra": {
-    "branch-alias": {
-      "dev-master": "8.x-dev"
-    }
   }
 }
