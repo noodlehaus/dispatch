@@ -94,6 +94,12 @@ function response($content, $status = 200, array $headers = []) {
   return [$content, $status, $headers];
 }
 
+# creates json response
+function jsonResponse($data, $status = 200, array $headers = []) {
+  $headers['Content-Type'] = 'application/json';
+  return [json_encode($data), $status, $headers];
+}
+
 # creates an action and puts it into the routes stack
 function route($verb, $path, callable $func) {
   $context = &context();
