@@ -6,6 +6,7 @@
 # creates a route handler
 function action($verb, $path, callable $func) {
   return function ($rverb, $rpath) use ($verb, $path, $func) {
+
     $rexp = preg_replace('@:(\w+)@', '(?<\1>[^/]+)', $path);
     if (
       strtoupper($rverb) !== strtoupper($verb) ||
@@ -13,6 +14,17 @@ function action($verb, $path, callable $func) {
     ) {
       return [];
     }
+
+    $args = array_slice($caps, 1);
+    if (!empty($args)) {
+      $toks = array_filter(array_keys($args), 'is_string');
+      $vals = array_map('rawurldecode', array_intersect_key(
+        $args,
+        array_flip($toks)
+      ));
+      return [$func, $vals];
+    }
+
     return [$func, array_slice($caps, 1)];
   };
 }
