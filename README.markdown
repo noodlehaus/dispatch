@@ -67,10 +67,10 @@ $verb = $_SERVER['REQUEST_METHOD'],
 $path = $_SERVER['REQUEST_URI'],
 
 # serve app against verb + path, pass dependencies
-$result = serve($routes, $verb, $path, $db, $config);
+list($content, $status, $headers) = serve($routes, $verb, $path, $db, $config);
 
-# render flushes out the response tuple (content, code, headers)
-render(...$result);
+# flush out content, status code, and http headers
+render($content, $status, $headers);
 ```
 
 ## tests
