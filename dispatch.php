@@ -94,8 +94,24 @@ function redirect($location, $status = 302) {
 
 # renders request response to the output buffer
 function render($content, $status = 200, $headers = []) {
+
   http_response_code($status);
+
   array_walk($headers, function ($val, $key) {
+
+    # validate header key (ref: zend-diactoros)
+    if (! preg_match('/^[a-zA-Z0-9\'`#$%&*+.^_|~!-]+$/', $key)) {
+      throw new InvalidArgumentException("Invalid header name - {$key}");
+    }
+
+    # validate header value (ref: zend-diactoros)
+    if (
+      preg_match("#(?:(?:(?<!\r)\n)|(?:\r(?!\n))|(?:\r\n(?![ \t])))#", $val) ||
+      preg_match('/[^\x09\x0a\x0d\x20-\x7E\x80-\xFE]/', $val)
+    ) {
+      throw new InvalidArgumentException("Invalid header value - {$val}");
+    }
+
     header("{$key}: {$val}", true);
   });
   return print $content;
