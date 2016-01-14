@@ -30,7 +30,7 @@ function test_action() {
   $f1 = action('GET', '/index', function () {
     return 'index';
   });
-  $f2 = action('GET', '/:name', function ($args) {
+  $f2 = action('GET', '/:name/:location', function ($args) {
     return $args['name'];
   });
   assert(is_callable($f1) && is_callable($f2));
@@ -38,12 +38,12 @@ function test_action() {
     empty($f1('POST', '/index')) &&
     empty($f1('GET', '/about')) &&
     empty($f2('POST', '/about')) &&
-    empty($f2('GET', '/about/bleh'))
+    empty($f2('GET', '/about/bleh/moo'))
   );
   list($c1, $v1) = $f1('GET', '/index');
-  list($c2, $v2) = $f2('GET', '/dispatch');
+  list($c2, $v2) = $f2('GET', '/dispatch/singapore');
   assert($c1() === 'index' && empty($v1));
-  assert($c2($v2) === 'dispatch' && isset($v2['name']));
+  assert($c2($v2) === 'dispatch' && isset($v2['name'], $v2['location']));
 }
 
 # match()
