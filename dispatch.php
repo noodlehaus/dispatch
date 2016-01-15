@@ -6,7 +6,6 @@
 # creates a route handler
 function action($verb, $path, callable $func) {
   return function ($rverb, $rpath) use ($verb, $path, $func) {
-
     $rexp = preg_replace('@:(\w+)@', '(?<\1>[^/]+)', $path);
     if (
       strtoupper($rverb) !== strtoupper($verb) ||
@@ -14,17 +13,6 @@ function action($verb, $path, callable $func) {
     ) {
       return [];
     }
-
-    $args = array_slice($caps, 1);
-    if (!empty($args)) {
-      $toks = array_filter(array_keys($args), 'is_string');
-      $vals = array_map('rawurldecode', array_intersect_key(
-        $args,
-        array_flip($toks)
-      ));
-      return [$func, $vals];
-    }
-
     return [$func, array_slice($caps, 1)];
   };
 }
@@ -59,7 +47,7 @@ function dispatch(...$args) {
 function match(array $actions, $verb, $path) {
 
   $cverb = strtoupper(trim($verb));
-  $cpath = '/'.trim(parse_url($path, PHP_URL_PATH), '/');
+  $cpath = '/'.trim(rawurldecode(parse_url($path, PHP_URL_PATH)), '/');
 
   # test verb + path against route handlers
   foreach ($actions as $test) {
