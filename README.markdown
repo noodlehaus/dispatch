@@ -83,6 +83,12 @@ php tests/dispatch-tests.php
 
 If no errors were echoed, then you're all good.
 
+## breaking changes from 9.x
+
+```
+noodlehaus/dispatch package name
+```
+
 ## breaking changes from 8.x
 
 ```
