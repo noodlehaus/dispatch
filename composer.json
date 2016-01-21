@@ -1,9 +1,9 @@
 {
-  "name": "badphp/dispatch",
+  "name": "noodlehaus/dispatch",
   "type": "library",
   "description": "a micro-routing library for PHP",
   "keywords": ["microframework", "router", "micro", "microphp"],
-  "homepage": "http://github.com/badphp/dispatch",
+  "homepage": "http://github.com/noodlehaus/dispatch",
   "license": "MIT",
   "authors": [
     {
