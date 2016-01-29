@@ -1,21 +1,8 @@
 <?php
 
-# @author Jesus A. Domingo <jesus.domingo@gmail.com>
 # @license MIT
 
-# creates a route handler
-function action($verb, $path, callable $func) {
-  return function ($rverb, $rpath) use ($verb, $path, $func) {
-    $rexp = preg_replace('@:(\w+)@', '(?<\1>[^/]+)', $path);
-    if (
-      strtoupper($rverb) !== strtoupper($verb) ||
-      !preg_match("@^{$rexp}$@", $rpath, $caps)
-    ) {
-      return [];
-    }
-    return [$func, array_slice($caps, 1)];
-  };
-}
+use noodlehaus\pico;
 
 # returns by ref the route stack singleton
 function &context() {
@@ -38,32 +25,14 @@ function dispatch(...$args) {
     }
   }
 
-  $resp = serve(context(), $verb, $path, ...$args);
-
-  render(...$resp);
-}
-
-# performs a lookup against actions for verb + path
-function match(array $actions, $verb, $path) {
-
-  $cverb = strtoupper(trim($verb));
-  $cpath = '/'.trim(rawurldecode(parse_url($path, PHP_URL_PATH)), '/');
-
-  # test verb + path against route handlers
-  foreach ($actions as $test) {
-    $match = $test($cverb, $cpath);
-    if (!empty($match)) {
-      return $match;
-    }
-  }
-
-  return [];
+  $resp = pico\serve(context(), $verb, $path, ...$args);
+  pico\render(...$resp);
 }
 
 # creates an page-rendering action
 function page($path, array $vars = []) {
   return function () use ($path, $vars) {
-    return response(phtml($path, $vars));
+    return pico\response(phtml($path, $vars));
   };
 }
 
@@ -77,49 +46,33 @@ function phtml($path, array $vars = []) {
 
 # creates redirect response
 function redirect($location, $status = 302) {
-  return ['', $status, ['location' => $location]];
-}
-
-# renders request response to the output buffer
-function render($content, $status = 200, $headers = []) {
-
-  http_response_code($status);
-
-  array_walk($headers, function ($val, $key) {
-
-    # validate header key (ref: zend-diactoros)
-    if (! preg_match('/^[a-zA-Z0-9\'`#$%&*+.^_|~!-]+$/', $key)) {
-      throw new InvalidArgumentException("Invalid header name - {$key}");
-    }
-
-    # validate header value (ref: zend-diactoros)
-    if (
-      preg_match("#(?:(?:(?<!\r)\n)|(?:\r(?!\n))|(?:\r\n(?![ \t])))#", $val) ||
-      preg_match('/[^\x09\x0a\x0d\x20-\x7E\x80-\xFE]/', $val)
-    ) {
-      throw new InvalidArgumentException("Invalid header value - {$val}");
-    }
-
-    header("{$key}: {$val}", true);
-  });
-  return print $content;
-}
-
-# creates standard response
-function response($content, $status = 200, array $headers = []) {
-  return [$content, $status, $headers];
+  return pico\response('', $status, ['location' => $location]);
 }
 
 # creates an action and puts it into the routes stack
 function route($verb, $path, callable $func) {
   $context = &context();
-  array_push($context, action($verb, $path, $func));
+  array_push($context, pico\action($verb, $path, $func));
 }
 
-# dispatches current request against route handlers
-function serve(array $app, $verb, $path, ...$args) {
-  $pair = match($app, $verb, $path);
-  $func = array_shift($pair) ?: function () { return response('', 404, []); };
-  $caps = array_shift($pair) ?: null;
-  return empty($caps) ? $func(...$args) : $func($caps, ...$args);
+# forwarders to pico
+
+function action($verb, $path, callable $func) {
+  return pico\action($verb, $path, $func);
+}
+
+function match(array $actions, $verb, $path) {
+  return pico\lookup($actions, $verb, $path);
+}
+
+function response($content, $status = 200, $headers = []) {
+  return pico\response($content, $status, $headers);
+}
+
+function serve(array $actions, $verb, $path, ...$args) {
+  return pico\serve($actions, $verb, $path, ...$args);
+}
+
+function render($content, $status = 200, $headers = []) {
+  return pico\render($content, $status, $headers);
 }

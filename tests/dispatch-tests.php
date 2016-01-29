@@ -1,6 +1,6 @@
 <?php
 
-require __DIR__.'/../dispatch.php';
+require __DIR__.'/../vendor/autoload.php';
 
 test_response();
 test_redirect();
