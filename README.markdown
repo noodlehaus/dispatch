@@ -116,17 +116,17 @@ added the following:
 - response() - returns a response tuple
 - match() - matches the method + pattern against a list of actions
 - serve() - performs match() against actions list, and invokes the
-	match, and returns the resulting response tuple
+  match, and returns the resulting response tuple
 - page() - creates an action that renders the file, like inline phtml()
 - render() - renders the http response
 - route() - creates an action and puts it into the context singleton
-	(replaces the old map function)
+  (replaces the old map function)
 - context() - returns the context singleton
 
 changed the following:
 - redirect() - now just returns a redirect response tuple
 - phtml() - now requires the full path (minus extension) of phtml file,
-	and no longer accepts a layout file
+  and no longer accepts a layout file
 ```
 
 ## license
