@@ -2,70 +2,17 @@
 
 require __DIR__.'/../vendor/autoload.php';
 
-test_response();
 test_redirect();
-test_action();
-test_match();
-test_serve();
 test_context();
 test_phtml();
 test_page();
 test_route();
 test_dispatch();
 
-# response()
-function test_response() {
-  $resp = response('foo', 200, ['content-type' => 'text/plain']);
-  assert($resp === ['foo', 200, ['content-type' => 'text/plain']]);
-}
-
 # redirect()
 function test_redirect() {
   assert(redirect('/index') === ['', 302, ['location' => '/index']]);
   assert(redirect('/index', 301) === ['', 301, ['location' => '/index']]);
-}
-
-# action()
-function test_action() {
-  $f1 = action('GET', '/index', function () {
-    return 'index';
-  });
-  $f2 = action('GET', '/:name/:location', function ($args) {
-    return $args['name'];
-  });
-  assert(is_callable($f1) && is_callable($f2));
-  assert(
-    empty($f1('POST', '/index')) &&
-    empty($f1('GET', '/about')) &&
-    empty($f2('POST', '/about')) &&
-    empty($f2('GET', '/about/bleh/moo'))
-  );
-  list($c1, $v1) = $f1('GET', '/index');
-  list($c2, $v2) = $f2('GET', '/dispatch/singapore');
-  assert($c1() === 'index' && empty($v1));
-  assert($c2($v2) === 'dispatch' && isset($v2['name'], $v2['location']));
-}
-
-# match()
-function test_match() {
-  $v = [
-    action('GET', '/index', function () { return 'GET index'; }),
-    action('POST', '/index', function () { return 'POST index'; })
-  ];
-  assert(empty(match($v, 'GET', '/about')));
-  list($f, $c) = match($v, 'POST', '/index');
-  assert(empty($c) && $f() === 'POST index');
-}
-
-# serve()
-function test_serve() {
-  $v = [
-    action('GET', '/index', function () { return response('GET index'); }),
-    action('POST', '/index', function ($d) { return response("POST {$d}"); })
-  ];
-  $r = serve($v, 'POST', '/index', 'foo');
-  assert(count($r) === 3);
-  assert($r[0] === 'POST foo' && $r[1] === 200 && $r[2] === []);
 }
 
 # context()
