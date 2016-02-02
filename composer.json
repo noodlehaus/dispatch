@@ -73,8 +73,7 @@
     }
   ],
   "require": {
-    "php": ">= 5.6.0",
-    "noodlehaus/pico": "^2.0"
+    "php": ">= 5.6.0"
   },
   "autoload": {
     "files": [

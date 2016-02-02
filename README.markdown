@@ -35,8 +35,7 @@ $db = createDBConnection($config['db']);
 dispatch($db, $config);
 ```
 
-If you want to see where all the state goes, you can use `action`, `serve`,
-and `render` instead.
+If you want to see where all the state goes, you can use `action` and `serve`.
 
 ```php
 <?php
@@ -67,10 +66,10 @@ $verb = $_SERVER['REQUEST_METHOD'],
 $path = $_SERVER['REQUEST_URI'],
 
 # serve app against verb + path, pass dependencies
-list($content, $status, $headers) = serve($routes, $verb, $path, $db, $config);
+$responder = serve($routes, $verb, $path, $db, $config);
 
-# flush out content, status code, and http headers
-render($content, $status, $headers);
+# invoke responder to flush response
+$responder();
 ```
 
 ## tests
@@ -81,53 +80,7 @@ Tests for `dispatch` use plain assertions.
 php tests/dispatch-tests.php
 ```
 
-If no errors were echoed, then you're all good.
-
-## breaking changes from 9.x
-
-```
-noodlehaus/dispatch package name
-```
-
-## breaking changes from 8.x
-
-```
-removed the following:
-- attachments()
-- blanks()
-- config()
-- cookies()
-- ent()
-- error()
-- headers()
-- hook()
-- input()
-- ip()
-- json()
-- map()
-- nocache()
-- session()
-- stash()
-- status()
-- url()
-
-added the following:
-- action() - creates a route handler
-- response() - returns a response tuple
-- match() - matches the method + pattern against a list of actions
-- serve() - performs match() against actions list, and invokes the
-  match, and returns the resulting response tuple
-- page() - creates an action that renders the file, like inline phtml()
-- render() - renders the http response
-- route() - creates an action and puts it into the context singleton
-  (replaces the old map function)
-- context() - returns the context singleton
-
-changed the following:
-- redirect() - now just returns a redirect response tuple
-- phtml() - now requires the full path (minus extension) of phtml file,
-  and no longer accepts a layout file
-```
+If no errors were printed, then you're all good.
 
 ## license
 
