@@ -105,7 +105,7 @@ function render($body, $code = 200, $headers = []) {
     }
     header($key.': '.implode(',', $values));
   });
-  (print $body) && flush();
+  print $body;
 }
 
 # creates an page-rendering action
