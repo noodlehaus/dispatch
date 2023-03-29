@@ -31,17 +31,12 @@ function test_action() {
   $f2 = action('GET', '/:name/:location', function ($args) {
     return $args['name'];
   });
-  assert(is_callable($f1) && is_callable($f2));
-  assert(
-    empty($f1('POST', '/index')) &&
-    empty($f1('GET', '/about')) &&
-    empty($f2('POST', '/about')) &&
-    empty($f2('GET', '/about/bleh/moo'))
-  );
-  list($c1, $v1) = $f1('GET', '/index');
-  list($c2, $v2) = $f2('GET', '/dispatch/singapore');
-  assert($c1() === 'index' && empty($v1));
-  assert($c2($v2) === 'dispatch' && isset($v2['name'], $v2['location']));
+  assert(count($f1) === 3);
+  assert(count($f2) === 3);
+  assert(preg_match($f1[1], '/index'));
+  assert(preg_match($f2[1], '/dispatch/singapore'));
+  assert($f1[0] === 'GET');
+  assert($f2[0] === 'GET');
 }
 
 # serve()
@@ -78,14 +73,17 @@ function test_page() {
 
 # route()
 function test_route() {
-  route('GET', '/index', function () {
+
+  $action = function () {
     return response('hello world!', 201, ['X-Custom-Value' => 'foo']);
-  });
-  $c = context();
-  $m = $c[0];
-  assert(is_callable($m));
-  list($f, $v) = $m('GET', '/index');
-  assert(empty($v) && is_callable($f()));
+  };
+  route('GET', '/index', $action);
+
+  $routes = context();
+  list($method, $expr, $handler) = $routes[0];
+  assert($method === 'GET');
+  assert(preg_match($expr, '/index'));
+  assert($handler === $action);
 }
 
 # dispatch() - minus header and status check

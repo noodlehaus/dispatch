@@ -12,40 +12,32 @@ function &context() {
 # dispatch sapi request against routes context
 function dispatch(...$args) {
 
-  $verb = strtoupper($_SERVER['REQUEST_METHOD']);
+  $method = strtoupper($_SERVER['REQUEST_METHOD']);
   $path = '/'.trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
 
   # post method override
-  if ($verb === 'POST') {
+  if ($method === 'POST') {
     if (isset($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'])) {
-      $verb = strtoupper($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE']);
+      $method = strtoupper($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE']);
     } else {
-      $verb = isset($_POST['_method']) ? strtoupper($_POST['_method']) : $verb;
+      $method = isset($_POST['_method']) ? strtoupper($_POST['_method']) : $method;
     }
   }
 
-  $responder = serve(context(), $verb, $path, ...$args);
+  $responder = serve(context(), $method, $path, ...$args);
   $responder();
 }
 
 # creates an action and puts it into the routes stack
-function route($verb, $path, callable $func) {
+function route($method, $path, callable $handler) {
   $context = &context();
-  array_push($context, action($verb, $path, $func));
+  array_push($context, action($method, $path, $handler));
 }
 
 # creates a route handler
-function action($verb, $path, callable $func) {
-  $rexp = preg_replace('@:(\w+)@', '(?<\1>[^/]+)', $path);
-  return function ($rverb, $rpath) use ($rexp, $verb, $path, $func) {
-    if (
-      strtoupper($rverb) !== strtoupper($verb) ||
-      !preg_match("@^{$rexp}$@", $rpath, $caps)
-    ) {
-      return null;
-    }
-    return [$func, array_slice($caps, 1)];
-  };
+function action($method, $path, callable $handler) {
+  $regexp = '@^'.preg_replace('@:(\w+)@', '(?<\1>[^/]+)', $path).'$@';
+  return [strtoupper($method), $regexp, $handler];
 }
 
 # creates standard response
@@ -63,29 +55,31 @@ function redirect($location, $code = 302) {
 }
 
 # dispatches method + path against route stack
-function serve(array $actions, $verb, $path, ...$args) {
+function serve(array $routes, $method, $path, ...$args) {
 
-  $cverb = strtoupper(trim($verb));
-  $cpath = '/'.trim(rawurldecode(parse_url($path, PHP_URL_PATH)), '/');
-  $match = null;
+  $method = strtoupper(trim($method));
+  $path = '/'.trim(rawurldecode(parse_url($path, PHP_URL_PATH)), '/');
 
-  # test verb + path against route handlers
-  foreach ($actions as $test) {
-    $match = $test($cverb, $cpath);
-    if ($match != null) {
+  $action = null;
+  $params = null;
+
+  # test method + path against action method + expression
+  foreach ($routes as list($action_method, $regexp, $handler)) {
+    if ($method === $action_method && preg_match($regexp, $path, $caps)) {
+      $action = $handler;
+      $params = array_slice($caps, 1);
       break;
     }
   }
 
-  if (!$match) {
+  # no matching route, 404
+  if (!$action) {
     return response('', 404, []);
   }
 
-  list($func, $caps) = $match;
-
-  return empty($caps)
-    ? $func(...$args)
-    : $func($caps, ...$args);
+  return empty($params)
+    ? $action(...$args)
+    : $action($params, ...$args);
 }
 
 # renders request response to the output buffer (ref: zend-diactoros)
