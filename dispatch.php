@@ -78,10 +78,10 @@ function serve(array $actions, $verb, $path, ...$args) {
   }
 
   if (!$match) {
-    return fn() => response('', 404, []);
+    return response('', 404, []);
   }
 
-  [$func, $caps] = $match;
+  list($func, $caps) = $match;
 
   return empty($caps)
     ? $func(...$args)
