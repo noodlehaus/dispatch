@@ -6,7 +6,7 @@ test_response();
 test_redirect();
 test_action();
 test_serve();
-test_context();
+test_stash();
 test_phtml();
 test_page();
 test_route();
@@ -50,13 +50,9 @@ function test_serve() {
 }
 
 # context()
-function test_context() {
-  $v = &context();
-  $v[] = 'foo';
-  $x = &context();
-  assert($x === ['foo']);
-  array_shift($x);
-  assert(empty(context()));
+function test_stash() {
+  stash('name', 'noodlehaus');
+  assert(stash('name') === 'noodlehaus');
 }
 
 # phtml
@@ -78,8 +74,7 @@ function test_route() {
     return response('hello world!', 201, ['X-Custom-Value' => 'foo']);
   };
   route('GET', '/index', $action);
-
-  $routes = context();
+  $routes = stash(DISPATCH_ROUTES_KEY);
   list($method, $expr, $handler) = $routes[0];
   assert($method === 'GET');
   assert(preg_match($expr, '/index'));
