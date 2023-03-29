@@ -1,16 +1,16 @@
-<?php
+<?php declare(strict_types=1);
 
 # @author noodlehaus
 # @license MIT
 
 # returns by ref the route stack singleton
-function &context() {
+function &context(): array {
   static $context = [];
   return $context;
 }
 
 # dispatch sapi request against routes context
-function dispatch(...$args) {
+function dispatch(...$args): void {
 
   $method = strtoupper($_SERVER['REQUEST_METHOD']);
   $path = '/'.trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
@@ -29,33 +29,29 @@ function dispatch(...$args) {
 }
 
 # creates an action and puts it into the routes stack
-function route($method, $path, callable $handler) {
+function route(string $method, string $path, callable $handler): void {
   $context = &context();
   array_push($context, action($method, $path, $handler));
 }
 
 # creates a route handler
-function action($method, $path, callable $handler) {
+function action(string $method, string $path, callable $handler): array {
   $regexp = '@^'.preg_replace('@:(\w+)@', '(?<\1>[^/]+)', $path).'$@';
   return [strtoupper($method), $regexp, $handler];
 }
 
 # creates standard response
-function response($body, $code = 200, array $headers = []) {
-  return function () use ($body, $code, $headers) {
-    render($body, $code, $headers);
-  };
+function response(string $body, int $code = 200, array $headers = []): callable {
+  return fn() => render($body, $code, $headers);
 }
 
 # creates redirect response
-function redirect($location, $code = 302) {
-  return function () use ($location, $code) {
-    render('', $code, ['location' => $location]);
-  };
+function redirect(string $location, int $code = 302): callable {
+  return fn() => render('', $code, ['location' => $location]);
 }
 
 # dispatches method + path against route stack
-function serve(array $routes, $method, $path, ...$args) {
+function serve(array $routes, string $method, string $path, ...$args): callable {
 
   $method = strtoupper(trim($method));
   $path = '/'.trim(rawurldecode(parse_url($path, PHP_URL_PATH)), '/');
@@ -64,7 +60,7 @@ function serve(array $routes, $method, $path, ...$args) {
   $params = null;
 
   # test method + path against action method + expression
-  foreach ($routes as list($action_method, $regexp, $handler)) {
+  foreach ($routes as [$action_method, $regexp, $handler]) {
     if ($method === $action_method && preg_match($regexp, $path, $caps)) {
       $action = $handler;
       $params = array_slice($caps, 1);
@@ -77,16 +73,17 @@ function serve(array $routes, $method, $path, ...$args) {
     return response('', 404, []);
   }
 
+  # invoke matching handler
   return empty($params)
     ? $action(...$args)
     : $action($params, ...$args);
 }
 
 # renders request response to the output buffer (ref: zend-diactoros)
-function render($body, $code = 200, $headers = []) {
+function render(string $body, int $code = 200, $headers = []): void {
   http_response_code($code);
   array_walk($headers, function ($value, $key) {
-    if (! preg_match('/^[a-zA-Z0-9\'`#$%&*+.^_|~!-]+$/', $key)) {
+    if (!preg_match('/^[a-zA-Z0-9\'`#$%&*+.^_|~!-]+$/', $key)) {
       throw new InvalidArgumentException("Invalid header name - {$key}");
     }
     $values = is_array($value) ? $value : [$value];
@@ -104,14 +101,12 @@ function render($body, $code = 200, $headers = []) {
 }
 
 # creates an page-rendering action
-function page($path, array $vars = []) {
-  return function () use ($path, $vars) {
-    return response(phtml($path, $vars));
-  };
+function page(string $path, array $vars = []): callable {
+  return fn() => response(phtml($path, $vars));
 }
 
 # renders and returns the content of a template
-function phtml($path, array $vars = []) {
+function phtml(string $path, array $vars = []): string {
   ob_start();
   extract($vars, EXTR_SKIP);
   require "{$path}.phtml";
