@@ -5,7 +5,6 @@ require __DIR__.'/../dispatch.php';
 test_response();
 test_redirect();
 test_action();
-test_match();
 test_serve();
 test_context();
 test_phtml();
@@ -43,17 +42,6 @@ function test_action() {
   list($c2, $v2) = $f2('GET', '/dispatch/singapore');
   assert($c1() === 'index' && empty($v1));
   assert($c2($v2) === 'dispatch' && isset($v2['name'], $v2['location']));
-}
-
-# match()
-function test_match() {
-  $v = [
-    action('GET', '/index', function () { return 'GET index'; }),
-    action('POST', '/index', function () { return 'POST index'; })
-  ];
-  assert(empty(match($v, 'GET', '/about')));
-  list($f, $c) = match($v, 'POST', '/index');
-  assert(empty($c) && $f() === 'POST index');
 }
 
 # serve()
