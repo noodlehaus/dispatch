@@ -10,6 +10,7 @@ test_stash();
 test_phtml();
 test_page();
 test_route();
+test_bind();
 test_dispatch();
 
 # response()
@@ -37,6 +38,12 @@ function test_action() {
   assert(preg_match($f2[1], '/dispatch/singapore'));
   assert($f1[0] === 'GET');
   assert($f2[0] === 'GET');
+  $v = [
+    action('GET', '/index', function () { return response('GET index'); }),
+    action('POST', '/index', function ($d) { return response("POST {$d}"); })
+  ];
+  $r = serve($v, 'POST', '/index', 'foo');
+  assert(is_callable($r));
 }
 
 # serve()
@@ -79,6 +86,21 @@ function test_route() {
   assert($method === 'GET');
   assert(preg_match($expr, '/index'));
   assert($handler === $action);
+}
+
+# bind()
+function test_bind() {
+  bind('name', fn($name) => strtoupper($name));
+  route('GET', '/greet/:name', function ($params) {
+    return response("hello, {$params['name']}!");
+  });
+  $_SERVER = [
+    'REQUEST_METHOD' => 'GET',
+    'REQUEST_URI' => '/greet/wednesday'
+  ];
+  ob_start();
+  dispatch();
+  assert(trim(ob_get_clean()) === 'hello, WEDNESDAY!');
 }
 
 # dispatch() - minus header and status check
