@@ -3,10 +3,16 @@
 # @author noodlehaus
 # @license MIT
 
-# returns by ref the route stack singleton
-function &context(): array {
-  static $context = [];
-  return $context;
+define('DISPATCH_ROUTES_KEY', '__dispatch_routes__');
+
+# sets or gets a value in a request-scope storage
+function stash(string $key, mixed $value = null): mixed {
+  static $store = [];
+  return match(func_num_args()) {
+    1 => $store[$key] ?? null,
+    2 => ($store[$key] = $value),
+    default => throw new BadFunctionCallException('Unsupported function call.'),
+  };
 }
 
 # dispatch sapi request against routes context
@@ -24,14 +30,15 @@ function dispatch(...$args): void {
     }
   }
 
-  $responder = serve(context(), $method, $path, ...$args);
+  $responder = serve(stash(DISPATCH_ROUTES_KEY), $method, $path, ...$args);
   $responder();
 }
 
 # creates an action and puts it into the routes stack
 function route(string $method, string $path, callable $handler): void {
-  $context = &context();
-  array_push($context, action($method, $path, $handler));
+  $routes = stash(DISPATCH_ROUTES_KEY) ?? [];
+  array_push($routes, action($method, $path, $handler));
+  stash(DISPATCH_ROUTES_KEY, $routes);
 }
 
 # creates a route handler
