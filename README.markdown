@@ -1,7 +1,7 @@
 ## dispatch
 
 - a tiny library for quick and easy PHP apps
-- requires PHP 5.6+
+- requires at least PHP 7.x
 
 Here's a sample of how you'd usually use `dispatch`.
 

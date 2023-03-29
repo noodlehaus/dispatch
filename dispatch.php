@@ -78,7 +78,9 @@ function serve(array $actions, $verb, $path, ...$args) {
   }
 
   if (!$match) {
-    return fn() => response('', 404, []);
+    return function () {
+      return response('', 404, []);
+    };
   }
 
   [$func, $caps] = $match;
