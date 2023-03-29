@@ -36,33 +36,16 @@ function route($verb, $path, callable $func) {
 
 # creates a route handler
 function action($verb, $path, callable $func) {
-  return function ($rverb, $rpath) use ($verb, $path, $func) {
-    $rexp = preg_replace('@:(\w+)@', '(?<\1>[^/]+)', $path);
+  $rexp = preg_replace('@:(\w+)@', '(?<\1>[^/]+)', $path);
+  return function ($rverb, $rpath) use ($rexp, $verb, $path, $func) {
     if (
       strtoupper($rverb) !== strtoupper($verb) ||
       !preg_match("@^{$rexp}$@", $rpath, $caps)
     ) {
-      return [];
+      return null;
     }
     return [$func, array_slice($caps, 1)];
   };
-}
-
-# performs a lookup against actions for verb + path
-function match(array $actions, $verb, $path) {
-
-  $cverb = strtoupper(trim($verb));
-  $cpath = '/'.trim(rawurldecode(parse_url($path, PHP_URL_PATH)), '/');
-
-  # test verb + path against route handlers
-  foreach ($actions as $test) {
-    $match = $test($cverb, $cpath);
-    if (!empty($match)) {
-      return $match;
-    }
-  }
-
-  return [];
 }
 
 # creates standard response
@@ -81,10 +64,28 @@ function redirect($location, $code = 302) {
 
 # dispatches method + path against route stack
 function serve(array $actions, $verb, $path, ...$args) {
-  $pair = match($actions, $verb, $path);
-  $func = array_shift($pair) ?: function () { return response('', 404, []); };
-  $caps = array_shift($pair) ?: null;
-  return empty($caps) ? $func(...$args) : $func($caps, ...$args);
+
+  $cverb = strtoupper(trim($verb));
+  $cpath = '/'.trim(rawurldecode(parse_url($path, PHP_URL_PATH)), '/');
+  $match = null;
+
+  # test verb + path against route handlers
+  foreach ($actions as $test) {
+    $match = $test($cverb, $cpath);
+    if ($match != null) {
+      break;
+    }
+  }
+
+  if (!$match) {
+    return fn() => response('', 404, []);
+  }
+
+  [$func, $caps] = $match;
+
+  return empty($caps)
+    ? $func(...$args)
+    : $func($caps, ...$args);
 }
 
 # renders request response to the output buffer (ref: zend-diactoros)
