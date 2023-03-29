@@ -4,6 +4,7 @@
 # @license MIT
 
 define('DISPATCH_ROUTES_KEY', '__dispatch_routes__');
+define('DISPATCH_BINDINGS_KEY', '__dispatch_bindings__');
 
 # sets or gets a value in a request-scope storage
 function stash(string $key, mixed $value = null): mixed {
@@ -39,6 +40,13 @@ function route(string $method, string $path, callable $handler): void {
   $routes = stash(DISPATCH_ROUTES_KEY) ?? [];
   array_push($routes, action($method, $path, $handler));
   stash(DISPATCH_ROUTES_KEY, $routes);
+}
+
+# maps a callback/mutation against a route named parameter
+function bind(string $name, callable $transform): void {
+  $bindings = stash(DISPATCH_BINDINGS_KEY) ?? [];
+  $bindings[$name] = $transform;
+  stash(DISPATCH_BINDINGS_KEY, $bindings);
 }
 
 # creates a route handler
@@ -78,6 +86,16 @@ function serve(array $routes, string $method, string $path, ...$args): callable 
   # no matching route, 404
   if (!$action) {
     return response('', 404, []);
+  }
+
+  # if we have params, run them through bindings
+  $bindings = stash(DISPATCH_BINDINGS_KEY) ?? [];
+  if (count($params) && count($bindings)) {
+    foreach ($params as $key => $val) {
+      $params[$key] = isset($bindings[$key])
+        ? call_user_func($bindings[$key], $params[$key], ...$args)
+        : $params[$key];
+    }
   }
 
   # invoke matching handler
