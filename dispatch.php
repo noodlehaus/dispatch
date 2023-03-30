@@ -36,9 +36,9 @@ function dispatch(...$args): void {
 }
 
 # creates an action and puts it into the routes stack
-function route(string $method, string $path, callable $handler): void {
+function route(string $method, string $path, callable ...$handlers): void {
   $routes = stash(DISPATCH_ROUTES_KEY) ?? [];
-  array_push($routes, action($method, $path, $handler));
+  array_push($routes, action($method, $path, ...$handlers));
   stash(DISPATCH_ROUTES_KEY, $routes);
 }
 
@@ -50,9 +50,9 @@ function bind(string $name, callable $transform): void {
 }
 
 # creates a route handler
-function action(string $method, string $path, callable $handler): array {
+function action(string $method, string $path, callable ...$handlers): array {
   $regexp = '@^'.preg_replace('@:(\w+)@', '(?<\1>[^/]+)', $path).'$@';
-  return [strtoupper($method), $regexp, $handler];
+  return [strtoupper($method), $regexp, $handlers];
 }
 
 # creates standard response
@@ -68,23 +68,26 @@ function redirect(string $location, int $code = 302): callable {
 # dispatches method + path against route stack
 function serve(array $routes, string $method, string $path, ...$args): callable {
 
-  $method = strtoupper(trim($method));
-  $path = '/'.trim(rawurldecode(parse_url($path, PHP_URL_PATH)), '/');
+  $reqmethod = strtoupper(trim($method));
+  $reqpath = '/'.trim(rawurldecode(parse_url($path, PHP_URL_PATH)), '/');
 
   $action = null;
   $params = null;
+  $mwares = null;
 
   # test method + path against action method + expression
-  foreach ($routes as [$action_method, $regexp, $handler]) {
-    if ($method === $action_method && preg_match($regexp, $path, $caps)) {
-      $action = $handler;
+  foreach ($routes as [$actmethod, $regexp, $handlers]) {
+    if ($reqmethod === $actmethod && preg_match($regexp, $reqpath, $caps)) {
+      # action is last in the handlers chain
+      $action = array_pop($handlers);
       $params = array_slice($caps, 1);
+      $mwares = $handlers;
       break;
     }
   }
 
   # no matching route, 404
-  if (!$action) {
+  if (empty($action)) {
     return response('', 404, []);
   }
 
@@ -98,14 +101,28 @@ function serve(array $routes, string $method, string $path, ...$args): callable 
     }
   }
 
-  # invoke matching handler
-  return empty($params)
-    ? $action(...$args)
-    : $action($params, ...$args);
+  # wrap action as last midware chain link
+  $next = function () use ($action, $params, $args) {
+    return empty($params)
+      ? $action(...$args)
+      : $action($params, ...$args);
+  };
+
+  # build midware chain, from last to first, if any
+  foreach (array_reverse($mwares) as $middleware) {
+    $next = function () use ($middleware, $next, $params, $args) {
+      return empty($params)
+        ? $middleware($next, ...$args)
+        : $middleware($next, $params, ...$args);
+    };
+  }
+
+  # trigger middleware chain + handlers
+  return $next();
 }
 
 # renders request response to the output buffer (ref: zend-diactoros)
-function render(string $body, int $code = 200, $headers = []): void {
+function render(string $body, int $code = 200, array $headers = []): void {
   http_response_code($code);
   array_walk($headers, function ($value, $key) {
     if (!preg_match('/^[a-zA-Z0-9\'`#$%&*+.^_|~!-]+$/', $key)) {
@@ -122,7 +139,7 @@ function render(string $body, int $code = 200, $headers = []): void {
     }
     header($key.': '.implode(',', $values));
   });
-  print $body;
+  !empty($body) && print $body;
 }
 
 # creates an page-rendering action
