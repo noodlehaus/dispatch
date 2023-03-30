@@ -11,6 +11,7 @@ test_phtml();
 test_page();
 test_route();
 test_bind();
+test_middleware();
 test_dispatch();
 
 # response()
@@ -85,7 +86,7 @@ function test_route() {
   list($method, $expr, $handler) = $routes[0];
   assert($method === 'GET');
   assert(preg_match($expr, '/index'));
-  assert($handler === $action);
+  assert(is_array($handler) && $handler[0] === $action);
 }
 
 # bind()
@@ -101,6 +102,25 @@ function test_bind() {
   ob_start();
   dispatch();
   assert(trim(ob_get_clean()) === 'hello, WEDNESDAY!');
+}
+
+# middleware
+function test_middleware() {
+  $middleware = function ($next) {
+    stash('foo', 'bar');
+    return $next();
+  };
+  route('GET', '/foo', $middleware, function () {
+    $foo = stash('foo');
+    return response("hello, {$foo}!");
+  });
+  $_SERVER = [
+    'REQUEST_METHOD' => 'GET',
+    'REQUEST_URI' => '/foo'
+  ];
+  ob_start();
+  dispatch();
+  assert(trim(ob_get_clean()) === 'hello, bar!');
 }
 
 # dispatch() - minus header and status check
