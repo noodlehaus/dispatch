@@ -11,6 +11,7 @@ test_phtml();
 test_page();
 test_route();
 test_bind();
+test_apply();
 test_middleware();
 test_dispatch();
 
@@ -102,6 +103,37 @@ function test_bind() {
   ob_start();
   dispatch();
   assert(trim(ob_get_clean()) === 'hello, WEDNESDAY!');
+}
+
+# apply()
+function test_apply() {
+  apply(function ($next) {
+    stash('items', [1]);
+    return $next();
+  });
+  apply('^/welcome', function ($next) {
+    $items = stash('items');
+    $items[] = 2;
+    stash('items', $items);
+    return $next();
+  });
+  apply('^/greetings', function ($next) {
+    $items = stash('items');
+    $items[] = 3;
+    stash('items', $items);
+    return $next();
+  });
+  route('GET', '/welcome', function () {
+    $items = stash('items');
+    return response(implode(' ', $items));
+  });
+  $_SERVER = [
+    'REQUEST_METHOD' => 'GET',
+    'REQUEST_URI' => '/welcome',
+  ];
+  ob_start();
+  dispatch();
+  assert(trim(ob_get_clean()) === '1 2');
 }
 
 # middleware

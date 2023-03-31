@@ -4,6 +4,7 @@
 # @license MIT
 
 define('DISPATCH_ROUTES_KEY', '__dispatch_routes__');
+define('DISPATCH_MIDDLEWARE_KEY', '__dispatch_middleware__');
 define('DISPATCH_BINDINGS_KEY', '__dispatch_bindings__');
 
 # sets or gets a value in a request-scope storage
@@ -42,6 +43,23 @@ function route(string $method, string $path, callable ...$handlers): void {
   stash(DISPATCH_ROUTES_KEY, $routes);
 }
 
+# allows middleware mapping against paths
+function apply(...$args): void {
+
+  if (empty($args)) {
+    throw new BadFunctionCallException('Unsupported function call.');
+  }
+
+  $regexp = array_shift($args);
+  $record = is_string($regexp)
+    ? ["@{$regexp}@", ...$args]
+    : ['@.+@', $regexp];
+
+  $mwares = stash(DISPATCH_MIDDLEWARE_KEY) ?? [];
+  $mwares[] = $record;
+  stash(DISPATCH_MIDDLEWARE_KEY, $mwares);
+}
+
 # maps a callback/mutation against a route named parameter
 function bind(string $name, callable $transform): void {
   $bindings = stash(DISPATCH_BINDINGS_KEY) ?? [];
@@ -66,10 +84,7 @@ function redirect(string $location, int $code = 302): callable {
 }
 
 # dispatches method + path against route stack
-function serve(array $routes, string $method, string $path, ...$args): callable {
-
-  $reqmethod = strtoupper(trim($method));
-  $reqpath = '/'.trim(rawurldecode(parse_url($path, PHP_URL_PATH)), '/');
+function serve(array $routes, string $reqmethod, string $reqpath, ...$args): callable {
 
   $action = null;
   $params = null;
@@ -107,6 +122,15 @@ function serve(array $routes, string $method, string $path, ...$args): callable 
       ? $action(...$args)
       : $action($params, ...$args);
   };
+
+  # prepend matching global middleware into middleware chain
+  $globalmwares = array_reverse(stash(DISPATCH_MIDDLEWARE_KEY) ?? []);
+  foreach ($globalmwares as $middleware) {
+    $pattern = array_shift($middleware);
+    if (preg_match($pattern, $reqpath)) {
+      array_unshift($mwares, ...$middleware);
+    }
+  }
 
   # build midware chain, from last to first, if any
   foreach (array_reverse($mwares) as $middleware) {
