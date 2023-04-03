@@ -6,10 +6,13 @@ test_response();
 test_redirect();
 test_action();
 test_serve();
-test_context();
+test_stash();
 test_phtml();
 test_page();
 test_route();
+test_bind();
+test_apply();
+test_middleware();
 test_dispatch();
 
 # response()
@@ -37,6 +40,12 @@ function test_action() {
   assert(preg_match($f2[1], '/dispatch/singapore'));
   assert($f1[0] === 'GET');
   assert($f2[0] === 'GET');
+  $v = [
+    action('GET', '/index', function () { return response('GET index'); }),
+    action('POST', '/index', function ($d) { return response("POST {$d}"); })
+  ];
+  $r = serve($v, 'POST', '/index', 'foo');
+  assert(is_callable($r));
 }
 
 # serve()
@@ -50,13 +59,9 @@ function test_serve() {
 }
 
 # context()
-function test_context() {
-  $v = &context();
-  $v[] = 'foo';
-  $x = &context();
-  assert($x === ['foo']);
-  array_shift($x);
-  assert(empty(context()));
+function test_stash() {
+  stash('name', 'noodlehaus');
+  assert(stash('name') === 'noodlehaus');
 }
 
 # phtml
@@ -78,12 +83,76 @@ function test_route() {
     return response('hello world!', 201, ['X-Custom-Value' => 'foo']);
   };
   route('GET', '/index', $action);
-
-  $routes = context();
+  $routes = stash(DISPATCH_ROUTES_KEY);
   list($method, $expr, $handler) = $routes[0];
   assert($method === 'GET');
   assert(preg_match($expr, '/index'));
-  assert($handler === $action);
+  assert(is_array($handler) && $handler[0] === $action);
+}
+
+# bind()
+function test_bind() {
+  bind('name', fn($name) => strtoupper($name));
+  route('GET', '/greet/:name', function ($params) {
+    return response("hello, {$params['name']}!");
+  });
+  $_SERVER = [
+    'REQUEST_METHOD' => 'GET',
+    'REQUEST_URI' => '/greet/wednesday'
+  ];
+  ob_start();
+  dispatch();
+  assert(trim(ob_get_clean()) === 'hello, WEDNESDAY!');
+}
+
+# apply()
+function test_apply() {
+  apply(function ($next) {
+    stash('items', [1]);
+    return $next();
+  });
+  apply('^/welcome', function ($next) {
+    $items = stash('items');
+    $items[] = 2;
+    stash('items', $items);
+    return $next();
+  });
+  apply('^/greetings', function ($next) {
+    $items = stash('items');
+    $items[] = 3;
+    stash('items', $items);
+    return $next();
+  });
+  route('GET', '/welcome', function () {
+    $items = stash('items');
+    return response(implode(' ', $items));
+  });
+  $_SERVER = [
+    'REQUEST_METHOD' => 'GET',
+    'REQUEST_URI' => '/welcome',
+  ];
+  ob_start();
+  dispatch();
+  assert(trim(ob_get_clean()) === '1 2');
+}
+
+# middleware
+function test_middleware() {
+  $middleware = function ($next) {
+    stash('foo', 'bar');
+    return $next();
+  };
+  route('GET', '/foo', $middleware, function () {
+    $foo = stash('foo');
+    return response("hello, {$foo}!");
+  });
+  $_SERVER = [
+    'REQUEST_METHOD' => 'GET',
+    'REQUEST_URI' => '/foo'
+  ];
+  ob_start();
+  dispatch();
+  assert(trim(ob_get_clean()) === 'hello, bar!');
 }
 
 # dispatch() - minus header and status check
