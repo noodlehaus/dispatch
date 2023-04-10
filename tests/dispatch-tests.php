@@ -8,7 +8,6 @@ test_action();
 test_serve();
 test_stash();
 test_phtml();
-test_page();
 test_route();
 test_bind();
 test_apply();
@@ -68,12 +67,6 @@ function test_stash() {
 function test_phtml() {
   $t = phtml(__DIR__.'/test-phtml', ['name' => 'world']);
   assert($t === 'hello, world!');
-}
-
-# page()
-function test_page() {
-  $f = page(__DIR__.'/test-phtml', ['name' => 'world']);
-  assert(is_callable($f) && is_callable($f()));
 }
 
 # route()

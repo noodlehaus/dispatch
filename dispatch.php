@@ -166,15 +166,13 @@ function render(string $body, int $code = 200, array $headers = []): void {
   !empty($body) && print $body;
 }
 
-# creates an page-rendering action
-function page(string $path, array $vars = []): callable {
-  return fn() => response(phtml($path, $vars));
-}
-
 # renders and returns the content of a template
 function phtml(string $path, array $vars = []): string {
+  if (!preg_match('@\.phtml$@', $path)) {
+    $path = "{$path}.phtml";
+  }
   ob_start();
   extract($vars, EXTR_SKIP);
-  require "{$path}.phtml";
+  require $path;
   return trim(ob_get_clean());
 }
