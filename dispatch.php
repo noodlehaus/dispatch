@@ -43,6 +43,17 @@ function route(string $method, string $path, callable ...$handlers): void {
   stash(DISPATCH_ROUTES_KEY, $routes);
 }
 
+# set a custom 404 handler for non-matching requests
+function _404(callable $handler = null): callable {
+  static $error404 = null;
+  if (func_num_args() === 0) {
+    return is_null($error404)
+      ? fn() => response('Not Found', 404)
+      : $error404;
+  }
+  return ($error404 = $handler);
+}
+
 # allows middleware mapping against paths
 function apply(...$args): void {
 
@@ -103,7 +114,7 @@ function serve(array $routes, string $reqmethod, string $reqpath, ...$args): cal
 
   # no matching route, 404
   if (empty($action)) {
-    return response('', 404, []);
+    return call_user_func(_404(), ...$args);
   }
 
   # if we have params, run them through bindings
