@@ -54,6 +54,9 @@ apply('^/admin/', function ($next, $params, $db) {
   return $next();
 }
 
+# Replace default 404 handler
+_404(fn() => response(phtml('not-found'), 404));
+
 # Sample route that has a named parameter value. Named parameters gets
 # passed to the handlers as the first argument as an associative array.
 # Arguments that follow the named parameters array are values passed through

@@ -11,6 +11,7 @@ test_phtml();
 test_route();
 test_bind();
 test_apply();
+test_404();
 test_middleware();
 test_dispatch();
 
@@ -157,4 +158,19 @@ function test_dispatch() {
   ob_start();
   dispatch();
   assert(trim(ob_get_clean()) === 'hello world!');
+}
+
+# _404()
+function test_404() {
+  _404(fn() => response('not in here', 404));
+  route('GET', '/bar', function () {
+    return response('bar!');
+  });
+  $_SERVER = [
+    'REQUEST_METHOD' => 'GET',
+    'REQUEST_URI' => '/fizz'
+  ];
+  ob_start();
+  dispatch();
+  assert(trim(ob_get_clean()) === 'not in here');
 }
