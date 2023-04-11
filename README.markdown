@@ -3,7 +3,25 @@
 - a tiny library for quick and easy PHP apps
 - requires at least PHP 8.x
 
-Here's a sample of how you'd usually use `dispatch`.
+## functions
+
+Below is the list of functions provided by `dispatch`.
+
+```php
+function dispatch(...$args): void;
+function route(string $method, string $path, callable ...$handlers): void;
+function _404(callable $handler = null): callable;
+function apply(...$args): void;
+function bind(string $name, callable $transform): void;
+function action(string $method, string $path, callable ...$handlers): array;
+function response(string $body, int $code = 200, array $headers = []): callable;
+function redirect(string $location, int $code = 302): callable;
+function serve(array $routes, string $reqmethod, string $reqpath, ...$args): callable;
+function phtml(string $path, array $vars = []): string;
+function stash(string $key, mixed $value = null): mixed;
+```
+
+Here's a sample of how you'd usually use them in an app.
 
 ```php
 <?php
