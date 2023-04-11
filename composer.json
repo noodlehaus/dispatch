@@ -79,5 +79,9 @@
     "files": [
       "dispatch.php"
     ]
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^10.0",
+    "ext-xdebug": "*"
   }
 }
