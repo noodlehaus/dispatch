@@ -8,3 +8,4 @@ node_modules/
 tests/cookiejar.txt
 example/posts.txt
 vendor/
+.phpunit.cache/

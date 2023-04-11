@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.0/phpunit.xsd" bootstrap="vendor/autoload.php" colors="true" cacheResult="false" cacheDirectory=".phpunit.cache">
+  <coverage>
+    <include>
+      <directory suffix=".php">.</directory>
+    </include>
+    <exclude>
+      <directory>./vendor</directory>
+    </exclude>
+  </coverage>
+  <testsuites>
+    <testsuite name="dispatch-tests">
+      <file>tests/DispatchTests.php</file>
+    </testsuite>
+  </testsuites>
+</phpunit>
