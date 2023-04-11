@@ -32,7 +32,7 @@ function dispatch(...$args): void {
     }
   }
 
-  $responder = serve(stash(DISPATCH_ROUTES_KEY), $method, $path, ...$args);
+  $responder = serve(stash(DISPATCH_ROUTES_KEY) ?? [], $method, $path, ...$args);
   $responder();
 }
 
