@@ -127,13 +127,6 @@ function serve(array $routes, string $reqmethod, string $reqpath, ...$args): cal
     }
   }
 
-  # wrap action as last midware chain link
-  $next = function () use ($action, $params, $args) {
-    return empty($params)
-      ? $action(...$args)
-      : $action($params, ...$args);
-  };
-
   # prepend matching global middleware into middleware chain
   $globalmwares = array_reverse(stash(DISPATCH_MIDDLEWARE_KEY) ?? []);
   foreach ($globalmwares as $middleware) {
@@ -143,17 +136,16 @@ function serve(array $routes, string $reqmethod, string $reqpath, ...$args): cal
     }
   }
 
+  # wrap action as last midware chain link
+  $next = fn(...$vargs) => $action(...$vargs);
+
   # build midware chain, from last to first, if any
   foreach (array_reverse($mwares) as $middleware) {
-    $next = function () use ($middleware, $next, $params, $args) {
-      return empty($params)
-        ? $middleware($next, ...$args)
-        : $middleware($next, $params, ...$args);
-    };
+    $next = fn(...$vargs) => $middleware($next, ...$vargs);
   }
 
   # trigger middleware chain + handlers
-  return $next();
+  return $next($params, ...$args);
 }
 
 # renders request response to the output buffer (ref: zend-diactoros)
