@@ -160,14 +160,14 @@ function serve(array $routes, string $reqmethod, string $reqpath, ...$args): cal
 function render(string $body, int $code = 200, array $headers = []): void {
   http_response_code($code);
   array_walk($headers, function ($value, $key) {
-    if (!preg_match('/^[a-zA-Z0-9\'`#$%&*+.^_|~!-]+$/', $key)) {
+    if (!preg_match('@^[a-zA-Z0-9\'`#$%&*+.^_|~!-]+$@', $key)) {
       throw new InvalidArgumentException("Invalid header name - {$key}");
     }
     $values = is_array($value) ? $value : [$value];
     foreach ($values as $val) {
       if (
-        preg_match("#(?:(?:(?<!\r)\n)|(?:\r(?!\n))|(?:\r\n(?![ \t])))#", $val) ||
-        preg_match('/[^\x09\x0a\x0d\x20-\x7E\x80-\xFE]/', $val)
+        preg_match("@(?:(?:(?<!\r)\n)|(?:\r(?!\n))|(?:\r\n(?![ \t])))@", $val) ||
+        preg_match('@[^\x09\x0a\x0d\x20-\x7E\x80-\xFE]@', $val)
       ) {
         throw new InvalidArgumentException("Invalid header value - {$val}");
       }
