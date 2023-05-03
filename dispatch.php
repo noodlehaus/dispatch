@@ -17,6 +17,11 @@ function stash(string $key, mixed $value = null): mixed {
   };
 }
 
+# context is just a nicer name for stash
+function context(...$args): mixed {
+  return stash(...$args);
+}
+
 # dispatch sapi request against routes context
 function dispatch(...$args): void {
 
@@ -41,6 +46,26 @@ function route(string $method, string $path, callable ...$handlers): void {
   $routes = stash(DISPATCH_ROUTES_KEY) ?? [];
   array_push($routes, action($method, $path, ...$handlers));
   stash(DISPATCH_ROUTES_KEY, $routes);
+}
+
+# get route helper
+function get(string $path, callable ...$handlers): void {
+  route('GET', $path, ...$handlers);
+}
+
+# post route helper
+function post(string $path, callable ...$handlers): void {
+  route('POST', $path, ...$handlers);
+}
+
+# put route helper
+function put(string $path, callable ...$handlers): void {
+  route('PUT', $path, ...$handlers);
+}
+
+# delete route helper
+function delete(string $path, callable ...$handlers): void {
+  route('DELETE', $path, ...$handlers);
 }
 
 # set a custom 404 handler for non-matching requests
@@ -186,4 +211,37 @@ function phtml(string $path, array $vars = []): string {
   extract($vars, EXTR_SKIP);
   require $path;
   return trim(ob_get_clean());
+}
+
+# helper for picking out file uploads
+function uploads(string $name): ?array {
+
+  static $cache = [];
+
+  # return cached copy
+  if (isset($cache[$name])) {
+    return $cache[$name];
+  }
+
+  if (!isset($_FILES[$name])) {
+    return null;
+  }
+
+  # single-file attachment (no need to cache)
+  if (!is_array($_FILES[$name]['name'])) {
+    return $_FILES[$name];
+  }
+
+  # attachment is an array
+  $result = [];
+
+  # consolidate file info
+  foreach ($_FILES[$name] as $k1 => $v1)
+    foreach ($v1 as $k2 => $v2)
+      $result[$k2][$k1] = $v2;
+
+  # cache and return array uploads
+  $cache[$name] = $result;
+
+  return $result;
 }
