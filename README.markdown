@@ -137,6 +137,29 @@ mappings will have already updated the values inside the `$params` array that's
 forwarded down the execution chain.
 
 
+## URL Rewriting as a standalone PHP file
+
+If you are running Dispatch as a stanalone PHP file, either on the root path or not (eg: `path/to/search.php`), this can cause errors with path matching.
+
+You can use the `DISPATCH_PATH_PREFIX` global to mimic URL rewriting used in other libraries;
+
+```php
+<?php
+// file: path/to/search.php
+
+// NOTE: this must be defined before calling the dispatch.php file
+define('DISPATCH_PATH_PREFIX', '/path/to/search.php');
+
+require __DIR__ . '/dispatch.php';
+
+route('GET', '/testing', function() {
+  echo "test page on subpath " . $_SERVER['REQUEST_URI'];
+});
+
+dispatch();
+```
+
+
 ## license
 
 MIT
