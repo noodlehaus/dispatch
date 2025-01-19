@@ -7,6 +7,10 @@ define('DISPATCH_ROUTES_KEY', '__dispatch_routes__');
 define('DISPATCH_MIDDLEWARE_KEY', '__dispatch_middleware__');
 define('DISPATCH_BINDINGS_KEY', '__dispatch_bindings__');
 
+if (!defined('DISPATCH_PATH_PREFIX')) {
+  define('DISPATCH_PATH_PREFIX', '');
+}
+
 # sets or gets a value in a request-scope storage
 function stash(string $key, mixed $value = null): mixed {
   static $store = [];
@@ -22,6 +26,8 @@ function dispatch(...$args): void {
 
   $method = strtoupper($_SERVER['REQUEST_METHOD']);
   $path = '/'.trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
+
+  $path = substr($path, strlen(DISPATCH_PATH_PREFIX));
 
   # post method override
   if ($method === 'POST') {
