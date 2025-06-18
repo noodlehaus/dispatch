@@ -45,7 +45,7 @@ bind('user', function (string $username, $db): array {
 apply(function (callable $next, array $params, $db) {
   if (isDeviceRestricted($_SERVER)) {
     # returning a response here breaks the middleware chain
-    return resource('Forbidden', 403);
+    return response('Forbidden', 403);
   }
   # we move on to the next middleware
   return $next();
@@ -67,7 +67,7 @@ apply('^/admin/', function ($next, $params, $db) {
   # note that because of the named parameter binding above, the
   # value of $params['user'] is already the loaded user profile
   if (!isAdmin($params['user'])) {
-    return resource('Forbidden', 403);
+    return response('Forbidden', 403);
   }
   return $next();
 }
