@@ -38,6 +38,9 @@ function dispatch(...$args): void {
 
 # creates an action and puts it into the routes stack
 function route(string $method, string $path, callable ...$handlers): void {
+  if (empty($handlers)) {
+    throw new InvalidArgumentException('At least one handler is required');
+  }
   $routes = stash(DISPATCH_ROUTES_KEY) ?? [];
   array_push($routes, action($method, $path, ...$handlers));
   stash(DISPATCH_ROUTES_KEY, $routes);
@@ -91,7 +94,7 @@ function response(string $body, int $code = 200, array $headers = []): callable 
 
 # creates redirect response
 function redirect(string $location, int $code = 302): callable {
-  return fn() => render('', $code, ['location' => $location]);
+  return fn() => render('', $code, ['Location' => $location]);
 }
 
 # dispatches method + path against route stack
@@ -99,7 +102,7 @@ function serve(array $routes, string $reqmethod, string $reqpath, ...$args): cal
 
   $action = null;
   $params = null;
-  $mwares = null;
+  $mwares = [];
 
   # test method + path against action method + expression
   foreach ($routes as [$actmethod, $regexp, $handlers]) {
@@ -181,6 +184,9 @@ function render(string $body, int $code = 200, array $headers = []): void {
 function phtml(string $path, array $vars = []): string {
   if (!preg_match('@\.phtml$@', $path)) {
     $path = "{$path}.phtml";
+  }
+  if (!is_file($path)) {
+    throw new InvalidArgumentException("Template not found: {$path}");
   }
   ob_start();
   extract($vars, EXTR_SKIP);

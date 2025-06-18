@@ -90,6 +90,22 @@ class DispatchTests extends TestCase {
   /**
    * @runInSeparateProcess
    */
+  public function testPhtmlMissingTemplate(): void {
+    $this->expectException(InvalidArgumentException::class);
+    phtml('nonexistent_template');
+  }
+
+  /**
+   * @runInSeparateProcess
+   */
+  public function testRouteRequiresHandler(): void {
+    $this->expectException(InvalidArgumentException::class);
+    route('GET', '/no-handler');
+  }
+
+  /**
+   * @runInSeparateProcess
+   */
   public function test404(): void {
 
     $custom404Called = false;
